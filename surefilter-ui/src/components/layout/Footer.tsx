@@ -3,13 +3,12 @@
 import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
 
-const navigation = [
-  { name: 'Home', href: '#home' },
-  { name: 'Products', href: '#products' },
-  { name: 'About', href: '#about' },
-  { name: 'Warranty', href: '#warranty' },
-  { name: 'Service', href: '#service' },
-  { name: 'Contact', href: '#contact' },
+const companyLinks = [
+  { name: 'About Us', href: '/about-us' },
+  { name: 'Contact Us', href: '/contact-us' },
+  { name: 'Newsroom', href: '/newsroom' },
+  { name: 'Warranty', href: '/warranty' },
+  { name: 'Resources', href: '/resources' },
 ];
 
 const socialLinks = [
@@ -46,11 +45,11 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Навигация */}
+          {/* Навигация по компании */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4">Company</h3>
             <nav className="space-y-2">
-              {navigation.map((item) => (
+              {companyLinks.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}

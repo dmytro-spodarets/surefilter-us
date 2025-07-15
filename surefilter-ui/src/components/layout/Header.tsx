@@ -19,12 +19,12 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const navigation = [
-    { name: 'Home', href: '#home' },
-    { name: 'Products', href: '#products' },
-    { name: 'About', href: '#about' },
-    { name: 'Warranty', href: '#warranty' },
-    { name: 'Service', href: '#service' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'HOME', href: '/' },
+    { name: 'HEAVY DUTY', href: '/heavy-duty' },
+    { name: 'AUTOMOTIVE', href: '/automotive' },
+    { name: 'INDUSTRY', href: '/industry' },
+    { name: 'ABOUT US', href: '/about-us' },
+    { name: 'CONTACT US', href: '/contact-us' },
   ];
 
   useEffect(() => {
@@ -42,54 +42,54 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
   };
 
   return (
-    <header
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md transition-[height] duration-300',
-        isScrolled ? 'h-14' : 'h-24',
-        className
-      )}
-      style={{
-        fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif',
-        borderBottom: '1.5px solid #d1d5db',
-        boxShadow: 'none',
-      }}
-    >
+                <header
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-all duration-500 ease-out',
+          isScrolled 
+            ? 'h-18 bg-white/98' 
+            : 'h-24 bg-white/95',
+          className
+        )}
+        style={{
+          fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif',
+          borderBottom: '1.5px solid #d1d5db',
+        }}
+      >
       <div className="max-w-7xl mx-auto px-4 sm:px-8 h-full flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center h-full select-none" tabIndex={-1}>
-          <span
-            className="flex items-center justify-center"
-            style={{
-              width: LOGO_SIZE,
-              height: LOGO_SIZE,
-              transition: 'transform 0.35s cubic-bezier(.4,0,.2,1)',
-              transform: isScrolled ? 'scale(0.65)' : 'scale(1)',
-              willChange: 'transform',
-            }}
-          >
+                      <span
+              className="flex items-center justify-center transition-all duration-500 ease-out"
+              style={{
+                width: LOGO_SIZE,
+                height: LOGO_SIZE,
+                transform: isScrolled ? 'scale(0.75) translateY(-2px)' : 'scale(1) translateY(0)',
+                willChange: 'transform',
+              }}
+            >
             <Logo size="xl" />
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-7">
+        <nav className="hidden lg:flex items-center space-x-5">
           {navigation.map((item) => (
             <a
               key={item.name}
               href={item.href}
               className={cn(
-                'relative font-sans transition-all duration-300 group',
-                isScrolled ? 'text-base px-1 py-0.5' : 'text-lg px-2 py-1',
+                'relative font-sans transition-all duration-500 ease-out group',
+                isScrolled ? 'text-base px-2 py-1 opacity-90' : 'text-base px-2 py-1 opacity-100',
                 'text-gray-900',
                 'focus:outline-none',
               )}
             >
-              <span className="inline-block transition-all duration-300 group-hover:-translate-y-0.5 group-focus:-translate-y-0.5 group-hover:saturate-150 group-focus:saturate-150 group-hover:text-sure-red-600 group-focus:text-sure-red-600">
+              <span className="inline-block transition-all duration-500 ease-out group-hover:-translate-y-0.5 group-focus:-translate-y-0.5 group-hover:saturate-150 group-focus:saturate-150 group-hover:text-sure-red-600 group-focus:text-sure-red-600">
                 {item.name}
               </span>
               {/* Apple-style underline с градиентом */}
               <span
-                className="pointer-events-none absolute left-1/2 -translate-x-1/2 -bottom-1 h-0.5 w-0 opacity-0 rounded-full transition-all duration-300 group-hover:w-4/5 group-hover:opacity-100 group-focus:w-4/5 group-focus:opacity-100"
+                className="pointer-events-none absolute left-1/2 -translate-x-1/2 -bottom-1 h-0.5 w-0 opacity-0 rounded-full transition-all duration-500 ease-out group-hover:w-4/5 group-hover:opacity-100 group-focus:w-4/5 group-focus:opacity-100"
                 style={{
                   background: 'linear-gradient(90deg, #db360e 0%, #ff8f47 100%)',
                 }}
@@ -113,8 +113,8 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={cn(
-                'border-0 border-b border-gray-300 rounded-none bg-transparent px-0 transition-all duration-200 placeholder-gray-400 shadow-none',
-                isScrolled ? 'py-1 text-sm' : 'py-1.5 text-base',
+                'border-0 border-b border-gray-300 rounded-none bg-transparent px-0 transition-all duration-500 ease-out placeholder-gray-400 shadow-none',
+                isScrolled ? 'py-1.5 text-base opacity-90' : 'py-1.5 text-base opacity-100',
                 'focus:border-sure-red-500 focus:ring-0 focus:outline-none'
               )}
               style={{ borderRadius: 0, fontFamily: 'inherit' }}
@@ -122,7 +122,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
             />
             <button
               type="submit"
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-sure-red-500 transition-colors duration-200 p-1"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-sure-red-500 transition-all duration-500 ease-out p-1"
               tabIndex={-1}
             >
               <Icon name="MagnifyingGlassIcon" size="md" color="current" />
