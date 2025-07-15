@@ -1,4 +1,5 @@
 import Header from '@/components/layout/Header';
+import FullScreenHero from '@/components/sections/FullScreenHero';
 import Footer from '@/components/layout/Footer';
 
 export default function IndustryPage() {
@@ -6,20 +7,11 @@ export default function IndustryPage() {
     <main>
       <Header />
       
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Industrial Filters
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Comprehensive filtration solutions for manufacturing, processing, and industrial operations. 
-              From air purification to liquid filtration, we support your production needs.
-            </p>
-          </div>
-        </div>
-      </section>
+      <FullScreenHero 
+        title="Industrial Filters"
+        description="Comprehensive filtration solutions for manufacturing, processing, and industrial operations. From air purification to liquid filtration, we support your production needs."
+        backgroundImage="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+      />
 
       {/* Content Section */}
       <section className="py-16">

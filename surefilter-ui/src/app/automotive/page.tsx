@@ -1,4 +1,5 @@
 import Header from '@/components/layout/Header';
+import SearchHero from '@/components/sections/SearchHero';
 import Footer from '@/components/layout/Footer';
 
 export default function AutomotivePage() {
@@ -6,20 +7,11 @@ export default function AutomotivePage() {
     <main>
       <Header />
       
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Automotive Filters
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              High-performance filtration solutions for passenger vehicles, commercial trucks, and specialty 
-              automotive applications. Protecting your engine and ensuring optimal performance.
-            </p>
-          </div>
-        </div>
-      </section>
+      <SearchHero 
+        title="Automotive Filters"
+        description="High-performance filtration solutions for passenger vehicles, commercial trucks, and specialty automotive applications."
+        backgroundImage="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+      />
 
       {/* Content Section */}
       <section className="py-16">

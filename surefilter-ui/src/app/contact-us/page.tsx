@@ -7,16 +7,31 @@ export default function ContactUsPage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Contact Us
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Get in touch with our team for technical support, product inquiries, or partnership opportunities. 
-              We're here to help you find the right filtration solution.
-            </p>
+      <section className="relative h-[60vh] min-h-[500px] max-h-[700px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center mt-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            
+            {/* Левая часть - контент */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4 lg:mb-6">
+                Contact Us
+              </h1>
+              <p className="text-base lg:text-xl text-gray-600 leading-relaxed">
+                Get in touch with our team for technical support, product inquiries, or partnership opportunities. We're here to help you find the right filtration solution.
+              </p>
+            </div>
+            
+            {/* Правая часть - картинка */}
+            <div className="relative w-full flex justify-center lg:justify-end">
+              <div className="aspect-[4/3] w-full max-w-lg lg:max-w-xl rounded-2xl overflow-hidden shadow-xl">
+                <img
+                  src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                  alt="Professional customer support and technical consultation"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            
           </div>
         </div>
       </section>
