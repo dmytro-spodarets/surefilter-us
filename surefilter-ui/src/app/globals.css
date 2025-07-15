@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sure-blue-50: #f0f8ff;
+  --color-sure-blue-100: #e0f2ff;
+  --color-sure-blue-200: #bae6ff;
+  --color-sure-blue-300: #7dd3fc;
+  --color-sure-blue-400: #38bdf8;
+  --color-sure-blue-500: #182375;
+  --color-sure-blue-600: #151f5e;
+  --color-sure-blue-700: #121a4a;
+  --color-sure-blue-800: #0f1539;
+  --color-sure-blue-900: #0c1128;
+
+  --color-sure-red-50: #fff5f0;
+  --color-sure-red-100: #ffe8d6;
+  --color-sure-red-200: #ffd1ad;
+  --color-sure-red-300: #ffb380;
+  --color-sure-red-400: #ff8f47;
+  --color-sure-red-500: #db360e;
+  --color-sure-red-600: #c42e0c;
+  --color-sure-red-700: #a3250a;
+  --color-sure-red-800: #821d08;
+  --color-sure-red-900: #611506;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: white;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Глобальные стили для интерактивных элементов */
+button,
+a,
+[role="button"],
+[type="submit"],
+[type="button"] {
+  cursor: pointer;
+}
+
+/* Улучшения для доступности */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Улучшения для фокуса */
+*:focus-visible {
+  outline: 2px solid var(--color-sure-red-500);
+  outline-offset: 2px;
+} 
