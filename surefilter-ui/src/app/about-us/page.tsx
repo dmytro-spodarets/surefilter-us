@@ -1,5 +1,6 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import PageHero from '@/components/sections/PageHero';
 
 export default function AboutUsPage() {
   return (
@@ -7,19 +8,10 @@ export default function AboutUsPage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              About Sure Filter®
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Leading manufacturer of premium filtration solutions for automotive, heavy duty, and industrial 
-              applications. Committed to innovation, quality, and customer satisfaction since our founding.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        title="About Sure Filter®"
+        description="Leading manufacturer of premium filtration solutions for automotive, heavy duty, and industrial applications. Committed to innovation, quality, and customer satisfaction since our founding."
+      />
 
       {/* Company Story Section */}
       <section className="py-16">
