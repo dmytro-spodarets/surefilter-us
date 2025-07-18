@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
     { name: 'HOME', href: '/' },
     { name: 'HEAVY DUTY', href: '/heavy-duty' },
     { name: 'AUTOMOTIVE', href: '/automotive' },
-    { name: 'INDUSTRY', href: '/industry' },
+    { name: 'INDUSTRIES', href: '/industries' },
     { name: 'ABOUT US', href: '/about-us' },
     { name: 'CONTACT US', href: '/contact-us' },
   ];

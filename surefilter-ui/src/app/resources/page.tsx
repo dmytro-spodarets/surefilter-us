@@ -1,230 +1,280 @@
+'use client';
+
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import CompactHero from '@/components/sections/CompactHero';
+import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewdriverIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+
+const resourceFilters = [
+  {
+    id: 'all',
+    name: 'All Resources',
+    icon: DocumentTextIcon,
+    color: 'bg-gray-100 text-gray-700'
+  },
+  {
+    id: 'videos',
+    name: 'Videos',
+    icon: PlayIcon,
+    color: 'bg-red-100 text-red-700'
+  },
+  {
+    id: 'catalogs',
+    name: 'Catalogs',
+    icon: BookOpenIcon,
+    color: 'bg-blue-100 text-blue-700'
+  },
+  {
+    id: 'documents',
+    name: 'Documents',
+    icon: DocumentTextIcon,
+    color: 'bg-green-100 text-green-700'
+  },
+  {
+    id: 'guides',
+    name: 'Installation Guides',
+    icon: WrenchScrewdriverIcon,
+    color: 'bg-purple-100 text-purple-700'
+  },
+  {
+    id: 'education',
+    name: 'Educational',
+    icon: AcademicCapIcon,
+    color: 'bg-yellow-100 text-yellow-700'
+  }
+];
+
+const resources = [
+  {
+    id: 1,
+    title: 'Heavy Duty Filter Catalog 2024',
+    description: 'Comprehensive catalog featuring our complete range of heavy duty filtration solutions with specifications and applications.',
+    category: 'catalogs',
+    type: 'PDF',
+    size: '15.2 MB',
+    pages: '124 pages',
+    downloadUrl: '/resources/heavy-duty-catalog'
+  },
+  {
+    id: 2,
+    title: 'Oil Filter Installation Guide',
+    description: 'Step-by-step installation procedures for automotive and heavy duty oil filters with best practices.',
+    category: 'guides',
+    type: 'PDF',
+    size: '8.4 MB',
+    pages: '32 pages',
+    downloadUrl: '#'
+  },
+  {
+    id: 3,
+    title: 'Filtration Technology Overview',
+    description: 'Educational video series covering the fundamentals of filtration technology and Sure Filter innovations.',
+    category: 'videos',
+    type: 'Video',
+    duration: '24 min',
+    format: 'MP4',
+    downloadUrl: '#'
+  },
+  {
+    id: 4,
+    title: 'Automotive Filter Specifications',
+    description: 'Technical documentation with detailed specifications for all automotive filter applications.',
+    category: 'documents',
+    type: 'PDF',
+    size: '12.8 MB',
+    pages: '89 pages',
+    downloadUrl: '#'
+  },
+  {
+    id: 5,
+    title: 'Quality Control Procedures',
+    description: 'Comprehensive guide to our quality control processes and testing methodologies.',
+    category: 'education',
+    type: 'PDF',
+    size: '6.7 MB',
+    pages: '45 pages',
+    downloadUrl: '#'
+  },
+  {
+    id: 6,
+    title: 'Cross-Reference Guide',
+    description: 'Complete cross-reference guide for OEM part numbers and Sure Filter equivalents.',
+    category: 'documents',
+    type: 'PDF',
+    size: '18.9 MB',
+    pages: '156 pages',
+    downloadUrl: '#'
+  },
+  {
+    id: 7,
+    title: 'Industrial Solutions Catalog',
+    description: 'Specialized catalog for industrial and commercial filtration applications.',
+    category: 'catalogs',
+    type: 'PDF',
+    size: '11.3 MB',
+    pages: '78 pages',
+    downloadUrl: '#'
+  },
+  {
+    id: 8,
+    title: 'Filter Maintenance Best Practices',
+    description: 'Educational material covering proper maintenance techniques to maximize filter life.',
+    category: 'education',
+    type: 'PDF',
+    size: '4.2 MB',
+    pages: '28 pages',
+    downloadUrl: '#'
+  },
+  {
+    id: 9,
+    title: 'Fuel Filter Installation Video',
+    description: 'Professional installation demonstration for fuel filters in various vehicle applications.',
+    category: 'videos',
+    type: 'Video',
+    duration: '18 min',
+    format: 'MP4',
+    downloadUrl: '#'
+  },
+  {
+    id: 10,
+    title: 'Air Filter Performance Data',
+    description: 'Technical performance data and testing results for our air filtration products.',
+    category: 'documents',
+    type: 'PDF',
+    size: '9.6 MB',
+    pages: '67 pages',
+    downloadUrl: '#'
+  }
+];
 
 export default function ResourcesPage() {
+  const [activeFilter, setActiveFilter] = useState('all');
+
+  const filteredResources = resources.filter(resource => 
+    activeFilter === 'all' || resource.category === activeFilter
+  );
+
+  const getCategoryName = (category: string) => {
+    const filter = resourceFilters.find(f => f.id === category);
+    return filter ? filter.name : category;
+  };
+
   return (
     <main>
       <Header />
       
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Resources
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Access technical documentation, installation guides, product catalogs, and educational 
-              materials to help you get the most from your Sure Filter® products.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Compact Hero Section */}
+      <CompactHero
+        title="Resources"
+        description="Access technical documentation, installation guides, product catalogs, and educational materials to help you get the most from your Sure Filter® products."
+        backgroundImage="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+      />
 
-      {/* Resources Categories Section */}
+      {/* Filter Cards Section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Product Catalogs */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="h-48 bg-gradient-to-br from-sure-blue-500 to-sure-blue-600 flex items-center justify-center">
-                <span className="text-white text-3xl font-bold">CATALOGS</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Product Catalogs</h3>
-                <p className="text-gray-600 mb-4">
-                  Comprehensive product catalogs with specifications, applications, and technical data.
-                </p>
-                <div className="space-y-2">
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Automotive Catalog 2024 →
-                  </a>
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Heavy Duty Catalog 2024 →
-                  </a>
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Industrial Solutions →
-                  </a>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+            {resourceFilters.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setActiveFilter(filter.id)}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
+                  activeFilter === filter.id
+                    ? 'border-sure-blue-500 bg-sure-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className={`p-3 rounded-full mb-2 ${
+                    activeFilter === filter.id 
+                      ? 'bg-sure-blue-500 text-white' 
+                      : filter.color
+                  }`}>
+                    <filter.icon className="h-6 w-6" />
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    activeFilter === filter.id ? 'text-sure-blue-700' : 'text-gray-700'
+                  }`}>
+                    {filter.name}
+                  </span>
                 </div>
-              </div>
-            </div>
-
-            {/* Technical Documentation */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="h-48 bg-gradient-to-br from-sure-red-500 to-sure-red-600 flex items-center justify-center">
-                <span className="text-white text-3xl font-bold">TECH</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Technical Documentation</h3>
-                <p className="text-gray-600 mb-4">
-                  Detailed technical specifications, installation guides, and maintenance procedures.
-                </p>
-                <div className="space-y-2">
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Installation Guides →
-                  </a>
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Technical Specifications →
-                  </a>
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Maintenance Procedures →
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Educational Materials */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="h-48 bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                <span className="text-white text-3xl font-bold">EDU</span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Educational Materials</h3>
-                <p className="text-gray-600 mb-4">
-                  Educational content, whitepapers, and industry insights to expand your knowledge.
-                </p>
-                <div className="space-y-2">
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Filtration Basics →
-                  </a>
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Industry Whitepapers →
-                  </a>
-                  <a href="#" className="block text-sure-blue-500 hover:text-sure-blue-600 font-medium">
-                    Best Practices →
-                  </a>
-                </div>
-              </div>
-            </div>
+              </button>
+            ))}
           </div>
-        </div>
-      </section>
 
-      {/* Download Center Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Download Center</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-sure-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-sure-blue-500 text-2xl font-bold">PDF</span>
+          {/* Resources List */}
+          <div className="space-y-6">
+            {filteredResources.map((resource) => (
+              <div key={resource.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-3">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sure-blue-100 text-sure-blue-800">
+                        {getCategoryName(resource.category)}
+                      </span>
+                      <span className="ml-3 text-sm text-gray-500">
+                        {resource.type}
+                      </span>
+                      <span className="ml-3 text-sm text-gray-500">
+                        {resource.size || resource.duration}
+                      </span>
+                      {resource.pages && (
+                        <span className="ml-3 text-sm text-gray-500">
+                          {resource.pages}
+                        </span>
+                      )}
+                      {resource.format && (
+                        <span className="ml-3 text-sm text-gray-500">
+                          {resource.format}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {resource.title}
+                    </h3>
+                    <p className="text-gray-600 mb-3 leading-relaxed">
+                      {resource.description}
+                    </p>
+                  </div>
+                  <a 
+                    href={resource.downloadUrl} 
+                    className="text-sure-blue-500 font-semibold hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0"
+                  >
+                    Download →
+                  </a>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Product Brochures</h3>
-                <p className="text-sm text-gray-600 mb-4">Detailed product information and specifications</p>
-                <a href="#" className="text-sure-blue-500 font-medium hover:text-sure-blue-600">
-                  Download All →
-                </a>
               </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-sure-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-sure-red-500 text-2xl font-bold">DOC</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Installation Manuals</h3>
-                <p className="text-sm text-gray-600 mb-4">Step-by-step installation instructions</p>
-                <a href="#" className="text-sure-blue-500 font-medium hover:text-sure-blue-600">
-                  Download All →
-                </a>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-green-500 text-2xl font-bold">VID</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Video Guides</h3>
-                <p className="text-sm text-gray-600 mb-4">Visual installation and maintenance guides</p>
-                <a href="#" className="text-sure-blue-500 font-medium hover:text-sure-blue-600">
-                  Watch All →
-                </a>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-gray-500 text-2xl font-bold">APP</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Mobile Apps</h3>
-                <p className="text-sm text-gray-600 mb-4">Product lookup and technical support apps</p>
-                <a href="#" className="text-sure-blue-500 font-medium hover:text-sure-blue-600">
-                  Download Apps →
-                </a>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* Support Resources Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="grid md:grid-cols-2 gap-12">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                Technical Support Resources
-              </h2>
-              <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Our technical support team is here to help you with product selection, installation, 
-                troubleshooting, and maintenance questions. Access our comprehensive support resources.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-sure-blue-500 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-white font-bold">1</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Product Selection Guide</h3>
-                    <p className="text-gray-600">Find the right filter for your application</p>
-                  </div>
-                </div>
-                <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-sure-blue-500 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-white font-bold">2</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Troubleshooting Guide</h3>
-                    <p className="text-gray-600">Common issues and solutions</p>
-                  </div>
-                </div>
-                <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-sure-blue-500 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-white font-bold">3</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Contact Technical Support</h3>
-                    <p className="text-gray-600">Get expert help when you need it</p>
-                  </div>
-                </div>
-              </div>
+          
+          {/* Pagination */}
+          <div className="mt-12 flex items-center justify-center space-x-2">
+            <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+              <ChevronLeftIcon className="h-4 w-4 mr-1" />
+              Previous
+            </button>
+            
+            <div className="flex space-x-1">
+              <button className="px-3 py-2 text-sm font-medium text-white bg-sure-blue-500 border border-sure-blue-500 rounded-lg">
+                1
+              </button>
+              <button className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                2
+              </button>
+              <button className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                3
+              </button>
+              <span className="px-3 py-2 text-sm text-gray-500">...</span>
+              <button className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                8
+              </button>
             </div>
-            <div className="bg-gray-100 rounded-lg p-8">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                Quick Access
-              </h3>
-              <div className="space-y-4">
-                <a href="#" className="block p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-                  <h4 className="font-semibold text-gray-900 mb-1">Cross Reference Guide</h4>
-                  <p className="text-gray-600">Find Sure Filter® equivalents for other brands</p>
-                </a>
-                <a href="#" className="block p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-                  <h4 className="font-semibold text-gray-900 mb-1">Size Charts</h4>
-                  <p className="text-gray-600">Filter dimensions and specifications</p>
-                </a>
-                <a href="#" className="block p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-                  <h4 className="font-semibold text-gray-900 mb-1">Performance Data</h4>
-                  <p className="text-gray-600">Efficiency ratings and test results</p>
-                </a>
-                <a href="#" className="block p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-                  <h4 className="font-semibold text-gray-900 mb-1">Certifications</h4>
-                  <p className="text-gray-600">Industry certifications and approvals</p>
-                </a>
-              </div>
-            </div>
+            
+            <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+              Next
+              <ChevronRightIcon className="h-4 w-4 ml-1" />
+            </button>
           </div>
         </div>
       </section>
@@ -232,4 +282,4 @@ export default function ResourcesPage() {
       <Footer />
     </main>
   );
-} 
+}

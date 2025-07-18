@@ -25,8 +25,8 @@ export default function ContactUsPage() {
             <div className="relative w-full flex justify-center lg:justify-end">
               <div className="aspect-[4/3] w-full max-w-lg lg:max-w-xl rounded-2xl overflow-hidden shadow-xl">
                 <img
-                  src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                  alt="Professional customer support and technical consultation"
+                  src="https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixid=M3w2NzEyNTB8MHwxfHNlYXJjaHwxfHxRMXA3YmgzU0hqOHxlbnwwfHx8fDE3MzUxNzgyMjl8MA&ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                  alt="Outer space view showing global connectivity and limitless reach"
                   className="w-full h-full object-cover"
                 />
               </div>

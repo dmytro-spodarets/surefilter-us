@@ -1,6 +1,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface Industry {
   id: number;
@@ -43,9 +44,9 @@ const industries: Industry[] = [
 
 export default function Industries() {
   return (
-    <section className="py-16 sm:py-24 bg-gray-50">
+    <section className="py-16 sm:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        {/* Заголовок */}
+        {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Industries We Serve
@@ -55,11 +56,15 @@ export default function Industries() {
           </p>
         </div>
 
-        {/* Сетка индустрий */}
+        {/* Industries Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {industries.map((industry) => (
-            <div key={industry.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden group">
-              {/* Изображение */}
+            <Link 
+              key={industry.id} 
+              href={`/industries/${industry.name.toLowerCase().replace(' ', '-')}`}
+              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-sure-blue-200"
+            >
+              {/* Image */}
               <div className="relative h-48 bg-gray-100 overflow-hidden">
                 <Image
                   src={industry.image}
@@ -67,28 +72,24 @@ export default function Industries() {
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                {/* Градиент поверх изображения */}
+                {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               </div>
               
-              {/* Контент */}
+              {/* Content */}
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-sure-blue-600 transition-colors duration-200">
                   {industry.name}
                 </h3>
                 
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-gray-600 text-sm">
                   {industry.description}
                 </p>
-                
-                <button className="w-full px-4 py-2 text-sure-blue-600 font-medium border border-sure-blue-600 rounded-lg hover:bg-sure-blue-50 hover:text-sure-blue-700 transition-colors duration-200">
-                  Explore
-                </button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
     </section>
   );
-} 
+}
