@@ -48,16 +48,16 @@ export default function HeavyDutyOilFiltersPage() {
 
   // Popular oil filters - 10 filters
   const popularOilFilters = [
-    { name: "OF-1001 Oil Filter", image: "/images/oil-filter-1.jpg", href: "/products/of-1001" },
-    { name: "OF-2002 Oil Filter", image: "/images/oil-filter-2.jpg", href: "/products/of-2002" },
-    { name: "OF-3003 Oil Filter", image: "/images/oil-filter-3.jpg", href: "/products/of-3003" },
-    { name: "OF-4004 Oil Filter", image: "/images/oil-filter-4.jpg", href: "/products/of-4004" },
-    { name: "OF-5005 Oil Filter", image: "/images/oil-filter-5.jpg", href: "/products/of-5005" },
-    { name: "OF-6006 Oil Filter", image: "/images/oil-filter-6.jpg", href: "/products/of-6006" },
-    { name: "OF-7007 Oil Filter", image: "/images/oil-filter-7.jpg", href: "/products/of-7007" },
-    { name: "OF-8008 Oil Filter", image: "/images/oil-filter-8.jpg", href: "/products/of-8008" },
-    { name: "OF-9009 Oil Filter", image: "/images/oil-filter-9.jpg", href: "/products/of-9009" },
-    { name: "OF-1010 Oil Filter", image: "/images/oil-filter-10.jpg", href: "/products/of-1010" }
+    { name: "OF-1001 Oil Filter", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=300&h=200&fit=crop&q=80", href: "/products/of-1001" },
+    { name: "OF-2002 Oil Filter", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop&q=80", href: "/products/of-2002" },
+    { name: "OF-3003 Oil Filter", image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop&q=80", href: "/products/of-3003" },
+    { name: "OF-4004 Oil Filter", image: "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=300&h=200&fit=crop&q=80", href: "/products/of-4004" },
+    { name: "OF-5005 Oil Filter", image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=300&h=200&fit=crop&q=80", href: "/products/of-5005" },
+    { name: "OF-6006 Oil Filter", image: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=300&h=200&fit=crop&q=80", href: "/products/of-6006" },
+    { name: "OF-7007 Oil Filter", image: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=300&h=200&fit=crop&q=80", href: "/products/of-7007" },
+    { name: "OF-8008 Oil Filter", image: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=300&h=200&fit=crop&q=80", href: "/products/of-8008" },
+    { name: "OF-9009 Oil Filter", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=200&fit=crop&q=80", href: "/products/of-9009" },
+    { name: "OF-1010 Oil Filter", image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=300&h=200&fit=crop&q=80", href: "/products/of-1010" }
   ];
 
   // Related filter types

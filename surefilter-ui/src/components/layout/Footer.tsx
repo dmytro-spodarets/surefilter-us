@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
+import { FaLinkedin, FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa';
 
 const companyLinks = [
   { name: 'About Us', href: '/about-us' },
@@ -12,10 +13,10 @@ const companyLinks = [
 ];
 
 const socialLinks = [
-  { name: 'LinkedIn', href: '#', icon: 'LinkedInIcon' },
-  { name: 'Facebook', href: '#', icon: 'FacebookIcon' },
-  { name: 'Twitter', href: '#', icon: 'TwitterIcon' },
-  { name: 'YouTube', href: '#', icon: 'YouTubeIcon' },
+  { name: 'LinkedIn', href: '#', icon: FaLinkedin },
+  { name: 'Facebook', href: '#', icon: FaFacebook },
+  { name: 'Twitter', href: '#', icon: FaTwitter },
+  { name: 'YouTube', href: '#', icon: FaYoutube },
 ];
 
 export default function Footer() {
@@ -65,18 +66,19 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
             <div className="flex space-x-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
-                  aria-label={social.name}
-                >
-                  <span className="sr-only">{social.name}</span>
-                  {/* Здесь можно добавить иконки */}
-                  <div className="w-6 h-6 bg-gray-600 rounded"></div>
-                </a>
-              ))}
+              {socialLinks.map((social) => {
+                const IconComponent = social.icon;
+                return (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    className="text-gray-300 hover:text-white transition-colors duration-200 p-2 rounded-lg hover:bg-gray-800"
+                    aria-label={social.name}
+                  >
+                    <IconComponent className="w-6 h-6" />
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>

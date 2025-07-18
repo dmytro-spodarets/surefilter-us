@@ -83,7 +83,7 @@ To be sure - use SURE®`,
       title: "Primaniyarta Award",
       subtitle: "Outstanding Global Brand Development",
       year: "2009, 2011, 2012, 2013",
-      image: "/images/awards/primaniyarta-award.jpg",
+      image: "https://images.unsplash.com/photo-1606159068539-43f36b99d1b5?w=800&h=400&fit=crop&q=80",
       description: "Multiple awards recognizing outstanding global brand development and international market expansion achievements."
     },
     {
@@ -91,7 +91,7 @@ To be sure - use SURE®`,
       title: "Business Week Magazine",
       subtitle: "Most Admired Company in Indonesia",
       year: "2011-2012",
-      image: "/images/awards/business-week-magazine.jpg",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop&q=80",
       description: "Recognized as one of the most admired companies in Indonesia for outstanding business practices and innovation."
     }
   ];

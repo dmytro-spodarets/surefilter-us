@@ -16,56 +16,56 @@ const products: Product[] = [
     id: 1,
     name: "Heavy Duty Air Filter",
     description: "Premium air filtration for extreme conditions",
-    image: "/images/filter-1.jpg",
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80",
     category: "Air Filters"
   },
   {
     id: 2,
     name: "Oil Filter Pro Series",
     description: "Advanced oil filtration technology",
-    image: "/images/filter-2.jpg",
+    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop&q=80",
     category: "Oil Filters"
   },
   {
     id: 3,
     name: "Fuel Filter Elite",
     description: "Ultra-clean fuel delivery system",
-    image: "/images/filter-3.jpg",
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop&q=80",
     category: "Fuel Filters"
   },
   {
     id: 4,
     name: "Hydraulic Filter Max",
     description: "Heavy-duty hydraulic protection",
-    image: "/images/filter-4.jpg",
+    image: "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=400&h=300&fit=crop&q=80",
     category: "Hydraulic Filters"
   },
   {
     id: 5,
     name: "Cabin Air Filter Plus",
     description: "Clean air for operator comfort",
-    image: "/images/filter-5.jpg",
+    image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&h=300&fit=crop&q=80",
     category: "Cabin Filters"
   },
   {
     id: 6,
     name: "Transmission Filter Pro",
     description: "Reliable transmission protection",
-    image: "/images/filter-6.jpg",
+    image: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop&q=80",
     category: "Transmission Filters"
   },
   {
     id: 7,
     name: "Coolant Filter Supreme",
     description: "Optimal engine cooling protection",
-    image: "/images/filter-7.jpg",
+    image: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop&q=80",
     category: "Coolant Filters"
   },
   {
     id: 8,
     name: "Water Filter Advanced",
     description: "Pure water filtration technology",
-    image: "/images/filter-8.jpg",
+    image: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=400&h=300&fit=crop&q=80",
     category: "Water Filters"
   }
 ];

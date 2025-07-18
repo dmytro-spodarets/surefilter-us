@@ -16,28 +16,28 @@ const industries: Industry[] = [
     id: 1,
     name: "On-Highway",
     description: "Trucks, buses, and commercial vehicles",
-    image: "/images/industry-highway.jpg",
+    image: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=300&fit=crop&q=80",
     icon: "TruckIcon"
   },
   {
     id: 2,
     name: "Agriculture",
     description: "Tractors, harvesters, and farm equipment",
-    image: "/images/industry-agriculture.jpg",
+    image: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400&h=300&fit=crop&q=80",
     icon: "TractorIcon"
   },
   {
     id: 3,
     name: "Rental Equipment",
     description: "Construction and industrial rental fleets",
-    image: "/images/industry-rental.jpg",
+    image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop&q=80",
     icon: "WrenchScrewdriverIcon"
   },
   {
     id: 4,
     name: "Construction",
     description: "Excavators, bulldozers, and heavy machinery",
-    image: "/images/industry-construction.jpg",
+    image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop&q=80",
     icon: "BuildingOfficeIcon"
   }
 ];
