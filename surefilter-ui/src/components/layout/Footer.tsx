@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
-import { FaLinkedin, FaFacebook, FaTwitter, FaYoutube } from 'react-icons/fa';
+import { FaLinkedin, FaFacebook, FaApple, FaGooglePlay } from 'react-icons/fa';
 
 const companyLinks = [
   { name: 'About Us', href: '/about-us' },
@@ -10,13 +10,13 @@ const companyLinks = [
   { name: 'Newsroom', href: '/newsroom' },
   { name: 'Warranty', href: '/warranty' },
   { name: 'Resources', href: '/resources' },
+  { name: 'Catalog', href: '/catalog' },
 ];
 
 const socialLinks = [
   { name: 'LinkedIn', href: '#', icon: FaLinkedin },
   { name: 'Facebook', href: '#', icon: FaFacebook },
-  { name: 'Twitter', href: '#', icon: FaTwitter },
-  { name: 'YouTube', href: '#', icon: FaYoutube },
+
 ];
 
 export default function Footer() {
@@ -30,7 +30,7 @@ export default function Footer() {
               <Logo size="lg" />
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              Your trusted partner for premium filtration solutions. Quality, performance, and reliability for the world's toughest applications.
+              Your trusted partner for premium filtration solutions. Quality, performance, and reliability for the world&#39;s toughest applications.
             </p>
             
             {/* Контактная информация */}
@@ -62,10 +62,10 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Социальные сети */}
+          {/* Социальные сети и приложения */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mb-6">
               {socialLinks.map((social) => {
                 const IconComponent = social.icon;
                 return (
@@ -79,6 +79,28 @@ export default function Footer() {
                   </a>
                 );
               })}
+            </div>
+            
+            <div>
+              <h4 className="text-base font-semibold mb-3">Get our app</h4>
+              <div className="flex items-center space-x-3">
+                <a
+                  href="#"
+                  className="inline-flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg px-3 py-2"
+                  aria-label="Download on the App Store"
+                >
+                  <FaApple className="w-5 h-5" />
+                  <span className="text-sm">App Store</span>
+                </a>
+                <a
+                  href="#"
+                  className="inline-flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg px-3 py-2"
+                  aria-label="Get it on Google Play"
+                >
+                  <FaGooglePlay className="w-5 h-5" />
+                  <span className="text-sm">Google Play</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>

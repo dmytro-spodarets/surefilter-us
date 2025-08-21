@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Button from '@/components/ui/Button';
 import Icon from '@/components/ui/Icon';
 
 interface Filter {
@@ -28,6 +27,7 @@ export default function PopularFilters({
   columnsPerRow = 5
 }: PopularFiltersProps) {
   const gridCols = columnsPerRow === 5 ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5';
+  const targetHref = '/filters/SFO241';
   
   return (
     <section className={`py-16 sm:py-24 bg-gray-50 ${className}`}>
@@ -44,7 +44,7 @@ export default function PopularFilters({
         {/* Filters Grid */}
         <div className={`grid ${gridCols} gap-6 mb-12`}>
           {filters.map((filter, index) => (
-            <Link key={index} href={filter.href} className="group">
+            <Link key={index} href={targetHref} className="group">
               <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 hover:-translate-y-1">
                 <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
                   <img

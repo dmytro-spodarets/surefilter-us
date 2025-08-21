@@ -1,5 +1,6 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import ContactOptions from '@/components/sections/ContactOptions';
 
 export default function ContactUsPage() {
   return (
@@ -17,7 +18,7 @@ export default function ContactUsPage() {
                 Contact Us
               </h1>
               <p className="text-base lg:text-xl text-gray-600 leading-relaxed">
-                Get in touch with our team for technical support, product inquiries, or partnership opportunities. We're here to help you find the right filtration solution.
+                Get in touch with our team for technical support, product inquiries, or partnership opportunities. We&#39;re here to help you find the right filtration solution.
               </p>
             </div>
             
@@ -36,16 +37,22 @@ export default function ContactUsPage() {
         </div>
       </section>
 
+      {/* Contact options */}
+      <ContactOptions phone="+1 (555) 123-4567" chatHref="#" askHref="#contact-form" />
+
       {/* Contact Information Section */}
-      <section className="py-16">
+      <section className="pt-0 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className="grid md:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
                 Send Us a Message
               </h2>
-              <form className="space-y-6">
+              <p className="text-sm text-gray-500 mb-6">
+                This form is intended for distributors and partners only. Customers, please contact your local distributor directly.
+              </p>
+              <form id="contact-form" className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">

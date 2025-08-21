@@ -55,7 +55,7 @@ export default function PressReleasePage() {
             <div className="p-8">
               <div className="prose max-w-none">
                 <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                  <strong>Las Vegas, NV – December 15, 2024</strong> – Sure Filter®, a leading manufacturer 
+                  <strong>Las Vegas, NV – December 15, 2024</strong> – Sure Filter® is a leading manufacturer 
                   of premium filtration solutions, today announced the launch of its revolutionary Heavy Duty 
                   Filtration System, designed to deliver superior performance in the most demanding industrial 
                   applications.
@@ -79,10 +79,10 @@ export default function PressReleasePage() {
                 </ul>
 
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  "This launch represents a significant milestone in our commitment to innovation and 
-                  customer satisfaction," said John Smith, CEO of Sure Filter®. "Our research and 
+                  &quot;This launch represents a significant milestone in our commitment to innovation and 
+                  customer satisfaction,&quot; said John Smith, CEO of Sure Filter®. &quot;Our research and 
                   development team has worked tirelessly to create a filtration solution that not only 
-                  meets but exceeds the demanding requirements of today's heavy equipment operators."
+                  meets but exceeds the demanding requirements of today&#39;s heavy equipment operators.&quot;
                 </p>
 
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Industry Impact</h2>
@@ -90,12 +90,12 @@ export default function PressReleasePage() {
                 <p className="text-gray-700 leading-relaxed mb-6">
                   The heavy duty filtration market has seen increasing demand for more efficient and 
                   durable solutions as equipment manufacturers continue to push the boundaries of 
-                  performance and reliability. Sure Filter®'s new system addresses these challenges 
+                  performance and reliability. Sure Filter®&#39;s new system addresses these challenges 
                   while providing cost-effective operation for fleet managers and equipment operators.
                 </p>
 
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  Independent testing conducted by certified laboratories has validated the system's 
+                  Independent testing conducted by certified laboratories has validated the system&#39;s 
                   performance claims, with results showing significant improvements in contaminant 
                   removal efficiency and filter life compared to leading competitive products.
                 </p>
@@ -103,7 +103,7 @@ export default function PressReleasePage() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Availability and Pricing</h2>
                 
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  The Heavy Duty Filtration System is now available through Sure Filter®'s extensive 
+                  The Heavy Duty Filtration System is now available through Sure Filter®&#39;s extensive 
                   network of authorized distributors and service centers worldwide. The system is 
                   competitively priced to deliver exceptional value while maintaining the premium 
                   quality standards that customers expect from Sure Filter®.

@@ -23,8 +23,8 @@ export default function AutomotivePage() {
               </h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
                 Our automotive filters are engineered to meet or exceed OEM specifications, providing 
-                superior protection for your vehicle's critical systems. From air and oil filters to 
-                fuel and cabin air filters, we've got you covered.
+                superior protection for your vehicle&#39;s critical systems. From air and oil filters to 
+                fuel and cabin air filters, we&#39;ve got you covered.
               </p>
               <ul className="space-y-3 text-gray-600">
                 <li className="flex items-center">

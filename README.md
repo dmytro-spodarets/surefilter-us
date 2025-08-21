@@ -1,781 +1,155 @@
-# Sure Filter US - New Website Development
+# Sure Filter US — UI
 
-## 1. Пожелания к дизайну нового сайта
+Коротко: фронтенд на Next.js (App Router) для сайта Sure Filter US. Минималистичный, быстрый, доступный интерфейс с современным стеком и акцентом на переиспользование готовых решений.
 
-**Стиль:** Светлый, минималистичный в стиле Apple
-**Приоритеты:** Удобство и приятность на первом месте
-**Принципы:**
-- Много белого пространства
-- Чистые линии без лишних эффектов
-- Фокус на контенте
-- Современный дизайн 2025 года
-- Быстрая загрузка и отзывчивость
+### Состав и версии
+- Next.js 15.3.5 (App Router)
+- React 19
+- Tailwind CSS 4.1
+- Библиотеки: `@heroicons/react`, `react-icons`, `clsx` + `tailwind-merge` (утилита `cn`)
 
-## 2. Принципы разработки
+### Страницы и навигация (актуально)
+- Главные разделы: `/` (home), `/about-us`, `/heavy-duty`, `/automotive`, `/industries`, `/resources`, `/newsroom`, `/warranty`, `/contact-us`, `/test-colors`
+- Подстраницы:
+  - Heavy Duty: `/heavy-duty/air`, `/heavy-duty/cabin`, `/heavy-duty/fuel`, `/heavy-duty/oil`
+  - Industries: `/industries/agriculture`
+  - Newsroom: `/newsroom/heavy-duty-filter-launch`
+  - Resources: `/resources/heavy-duty-catalog`
+- Новые страницы:
+  - `/filters/[code]` — страница конкретного фильтра (Hero, описание, `Specifications`, галерея, таблица OEM). Сейчас использует мок‑данные (`SFO241`, `SFG84801E`).
+  - `/catalog` — каталог с левой панелью фильтров (поиск, тип, индустрия, марка, параметры), переключение `Gallery/List`, пагинация. CTA на главной ведёт сюда.
 
-### Максимальное переиспользование готовых решений
-**Важно:** Мы стремимся максимально использовать готовые решения и настройки Tailwind CSS, избегая создания кастомных стилей. Перед созданием кастомного решения обязательно проверяем, есть ли готовые альтернативы в Tailwind CSS v4.1.11.
+### Компоненты (основные)
+- `layout/`: `Header`, `Footer`
+- `sections/`: `Hero`, `FullScreenHero`, `SingleImageHero`, `PageHero`, `PageHeroReverse`, `CompactHero`, `CompactSearchHero`, `SearchHero`, `QuickSearch`, `FeaturedProducts`, `Industries`, `IndustriesList`, `FilterTypesGrid`, `PopularFilters`, `Products`, `AboutWithStats`, `AboutNews`, `WhyChoose`, `QualityAssurance`, `ContentWithImages`, `RelatedFilters`, `NewsCarousel`, `LimitedWarrantyDetails`, `MagnussonMossAct`, `WarrantyClaimProcess`, `WarrantyContact`, `WarrantyPromise`
+- Новые секции: `ProductGallery`, `ProductSpecs` (варианты `cards`/`table`, `contained`), `ContactOptions`
+- `ui/`: `Button`, `Card`, `Icon`, `Input`, `Logo`, `Pagination`, `Collapsible`
+- `seo/`: `SEO`
+- `lib/`: `utils.ts` — `cn(...classes)`
 
-**Правила:**
-- Используем стандартные цвета Tailwind где возможно
-- Переиспользуем готовые компоненты и утилиты
-- Создаем кастомное только при отсутствии готовых альтернатив
-- Приоритет: готовые решения > кастомные настройки
+### Иконки
+- Компонент `Icon` принимает: `name`, `variant: 'outline' | 'solid'`, `size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'`, `color: 'sure-blue' | 'sure-orange' | 'gray' | 'white' | 'current'`.
+- Размеры: `xs` 12px, `sm` 16px, `md` 24px, `lg` 32px, `xl` 48px, `2xl` 64px.
 
-## 3. SEO Оптимизация
+### Стиль и цвета
+- Заголовки: `text-gray-900`, подзаголовки/описания: `text-gray-600`.
+- Брендовые: `sure-blue` и `sure-red`; акценты/фокус — `sure-orange` (например, `Input` имеет `focus:border-sure-orange-500`; `Button` использует `sure-orange` для `primary`).
+- В компонентах выдержаны единые отступы и ширина контейнера (`max-w-7xl`).
 
-### Базовая SEO настройка:
-- ✅ **Мета-теги:** title, description, keywords
-- ✅ **Open Graph:** Для социальных сетей
-- ✅ **Twitter Cards:** Для Twitter
-- ✅ **Favicon:** Базовая иконка сайта
+### SEO
+- Базовые метаданные и `metadataBase` задаются в `app/layout.tsx` через переменную окружения `NEXT_PUBLIC_SITE_URL`.
 
-### SEO компоненты:
-- `SEO.tsx` - базовый компонент для мета-тегов
-- `layout.tsx` - глобальные метаданные
+### Изображения
+- `next/image`, `object-cover`, `fill`, приоритет на первых экранах.
+- Обработка ошибок изображений через `onError` (см. `Industries.tsx`, `ProductGallery.tsx`), есть градиентные фоллбеки.
 
-## 4. Цвета текущего сайта (для переиспользования)
-
-### Основные цвета бренда (кастомные - уникальные):
-- `#182375` - основной синий (кнопки, ссылки, заголовки) → `sure-blue-500`
-- `#db360e` - основной оранжевый (акценты, hover эффекты) → `sure-red-500`
-- `#dc3710` - дополнительный оранжевый → `sure-red-600`
-- `#fd3302` - яркий оранжевый (особые акценты) → `sure-red-700`
-
-### Нейтральные цвета (заменяем стандартными):
-- `#000000` - черный (основной текст) → `black`
-- `#ffffff` - белый (фон, текст на темном фоне) → `white`
-- `#5a5a5a` - серый (вторичный текст) → `gray-600`
-- `#969696` - светло-серый (дополнительный текст) → `gray-400`
-- `#cacaca` - очень светлый серый (границы) → `gray-300`
-
-### Фоновые цвета (заменяем стандартными):
-- `#d8dae8` - светло-серый фон (основной) → `gray-100`
-- `#e8e8e8` - светло-серый (альтернативный фон) → `gray-100`
-- `#c3d9e6` - очень светлый голубой (дополнительный акцент) → `blue-50`
-
-### Дополнительные цвета (кастомные - уникальные):
-- `#2073bc` - синий (ссылки и акценты) → `sure-blue-600`
-- `#88bddd` - светло-голубой (акцентный фон) → `sure-blue-100`
-
-### Рекомендации по использованию:
-- **Используем стандартные цвета Tailwind** для нейтральных и фоновых цветов
-- **Создаем кастомные цвета** только для уникальных цветов бренда
-- **Приоритет:** `black`, `white`, `gray-*`, `blue-50` вместо кастомных
-- **Кастомные цвета:** только `sure-blue`, `sure-red` с палитрами оттенков
-
-## 5. Рекомендуемые шрифты
-
-### Основные варианты:
-- **Inter** - современный, читаемый, отлично подходит для веба
-- **SF Pro Display** - в стиле Apple, элегантный
-- **Roboto** - универсальный, хорошо поддерживается
-
-### Структура шрифтов:
-- **Заголовки:** Inter Bold (700) или SF Pro Display
-- **Основной текст:** Inter Regular (400) или Inter Text
-- **Акценты:** Inter Medium (500) или SemiBold (600)
-
-### Принципы типографики:
-- Четкая иерархия размеров
-- Высота строки 1.4-1.6
-- Контрастные цвета для читаемости
-- Адаптивные размеры для мобильных устройств
-
-## 6. Иконки
-
-### Основная библиотека иконок:
-- **Heroicons** - современные SVG иконки от команды Tailwind CSS
-- **Стиль:** Outline и Solid варианты
-- **Размеры:** 16px, 20px, 24px, 32px для разных контекстов
-- **Цвета:** Используем цвета бренда из текущего сайта:
-  - `#182375` - основной синий для иконок
-  - `#db360e` - основной оранжевый для акцентов
-  - `#88bddd` - светло-голубой для фона иконок
-  - `#ffffff` - белый для иконок на цветном фоне
-
-### Принципы использования:
-- Минималистичные иконки без лишних деталей
-- Консистентные размеры в рамках секций
-- Цвета иконок соответствуют цветовой схеме сайта
-- Доступность: правильные aria-labels для скринридеров
-
-## 7. Текущий статус разработки интерфейса
-
-### Технологический стек (surefilter-ui):
-
-**Основные технологии:**
-- **Next.js 15.3.5** - React фреймворк с App Router
-- **React 19.0.0** - последняя версия React
-- **TypeScript 5** - типизация
-- **Tailwind CSS 4.1.11** - последняя версия с автоматической конфигурацией
-- **Inter** - основной шрифт (системные шрифты)
-- **Heroicons 2.2.0** - иконки от команды Tailwind CSS
-
-**Дополнительные библиотеки:**
-- **clsx** - утилита для условных классов
-- **tailwind-merge** - утилита для слияния Tailwind классов
-- **autoprefixer** - автоматические префиксы CSS
-- **postcss** - обработка CSS
-
-**Структура проекта:**
+### Структура проекта (расширенно)
 ```
 surefilter-ui/
-├── src/
-│   ├── app/
-│   │   ├── page.tsx - главная страница
-│   │   ├── layout.tsx - глобальный layout с метаданными
-│   │   ├── globals.css - глобальные стили с кастомными цветами
-│   │   ├── about-us/ - страница о компании
-│   │   ├── automotive/ - автомобильные фильтры
-│   │   ├── contact-us/ - контакты
-│   │   ├── heavy-duty/ - тяжелая техника
-│   │   ├── industry/ - промышленные фильтры
-│   │   ├── newsroom/ - новости
-│   │   ├── resources/ - ресурсы
-│   │   ├── warranty/ - гарантия
-│   │   └── test-colors/ - тестовая страница цветов
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── Header.tsx - адаптивная шапка с навигацией и поиском
-│   │   │   └── Footer.tsx - подвал сайта
-│   │   ├── sections/
-│   │   │   ├── Hero.tsx - главная секция с поиском
-│   │   │   ├── WhyChoose.tsx - почему выбирают нас
-│   │   │   ├── FeaturedProducts.tsx - избранные продукты
-│   │   │   ├── QuickSearch.tsx - быстрый поиск
-│   │   │   ├── Industries.tsx - отрасли промышленности
-│   │   │   ├── AboutNews.tsx - о компании и новости
-│   │   │   ├── NewsCarousel.tsx - карусель новостей
-│   │   │   ├── Products.tsx - продукты
-│   │   │   ├── PageHero.tsx - герой для внутренних страниц
-│   │   │   ├── SearchHero.tsx - герой с поиском
-│   │   │   ├── SingleImageHero.tsx - герой с одним изображением
-│   │   │   └── FullScreenHero.tsx - полноэкранный герой
-│   │   ├── seo/
-│   │   │   └── SEO.tsx - SEO компонент для мета-тегов
-│   │   └── ui/
-│   │       ├── Button.tsx - универсальный компонент кнопок
-│   │       ├── Card.tsx - компонент карточек
-│   │       ├── Icon.tsx - компонент для иконок Heroicons
-│   │       ├── Input.tsx - компонент полей ввода
-│   │       └── Logo.tsx - SVG логотип с брендингом
-│   └── lib/
-│       └── utils.ts - утилиты (cn функция для классов)
-├── public/
-│   ├── images/
-│   │   ├── sf-logo.png - логотип компании
-│   │   ├── image.jpg - изображения для сайта
-│   │   ├── image-2.jpg
-│   │   ├── image-3.jpg
-│   │   └── image-4.jpg
-│   ├── js/ - JavaScript файлы
-│   ├── globe.svg - SVG иконки
-│   ├── window.svg
-│   ├── file.svg
-│   ├── next.svg
-│   └── vercel.svg
-├── next.config.ts - конфигурация Next.js с оптимизацией изображений
-├── postcss.config.mjs - конфигурация PostCSS
-├── tsconfig.json - конфигурация TypeScript
-├── eslint.config.mjs - конфигурация ESLint
-└── package.json - зависимости и скрипты
+  src/app/
+    page.tsx
+    layout.tsx
+    globals.css
+    about-us/page.tsx
+    automotive/page.tsx
+    heavy-duty/page.tsx
+    heavy-duty/air/page.tsx
+    heavy-duty/cabin/page.tsx
+    heavy-duty/fuel/page.tsx
+    heavy-duty/oil/page.tsx
+    industries/page.tsx
+    industries/agriculture/page.tsx
+    newsroom/page.tsx
+    newsroom/heavy-duty-filter-launch/page.tsx
+    resources/page.tsx
+    resources/heavy-duty-catalog/page.tsx
+    warranty/page.tsx
+    contact-us/page.tsx
+    test-colors/page.tsx
+    filters/[code]/page.tsx        # детальная страница фильтра
+    catalog/page.tsx               # каталог с фильтрами и пагинацией
+  src/components/layout/
+    Header.tsx
+    Footer.tsx
+  src/components/sections/
+    Hero.tsx
+    FullScreenHero.tsx
+    SingleImageHero.tsx
+    PageHero.tsx
+    PageHeroReverse.tsx
+    CompactHero.tsx
+    CompactSearchHero.tsx
+    SearchHero.tsx
+    QuickSearch.tsx
+    FeaturedProducts.tsx
+    Industries.tsx
+    IndustriesList.tsx
+    FilterTypesGrid.tsx
+    PopularFilters.tsx
+    Products.tsx
+    AboutWithStats.tsx
+    AboutNews.tsx
+    WhyChoose.tsx
+    QualityAssurance.tsx
+    ContentWithImages.tsx
+    RelatedFilters.tsx
+    NewsCarousel.tsx
+    LimitedWarrantyDetails.tsx
+    MagnussonMossAct.tsx
+    WarrantyClaimProcess.tsx
+    WarrantyContact.tsx
+    WarrantyPromise.tsx
+    ProductGallery.tsx
+    ProductSpecs.tsx
+    ContactOptions.tsx
+  src/components/ui/
+    Button.tsx
+    Card.tsx
+    Icon.tsx
+    Input.tsx
+    Logo.tsx
+    Pagination.tsx
+    Collapsible.tsx
+  src/components/seo/SEO.tsx
+  src/lib/utils.ts
 ```
 
-## 8. Детальное описание компонентов
-
-### Layout компоненты:
-
-#### Header.tsx
-**Функциональность:**
-- Адаптивная шапка с динамическим изменением высоты при скролле
-- Навигационное меню с активными состояниями
-- Поисковая форма с анимацией
-- Мобильное меню с оверлеем и backdrop-blur
-- Логотип с анимацией масштабирования
-
-**Особенности:**
-- Фиксированное позиционирование с backdrop-blur
-- Плавные анимации при скролле (высота, размер логотипа, прозрачность)
-- Apple-style подчеркивания для активных пунктов меню
-- Полная поддержка клавиатурной навигации
-- Адаптивный поиск с разными размерами для мобильных устройств
-
-**Интерфейс:**
-```typescript
-interface HeaderProps {
-  className?: string;
-}
-```
-
-**Состояния:**
-- `isMobileMenuOpen` - состояние мобильного меню
-- `searchQuery` - поисковый запрос
-- `isScrolled` - состояние скролла
-- `pathname` - текущий путь для активных состояний
-
-#### Footer.tsx
-**Функциональность:**
-- Подвал сайта с информацией о компании
-- Ссылки на социальные сети
-- Контактная информация
-- Навигационные ссылки
-
-### UI компоненты:
-
-#### Button.tsx
-**Функциональность:**
-- Универсальный компонент кнопок с 4 вариантами стилей
-- Поддержка разных размеров
-- Полная типизация с расширением HTMLButtonElement
-
-**Варианты:**
-- `primary` - основная кнопка (sure-red-500)
-- `secondary` - вторичная кнопка (sure-blue-500)
-- `outline` - контурная кнопка
-- `ghost` - прозрачная кнопка
-
-**Размеры:**
-- `sm` - маленькая (px-3 py-1.5 text-sm)
-- `md` - средняя (px-4 py-2 text-sm)
-- `lg` - большая (px-6 py-3 text-base)
-
-**Интерфейс:**
-```typescript
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
-  children: React.ReactNode;
-}
-```
-
-#### Icon.tsx
-**Функциональность:**
-- Компонент для иконок Heroicons
-- Поддержка outline и solid вариантов
-- 6 размеров от xs до 2xl
-- 5 цветовых схем
-
-**Размеры:**
-- `xs` - 12px (w-3 h-3)
-- `sm` - 16px (w-4 h-4)
-- `md` - 24px (w-6 h-6)
-- `lg` - 32px (w-8 h-8)
-- `xl` - 48px (w-12 h-12)
-- `2xl` - 64px (w-16 h-16)
-
-**Цвета:**
-- `sure-blue` - брендовый синий
-- `sure-orange` - брендовый оранжевый
-- `gray` - нейтральный серый
-- `white` - белый
-- `current` - наследует цвет родителя
-
-**Интерфейс:**
-```typescript
-interface IconProps {
-  name: keyof typeof Heroicons;
-  variant?: 'outline' | 'solid';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  className?: string;
-  color?: 'sure-blue' | 'sure-orange' | 'gray' | 'white' | 'current';
-}
-```
-
-#### Input.tsx
-**Функциональность:**
-- Компонент полей ввода
-- Поддержка всех HTML input типов
-- Кастомные стили с фокусом на брендовые цвета
-- Полная типизация
-
-#### Logo.tsx
-**Функциональность:**
-- SVG логотип с 4 размерами
-- Приоритетная загрузка для больших размеров
-- Оптимизированные изображения через Next.js Image
-
-**Размеры:**
-- `sm` - 32px
-- `md` - 40px
-- `lg` - 48px
-- `xl` - 64px
-
-**Интерфейс:**
-```typescript
-interface LogoProps {
-  className?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-}
-```
-
-#### Card.tsx
-**Функциональность:**
-- Компонент карточек с вариантами стилей
-- Поддержка hover эффектов
-- Адаптивная верстка
-
-### Секции главной страницы:
-
-#### Hero.tsx
-**Функциональность:**
-- Главная секция с диагональным разделением
-- Поисковая форма с placeholder
-- Адаптивное изображение (скрыто на мобильных)
-- Бейдж с анимацией
-- Кнопка поиска с иконкой
-
-**Особенности:**
-- Диагональное разделение только для десктопа (clip-path)
-- Мобильное изображение в отдельном блоке
-- Плавные анимации и переходы
-- Адаптивная типографика
-
-**Состояния:**
-- `searchQuery` - поисковый запрос
-
-#### WhyChoose.tsx
-**Функциональность:**
-- Секция с преимуществами компании
-- 3 карточки с иконками и описаниями
-- Hover эффекты с градиентами
-- Анимации при наведении
-
-**Особенности:**
-- Групповые hover эффекты
-- Градиентные фоны при наведении
-- Анимация масштабирования иконок
-- Декоративные линии с анимацией
-
-**Интерфейс:**
-```typescript
-interface WhyChooseItem {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  title: string;
-  description: string;
-}
-
-interface WhyChooseProps {
-  title?: string;
-  description?: string;
-  items: WhyChooseItem[];
-  className?: string;
-}
-```
-
-**Данные по умолчанию:**
-- Premium Quality
-- Global Coverage
-- Expert Support
-
-#### FeaturedProducts.tsx
-**Функциональность:**
-- Секция с избранными продуктами
-- Карточки продуктов с изображениями
-- Hover эффекты и анимации
-
-#### QuickSearch.tsx
-**Функциональность:**
-- Быстрый поиск по продуктам
-- Категории фильтров
-- Интерактивные элементы
-
-#### Industries.tsx
-**Функциональность:**
-- Отрасли промышленности
-- Карточки с иконками
-- Навигация по категориям
-
-#### AboutNews.tsx
-**Функциональность:**
-- Информация о компании
-- Новостной блок
-- Ссылки на подробности
-
-#### NewsCarousel.tsx
-**Функциональность:**
-- Карусель новостей
-- Слайдер с навигацией
-- Адаптивная верстка
-
-#### Products.tsx
-**Функциональность:**
-- Секция с продуктами
-- Фильтрация и сортировка
-- Карточки продуктов
-
-### Специализированные секции:
-
-#### PageHero.tsx
-**Функциональность:**
-- Герой для внутренних страниц
-- Заголовок и описание
-- Фоновое изображение
-
-#### SearchHero.tsx
-**Функциональность:**
-- Герой с поисковой формой
-- Специализированный для страниц поиска
-
-#### SingleImageHero.tsx
-**Функциональность:**
-- Герой с одним изображением
-- Для страниц с визуальным контентом
-
-#### FullScreenHero.tsx
-**Функциональность:**
-- Полноэкранный герой
-- Для особых случаев
-
-### Страницы:
-
-#### Главная страница (page.tsx)
-**Структура:**
-1. Header
-2. Hero
-3. WhyChoose
-4. FeaturedProducts
-5. QuickSearch
-6. Industries
-7. AboutNews
-8. Footer
-
-#### About Us (about-us/page.tsx)
-**Функциональность:**
-- Интерактивная навигация по разделам
-- Manufacturing Facilities с карточками
-- Our Company с табами
-- Statistics с анимациями
-- Awards карусель
-
-**Особенности:**
-- Состояние `activeSection` для навигации
-- Карусель наград с управлением
-- Интерактивные карточки с hover эффектами
-- Статистика с иконками
-
-**Состояния:**
-- `activeSection` - активный раздел
-- `currentAward` - текущая награда в карусели
-
-**Данные:**
-- Manufacturing Facilities (4 карточки)
-- Company Content (5 разделов)
-- Awards (2 награды)
-- Statistics (4 показателя)
-
-#### Automotive (automotive/page.tsx)
-**Функциональность:**
-- Страница автомобильных фильтров
-- Категории продуктов
-- Поиск по автомобилям
-
-#### Heavy Duty (heavy-duty/page.tsx)
-**Функциональность:**
-- Страница тяжелой техники
-- Специализированные фильтры
-- Технические характеристики
-
-#### Industry (industry/page.tsx)
-**Функциональность:**
-- Промышленные фильтры
-- Отраслевые решения
-- Техническая документация
-
-#### Contact Us (contact-us/page.tsx)
-**Функциональность:**
-- Контактная форма
-- Адреса и телефоны
-- Карта расположения
-
-#### Newsroom (newsroom/page.tsx)
-**Функциональность:**
-- Новости компании
-- Пресс-релизы
-- Медиа-материалы
-
-#### Resources (resources/page.tsx)
-**Функциональность:**
-- Техническая документация
-- Каталоги
-- Инструкции
-
-#### Warranty (warranty/page.tsx)
-**Функциональность:**
-- Гарантийная информация
-- Условия гарантии
-- Сервисные центры
-
-#### Test Colors (test-colors/page.tsx)
-**Функциональность:**
-- Тестовая страница для проверки цветов
-- Демонстрация цветовой палитры
-
-## 9. Технические детали
-
-### Конфигурация Next.js (next.config.ts)
-**Оптимизации:**
-- Отключен заголовок "Powered by"
-- Сжатие включено
-- Strict Mode включен
-- Оптимизация изображений с поддержкой Unsplash
-- WebP формат изображений
-- Адаптивные размеры изображений
-
-### TypeScript конфигурация (tsconfig.json)
-**Настройки:**
-- Target ES2017
-- Strict mode включен
-- Path mapping для @/* → ./src/*
-- Next.js плагин
-- Bundler module resolution
-
-### Глобальные стили (globals.css)
-**Кастомные цвета:**
-- Полные палитры sure-blue (50-900)
-- Полные палитры sure-red (50-900)
-- Системные шрифты
-
-**Глобальные стили:**
-- Smooth scroll behavior
-- Font smoothing
-- Accessibility improvements
-- Focus styles
-- Reduced motion support
-- Scrollbar hiding для каруселей
-
-### Утилиты (utils.ts)
-**cn функция:**
-- Объединение clsx и tailwind-merge
-- Умное слияние Tailwind классов
-- Удаление конфликтующих классов
-
-### SEO компонент (SEO.tsx)
-**Функциональность:**
-- Мета-теги
-- Open Graph
-- Twitter Cards
-- Динамические заголовки
-
-### Глобальные метаданные (layout.tsx)
-**Настройки:**
-- Title template
-- Description
-- Keywords
-- Robots
-- Lang attribute
-
-## 10. Анимации и интерактивность
-
-### Анимации в Header:
-- Плавное изменение высоты при скролле
-- Масштабирование логотипа
-- Изменение прозрачности элементов
-- Apple-style подчеркивания
-
-### Анимации в WhyChoose:
-- Hover эффекты с градиентами
-- Масштабирование иконок
-- Анимация декоративных линий
-- Плавные переходы цветов
-
-### Анимации в Hero:
-- Диагональное разделение
-- Плавные переходы
-- Адаптивные трансформации
-
-### Анимации в About Us:
-- Интерактивные табы
-- Карусель наград
-- Hover эффекты карточек
-- Плавные переходы состояний
-
-### Глобальные анимации:
-- Transition-all duration-300/500
-- Ease-out timing functions
-- Hover и focus состояния
-- Reduced motion support
-
-## 11. Адаптивность
-
-### Breakpoints:
-- Mobile: < 640px
-- Tablet: 640px - 1024px
-- Desktop: > 1024px
-
-### Адаптивные элементы:
-- Header: мобильное меню, адаптивный поиск
-- Hero: мобильное изображение, адаптивная типографика
-- Навигация: скрытие на мобильных
-- Карточки: изменение колонок
-- Изображения: разные размеры для устройств
-
-### Мобильная оптимизация:
-- Touch-friendly элементы
-- Оптимизированные размеры кнопок
-- Адаптивная типографика
-- Упрощенная навигация
-
-## 12. Производительность
-
-### Оптимизации:
-- Next.js Image компонент
-- WebP формат изображений
-- Lazy loading
-- Code splitting
-- Bundle optimization
-
-### Мониторинг:
-- Core Web Vitals
-- Lighthouse scores
-- Performance budgets
-
-## 13. Доступность (A11y)
-
-### Поддержка:
-- Клавиатурная навигация
-- Screen readers
-- Focus management
-- ARIA labels
-- Semantic HTML
-
-### Улучшения:
-- Focus-visible стили
-- Reduced motion
-- Color contrast
-- Alt text для изображений
-
-## 14. Текущие возможности
-
-**Реализовано:**
-- ✅ Полная структура сайта с навигацией
-- ✅ Адаптивный дизайн для всех устройств
-- ✅ Поиск по продуктам (UI готов, логика TODO)
-- ✅ Кастомные цвета бренда
-- ✅ SEO оптимизация
-- ✅ Современный стек технологий
-- ✅ Компонентная архитектура
-- ✅ TypeScript типизация
-- ✅ Анимации и интерактивность
-- ✅ Доступность
-- ✅ Производительность
-
-## 15. Следующие шаги
-
-1. **Реализация поиска по продуктам**
-   - Интеграция с API
-   - Автодополнение
-   - Фильтрация результатов
-
-2. **Добавление контента на страницы**
-   - Реальные данные о продуктах
-   - Изображения и описания
-   - Технические характеристики
-
-3. **Интеграция с CMS или API**
-   - Headless CMS
-   - Product API
-   - Content management
-
-4. **Тестирование и оптимизация**
-   - Unit тесты
-   - E2E тесты
-   - Performance testing
-   - Accessibility testing
-
-5. **Деплой и мониторинг**
-   - CI/CD pipeline
-   - Production deployment
-   - Analytics integration
-   - Error monitoring
-
-## 16. Команды разработки
-
+### Запуск
 ```bash
-# Установка зависимостей
+cd surefilter-ui
 npm install
-
-# Запуск в режиме разработки
 npm run dev
-
-# Сборка для продакшена
-npm run build
-
-# Запуск продакшен версии
-npm start
-
-# Линтинг
-npm run lint
+# build: npm run build; start: npm start; lint: npm run lint
 ```
 
-## 17. Структура данных
+### Как вести разработку
+- Рабочий процесс
+  - Ветки: `feature/<кратко>`, `fix/<кратко>`; мелкие правки можно в `main`, если без риска.
+  - Коммиты: `feat: ...`, `fix: ...`, `docs: ...`, `refactor: ...`.
+  - CHANGELOG: на каждое заметное изменение — одна строка в формате `YYYY-MM-DD — описание`.
+  - Изменили публичные API/страницы/цветовую политику — обновите `README.md`.
+- Код и типы
+  - TypeScript везде; явные типы пропсов; избегайте `any`.
+  - Именование: осмысленные названия, без аббревиатур; функции — глаголы, переменные — существительные.
+  - Утилита классов: используйте `cn()` для слияния Tailwind‑классов.
+- Клиент/сервер компоненты
+  - С обработчиками событий — только Client Components (`'use client'`).
+  - Не передавайте обработчики событий в Server Components.
+  - В Next 15 динамические параметры в роуте следует `await` в async‑компоненте: `const { code } = await params`.
+- UI/стили
+  - Заголовки/подзаголовки: см. раздел «Стиль и цвета».
+  - Единая пагинация через `ui/Pagination` на страницах со списками.
+  - Ширина секций — `max-w-7xl`; следите за вертикальными отступами секций.
+  - Изображения с внешних источников — добавляйте фоллбек.
+- Роутинг и ссылки
+  - Все кнопки «View Full Catalog» ведут на `/catalog`.
+  - Карточки продуктов ссылаются на `/filters/{code}`.
+- Переменные окружения
+  - `NEXT_PUBLIC_SITE_URL` — база для абсолютных ссылок в метаданных.
+- Качество
+  - Линт: `npm run lint`. Покрывайте новые компоненты простыми юнит‑тестами, где это уместно.
+  - A11y: focus‑states, контраст, семантические теги, `aria` при необходимости.
 
-### Типы продуктов:
-- Air Filters
-- Oil Filters
-- Fuel Filters
-- Hydraulic Filters
-- Cabin Filters
-- Water Separators
-- Air/Oil Separators
-
-### Отрасли:
-- Automotive
-- Heavy Duty
-- Industrial
-- Marine
-- Agricultural
-- Construction
-- Mining
-
-### Категории:
-- Commercial
-- Industrial
-- Automotive
-- Marine
-
-## 18. API интеграция (планируется)
-
-### Endpoints:
-- `/api/products` - список продуктов
-- `/api/search` - поиск по продуктам
-- `/api/categories` - категории
-- `/api/industries` - отрасли
-
-### Функциональность:
-- Поиск по OEM номеру
-- Поиск по номеру детали
-- Фильтрация по категориям
-- Сортировка результатов
-- Пагинация
-
-## 19. Мониторинг и аналитика
-
-### Метрики:
-- Core Web Vitals
-- Page load times
-- User interactions
-- Search queries
-- Conversion rates
-
-### Инструменты:
-- Google Analytics
-- Google Search Console
-- Performance monitoring
-- Error tracking
-
-## 20. Безопасность
-
-### Меры:
-- HTTPS only
-- CSP headers
-- Input sanitization
-- XSS protection
-- CSRF protection
-
-### Аудит:
-- Security headers
-- Dependency scanning
-- Code review
-- Penetration testing
+### Дополнительно
+- Планы развития: см. `ROADMAP.md`.
+- История изменений и правила записей: см. `CHANGELOG.md`.

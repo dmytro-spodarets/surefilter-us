@@ -64,7 +64,7 @@ export default function MagnussonMossAct() {
               <div className="bg-sure-blue-50 border-l-4 border-sure-blue-600 p-6 rounded-r-lg mb-6">
                 <h4 className="font-semibold text-gray-900 mb-2">What the Law Says</h4>
                 <p className="text-gray-700 text-sm italic mb-3">
-                  "No warrantor may condition warranty coverage on the consumer's using any article or service identified by brand, trade, or corporate name."
+                  &quot;No warrantor may condition warranty coverage on the consumer&#39;s using any article or service identified by brand, trade, or corporate name.&quot;
                 </p>
                 <p className="text-xs text-gray-500">
                   US Code - Title 15, Chapter 50, Section 2302
@@ -101,7 +101,7 @@ export default function MagnussonMossAct() {
               Your Rights Are Protected
             </h3>
             <p className="text-gray-600 mb-6">
-              The Filter Manufacturer's Council Technical Service Bulletin (TSB-85-1R2) confirms 
+              The Filter Manufacturer&#39;s Council Technical Service Bulletin (TSB-85-1R2) confirms 
               that manufacturers cannot require specific filter brands unless provided free of charge.
             </p>
             <div className="inline-flex items-center bg-green-50 border border-green-200 rounded-lg px-4 py-3">

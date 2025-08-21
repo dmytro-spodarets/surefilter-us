@@ -51,7 +51,7 @@ export default function QuickSearch() {
         {/* Подсказка */}
         <div className="text-center mt-6">
           <p className="text-gray-300">
-            Didn't find your part?{' '}
+            Didn&#39;t find your part?{' '}
             <button className="text-sure-blue-400 hover:text-sure-blue-300 hover:underline font-medium transition-colors duration-200 cursor-pointer">
               Ask our team
             </button>

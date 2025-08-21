@@ -1,6 +1,6 @@
 "use client";
 
-import Icon from '@/components/ui/Icon';
+// import Icon from '@/components/ui/Icon';
 
 interface NewsItem {
   id: number;
@@ -59,7 +59,7 @@ export default function AboutNews() {
             </p>
 
             <p className="text-base text-gray-600 leading-relaxed mb-8">
-              From construction sites to mining operations, from agricultural fields to marine environments, our filters protect the world's most demanding equipment. We understand that every particle matters, every minute of uptime counts, and every customer deserves the best protection for their investment. Our commitment to innovation and customer satisfaction drives us to continuously improve our products and services.
+              From construction sites to mining operations, from agricultural fields to marine environments, our filters protect the world&#39;s most demanding equipment. We understand that every particle matters, every minute of uptime counts, and every customer deserves the best protection for their investment. Our commitment to innovation and customer satisfaction drives us to continuously improve our products and services.
             </p>
 
             {/* Company Statistics */}

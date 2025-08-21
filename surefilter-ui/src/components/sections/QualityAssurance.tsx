@@ -145,7 +145,7 @@ export default function QualityAssurance() {
         <div className="mt-12 text-center">
           <div className="bg-sure-blue-600 text-white rounded-xl p-8 shadow-lg">
             <p className="text-lg mb-4">
-              Through these steps, we can monitor each product's performance, bringing our customers superior filtration products.
+              Through these steps, we can monitor each product&#39;s performance, bringing our customers superior filtration products.
             </p>
             <div className="text-xl font-bold">
               To be sure - use SURE®!

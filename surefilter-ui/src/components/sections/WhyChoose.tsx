@@ -1,9 +1,9 @@
 "use client";
 
-import { CheckCircleIcon, GlobeAltIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import Icon from '@/components/ui/Icon';
 
 interface WhyChooseItem {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: string;
   title: string;
   description: string;
 }
@@ -11,7 +11,7 @@ interface WhyChooseItem {
 interface WhyChooseProps {
   title?: string;
   description?: string;
-  items: WhyChooseItem[];
+  items?: WhyChooseItem[];
   className?: string;
 }
 
@@ -19,17 +19,17 @@ const features: WhyChooseItem[] = [
   {
     title: "Premium Quality",
     description: "Manufactured with the highest quality materials and precision engineering.",
-    icon: CheckCircleIcon
+    icon: "CheckCircleIcon"
   },
   {
     title: "Global Coverage",
     description: "Comprehensive range covering 8,000+ SKUs for worldwide applications.",
-    icon: GlobeAltIcon
+    icon: "GlobeAltIcon"
   },
   {
     title: "Expert Support",
     description: "Technical expertise and customer service backed by 20+ years of experience.",
-    icon: UserGroupIcon
+    icon: "UserGroupIcon"
   }
 ];
 
@@ -60,7 +60,7 @@ export default function WhyChoose({
               {/* Icon with animation */}
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-sure-blue-50 text-sure-blue-500 rounded-2xl mb-6 group-hover:scale-110 transition-all duration-300">
-                  <item.icon className="w-10 h-10" />
+                  <Icon name={item.icon} size="lg" className="w-10 h-10" />
                 </div>
               </div>
               

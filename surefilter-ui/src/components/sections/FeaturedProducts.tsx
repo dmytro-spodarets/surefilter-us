@@ -71,15 +71,16 @@ const products: Product[] = [
 ];
 
 export default function FeaturedProducts() {
+  const targetHref = '/filters/SFO241';
   return (
     <section className="py-16 sm:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         {/* Заголовок */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-sure-blue-500 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Featured Products
           </h2>
-          <p className="text-lg text-sure-blue-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Discover our most popular filtration solutions for heavy-duty applications
           </p>
         </div>
@@ -89,7 +90,7 @@ export default function FeaturedProducts() {
           {products.map((product) => (
             <Link 
               key={product.id} 
-              href={`/products/${product.id}`}
+              href={targetHref}
               className="block bg-white rounded-lg border border-gray-100 overflow-hidden hover:border-sure-blue-200 transition-all duration-200 group"
             >
               {/* Изображение */}
@@ -110,7 +111,7 @@ export default function FeaturedProducts() {
                   </span>
                 </div>
                 
-                <h3 className="text-lg font-semibold text-sure-blue-500 mb-2 group-hover:text-sure-blue-600 transition-colors">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-sure-blue-600 transition-colors">
                   {product.name}
                 </h3>
                 
@@ -122,11 +123,11 @@ export default function FeaturedProducts() {
           ))}
         </div>
 
-        {/* Кнопка View Full Catalog */}
+        {/* CTA */}
         <div className="text-center">
-          <button className="px-8 py-3 text-sure-blue-600 font-semibold border-2 border-sure-blue-600 rounded-lg hover:bg-sure-blue-50 hover:text-sure-blue-700 transition-all duration-200">
+          <Link href="/catalog" className="inline-block px-8 py-3 text-sure-blue-600 font-semibold border-2 border-sure-blue-600 rounded-lg hover:bg-sure-blue-50 hover:text-sure-blue-700 transition-all duration-200">
             View Full Catalog
-          </button>
+          </Link>
         </div>
       </div>
     </section>

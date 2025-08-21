@@ -153,11 +153,6 @@ export default function NewsroomPage() {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
-  const getCurrentEvents = () => {
-    const startIndex = currentSlide * eventsPerSlide;
-    return upcomingEvents.slice(startIndex, startIndex + eventsPerSlide);
-  };
-
   return (
     <main>
       <Header />

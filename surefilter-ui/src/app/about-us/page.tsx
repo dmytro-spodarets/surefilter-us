@@ -205,14 +205,18 @@ To be sure - use SURE®`,
             </div>
             <div className="lg:col-span-3">
               <div className="bg-gray-50 rounded-lg p-8">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-6">
-                  {companyContent[activeSection].title}
-                </h3>
-                <div className="prose prose-lg max-w-none">
-                  <div className="text-gray-600 leading-relaxed whitespace-pre-line">
-                    {companyContent[activeSection].content}
+                {(() => { const activeKey = activeSection as keyof typeof companyContent; return (
+                <>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-6">
+                    {companyContent[activeKey].title}
+                  </h3>
+                  <div className="prose prose-lg max-w-none">
+                    <div className="text-gray-600 leading-relaxed whitespace-pre-line">
+                      {companyContent[activeKey].content}
+                    </div>
                   </div>
-                </div>
+                </>
+                ); })()}
               </div>
             </div>
           </div>

@@ -35,7 +35,7 @@ export default function HeavyDutyPage() {
 
   const qualityStats = [
     { icon: 'StarIcon', title: 'ISO 9001:2015', subtitle: 'Certified Quality' },
-    { icon: 'ShieldCheckIcon', title: '99.9% Efficiency', subtitle: 'Filtration Rate' },
+    { icon: 'StarIcon', title: '99.9% Efficiency', subtitle: 'Filtration Rate' },
     { icon: 'ClockIcon', title: '2X Longer Life', subtitle: 'Service Intervals' },
     { icon: 'GlobeAltIcon', title: '50+ Countries', subtitle: 'Global Presence' },
   ];

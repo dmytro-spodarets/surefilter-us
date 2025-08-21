@@ -165,7 +165,7 @@ export default function HeavyDutyCatalogPage() {
                 </p>
                 
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Whether you're working with construction equipment, mining machinery, agricultural 
+                  Whether you&#39;re working with construction equipment, mining machinery, agricultural 
                   vehicles, or transportation fleets, this catalog provides everything you need to 
                   select the right filtration solution for your specific application. Our heavy-duty 
                   filters are engineered to withstand the most demanding operating conditions while 
@@ -174,7 +174,7 @@ export default function HeavyDutyCatalogPage() {
 
                 <p className="text-gray-600 leading-relaxed mb-6">
                   The catalog covers our extensive range of oil filters, air filters, fuel filters, 
-                  and hydraulic filters, each designed to meet or exceed OEM specifications. You'll 
+                  and hydraulic filters, each designed to meet or exceed OEM specifications. You&#39;ll 
                   find detailed technical drawings, performance charts, and application notes that 
                   help ensure proper filter selection and installation.
                 </p>
@@ -189,7 +189,7 @@ export default function HeavyDutyCatalogPage() {
 
               {/* What's Inside */}
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">What's Inside</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">What&#39;s Inside</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   {catalogFeatures.map((feature, index) => (
                     <div key={index} className="flex items-center">

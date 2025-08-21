@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface Industry {
   id: number;
@@ -9,6 +11,10 @@ interface Industry {
   description: string;
   image: string;
   icon: string;
+}
+
+interface IndustriesProps {
+  className?: string;
 }
 
 const industries: Industry[] = [
@@ -39,14 +45,68 @@ const industries: Industry[] = [
     description: "Excavators, bulldozers, and heavy machinery",
     image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop&q=80",
     icon: "BuildingOfficeIcon"
+  },
+  {
+    id: 5,
+    name: "Mining",
+    description: "Open-pit and underground equipment",
+    image: "/images/image-2.jpg", // локальный ресурс для гарантированной доступности
+    icon: "GlobeAltIcon"
+  },
+  {
+    id: 6,
+    name: "Marine",
+    description: "Commercial vessels and port equipment",
+    image: "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=400&h=300&fit=crop&q=80",
+    icon: "LifebuoyIcon"
   }
 ];
 
-export default function Industries() {
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-');
+}
+
+function IndustryCard({ industry }: { industry: Industry }) {
+  const [imageError, setImageError] = useState(false);
+
   return (
-    <section className="py-16 sm:py-24 bg-white">
+    <Link 
+      href={`/industries/${slugify(industry.name)}`}
+      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-sure-blue-200"
+    >
+      <div className="relative h-48 bg-gray-100 overflow-hidden">
+        {imageError ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-sure-blue-600 to-sure-red-500 flex items-end p-4">
+            <span className="text-white/90 text-sm">{industry.name}</span>
+          </div>
+        ) : (
+          <Image
+            src={industry.image}
+            alt={industry.name}
+            fill
+            onError={() => setImageError(true)}
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+      </div>
+      
+      <div className="p-6">
+        <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-sure-blue-600 transition-colors duration-200">
+          {industry.name}
+        </h3>
+        <p className="text-gray-600 text-sm">
+          {industry.description}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+export default function Industries({ className }: IndustriesProps) {
+  return (
+    <section className={cn("py-16 sm:py-24 bg-white", className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Industries We Serve
@@ -56,37 +116,9 @@ export default function Industries() {
           </p>
         </div>
 
-        {/* Industries Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {industries.map((industry) => (
-            <Link 
-              key={industry.id} 
-              href={`/industries/${industry.name.toLowerCase().replace(' ', '-')}`}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-sure-blue-200"
-            >
-              {/* Image */}
-              <div className="relative h-48 bg-gray-100 overflow-hidden">
-                <Image
-                  src={industry.image}
-                  alt={industry.name}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-              </div>
-              
-              {/* Content */}
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-sure-blue-600 transition-colors duration-200">
-                  {industry.name}
-                </h3>
-                
-                <p className="text-gray-600 text-sm">
-                  {industry.description}
-                </p>
-              </div>
-            </Link>
+            <IndustryCard key={industry.id} industry={industry} />
           ))}
         </div>
       </div>

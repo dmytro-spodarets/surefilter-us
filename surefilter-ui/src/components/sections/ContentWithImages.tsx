@@ -7,27 +7,31 @@ interface ContentWithImagesProps {
     alt: string;
     position: number; // После какого параграфа вставить изображение
   }[];
+  title?: string;
+  subtitle?: string;
   className?: string;
 }
 
 export default function ContentWithImages({ 
   content, 
   images = [], 
+  title = 'Premium Heavy Duty Oil Filters',
+  subtitle = 'Engineered for superior engine protection in the harshest conditions',
   className = "" 
 }: ContentWithImagesProps) {
   return (
     <section className={`py-16 sm:py-24 bg-white ${className}`}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Main content area */}
           <div className="lg:col-span-8 space-y-8">
             {/* Section heading */}
             <div className="mb-8">
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                Premium Heavy Duty Oil Filters
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+                {title}
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed">
-                Engineered for superior engine protection in the harshest conditions
+                {subtitle}
               </p>
             </div>
 
@@ -99,7 +103,7 @@ export default function ContentWithImages({
                     <div className="text-2xl font-bold text-sure-blue-600">40+</div>
                     <div className="text-sm text-gray-600">Years Experience</div>
                   </div>
-                  <div className="border-t border-sure-blue-200 pt-4">
+                  <div className="border-top border-sure-blue-200 pt-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-sure-blue-600">99.9%</div>
                       <div className="text-sm text-gray-600">Filtration Efficiency</div>

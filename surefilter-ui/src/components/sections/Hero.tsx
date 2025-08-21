@@ -55,7 +55,7 @@ export default function Hero() {
           {/* Бейдж */}
           <div className="inline-flex items-center gap-2 mb-4 sm:mb-6 px-4 py-2 rounded-full bg-sure-blue-100 text-sure-blue-600 text-sm font-medium">
             <span className="w-2 h-2 bg-sure-blue-500 rounded-full"></span>
-            Heavy-Duty Solutions
+            Wholesale Heavy-Duty Solutions
           </div>
           
           {/* Заголовок */}
@@ -66,7 +66,7 @@ export default function Hero() {
           
           {/* Описание */}
           <p className="font-sans text-base sm:text-lg text-gray-600 mb-6 sm:mb-4 leading-relaxed">
-            <span className="text-sure-red-500 font-bold">Sure Filter®</span> — your guarantee of reliability for the world&apos;s toughest vehicles and equipment.
+            Sure Filter® — your guarantee of reliability for the world&apos;s toughest vehicles and equipment.
           </p>
           
           {/* Поиск */}

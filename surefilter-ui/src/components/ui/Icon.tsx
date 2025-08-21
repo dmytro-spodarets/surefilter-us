@@ -4,7 +4,7 @@ import * as Heroicons from '@heroicons/react/24/outline';
 import * as HeroiconsSolid from '@heroicons/react/24/solid';
 
 interface IconProps {
-  name: keyof typeof Heroicons;
+  name: keyof typeof Heroicons | keyof typeof HeroiconsSolid | string;
   variant?: 'outline' | 'solid';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   className?: string;
@@ -25,7 +25,7 @@ const Icon: React.FC<IconProps> = ({
     lg: 'w-8 h-8',
     xl: 'w-12 h-12',
     '2xl': 'w-16 h-16',
-  };
+  } as const;
 
   const colorClasses = {
     'sure-blue': 'text-sure-blue-500',
@@ -33,11 +33,13 @@ const Icon: React.FC<IconProps> = ({
     'gray': 'text-gray-500',
     'white': 'text-white',
     'current': 'text-current',
-  };
+  } as const;
+
+  const iconName = String(name) as keyof typeof Heroicons;
 
   const IconComponent = variant === 'solid' 
-    ? HeroiconsSolid[name as keyof typeof HeroiconsSolid]
-    : Heroicons[name];
+    ? (HeroiconsSolid[iconName as keyof typeof HeroiconsSolid] as React.ComponentType<{ className?: string }>)
+    : (Heroicons[iconName] as React.ComponentType<{ className?: string }>);
 
   if (!IconComponent) {
     console.warn(`Icon "${name}" not found in Heroicons`);
