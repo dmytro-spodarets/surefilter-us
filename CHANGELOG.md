@@ -13,6 +13,13 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-08-25 — Подключена страница Contact Us к CMS; добавлены секции contact_hero, contact_options, contact_form_info; формы в админке; рендерер; сидинг
+- 2025-08-25 — Добавлен роут для верхнеуровневых CMS‑страниц `/(site)/[slug]` с рендером секций и метаданными
+- 2025-08-25 — Админка: модальное создание страниц, редактирование slug, удаление страниц; защита от удаления core‑страниц; список защищённых слегов
+- 2025-08-25 — Обновлён сидер и AddSectionForm: актуальные типы секций, удалены legacy‑контактные блоки при наличии contact_form_info; валидация и revalidateTag в API
+- 2025-08-25 — Подключена страница About Us к CMS; добавлены типы секций page_hero, about_with_stats, content_with_images, quality_assurance; формы в админке; сидинг контента
+- 2025-08-21 — Внедрён CMS для главной страницы: секции hero_full, featured_products, why_choose, quick_search, industries, about_news; добавлена админка страниц/секций, порядок секций, рендер на сервере, кеширование с revalidateTag
+- 2025-08-20 — Добавлена Docker-конфигурация Postgres (docker-compose), пример env; переход на единый глобальный .gitignore
 - 2025-08-11 — Восстановлен и расширен раздел «Как вести разработку», дополнена структура и разделы README без удаления существующего
 - 2025-08-10 — Добавлены страницы filters/[code] и catalog, компоненты ProductGallery/ProductSpecs/ContactOptions/Pagination; обновлён CTA на главной; обновлены README/ROADMAP
 - 2025-08-10 — README разделён; добавлены ROADMAP.md и CHANGELOG.md; README упрощён и актуализирован

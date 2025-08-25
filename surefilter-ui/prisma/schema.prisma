@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Auth models
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// CMS primitives
+enum SectionType {
+  hero_full
+  hero_compact
+  page_hero
+  page_hero_reverse
+  single_image_hero
+  compact_search_hero
+  search_hero
+  why_choose
+  featured_products
+  products
+  quick_search
+  industries
+  industries_list
+  filter_types_grid
+  popular_filters
+  about_with_stats
+  about_news
+  quality_assurance
+  content_with_images
+  related_filters
+  news_carousel
+  product_gallery
+  product_specs
+  limited_warranty_details
+  magnusson_moss_act
+  warranty_claim_process
+  warranty_contact
+  warranty_promise
+  contact_options
+  manufacturing_facilities
+  our_company
+  stats_band
+  awards_carousel
+  contact_hero
+  contact_form
+  contact_info
+  contact_details
+  contact_form_info
+}
+
+model Page {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  title       String
+  description String?
+  ogImage     String?
+  status      String       @default("published") // draft | published
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sections    PageSection[]
+}
+
+model Section {
+  id        String      @id @default(cuid())
+  type      SectionType
+  data      Json
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  pages     PageSection[]
+}
+
+model PageSection {
+  id        String   @id @default(cuid())
+  pageId    String
+  sectionId String
+  position  Int
+
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  section   Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, sectionId])
+  @@index([pageId, position])
+}

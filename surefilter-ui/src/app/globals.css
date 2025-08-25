@@ -23,6 +23,17 @@
   --color-sure-red-800: #821d08;
   --color-sure-red-900: #611506;
 
+  --color-sure-orange-50: #fff7ed;
+  --color-sure-orange-100: #ffedd5;
+  --color-sure-orange-200: #fed7aa;
+  --color-sure-orange-300: #fdba74;
+  --color-sure-orange-400: #fb923c;
+  --color-sure-orange-500: #f97316;
+  --color-sure-orange-600: #ea580c;
+  --color-sure-orange-700: #c2410c;
+  --color-sure-orange-800: #9a3412;
+  --color-sure-orange-900: #7c2d12;
+
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 

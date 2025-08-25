@@ -45,6 +45,9 @@
 
 ### Структура проекта (расширенно)
 ```
+docker/
+  docker-compose.yml
+  env.example
 surefilter-ui/
   src/app/
     page.tsx
@@ -122,6 +125,32 @@ npm run dev
 # build: npm run build; start: npm start; lint: npm run lint
 ```
 
+### Docker (Postgres) для разработки
+1) Подготовьте переменные окружения и поднимите контейнер:
+```bash
+cp docker/env.example docker/.env
+docker compose -f docker/docker-compose.yml up -d
+```
+
+2) Проверка логов/healthcheck:
+```bash
+docker compose -f docker/docker-compose.yml logs -f postgres | cat
+```
+
+3) Остановка/удаление контейнера:
+```bash
+docker compose -f docker/docker-compose.yml down
+```
+
+### CMS: редактирование контента и кеш
+- Главная страница полностью рендерится из CMS (БД) в порядке, заданном в админке.
+- Админка: `/admin` → Pages → выберите страницу → SEO и список секций; редактирование конкретной секции по клику Edit.
+- Поддерживаемые секции на главной: `hero_full`, `featured_products`, `why_choose`, `quick_search`, `industries`, `about_news`.
+- Кеш: используется tag‑based кеширование. После сохранения секции выполняется `revalidateTag` и HTML обновляется автоматически. В dev при необходимости перезапустите `npm run dev`.
+- Сидинг контента:
+  - Создание без перезаписи: `npm run seed:content`
+  - Принудительное обновление существующих секций: `npm run seed:content:force`
+
 ### Как вести разработку
 - Рабочий процесс
   - Ветки: `feature/<кратко>`, `fix/<кратко>`; мелкие правки можно в `main`, если без риска.
@@ -146,6 +175,7 @@ npm run dev
   - Карточки продуктов ссылаются на `/filters/{code}`.
 - Переменные окружения
   - `NEXT_PUBLIC_SITE_URL` — база для абсолютных ссылок в метаданных.
+  - `DATABASE_URL` — строка подключения к локальной PostgreSQL (см. `docker/env.example`).
 - Качество
   - Линт: `npm run lint`. Покрывайте новые компоненты простыми юнит‑тестами, где это уместно.
   - A11y: focus‑states, контраст, семантические теги, `aria` при необходимости.
@@ -153,3 +183,16 @@ npm run dev
 ### Дополнительно
 - Планы развития: см. `ROADMAP.md`.
 - История изменений и правила записей: см. `CHANGELOG.md`.
+
+### CMS & Admin updates (2025-08-25)
+- **Generic CMS routing**: `src/app/(site)/[slug]/page.tsx` рендерит верхнеуровневые страницы из CMS по `slug` и формирует метаданные из SEO полей страницы.
+- **Admin Pages**:
+  - **Создание страницы** в модальном окне: `slug`, `title`, `description`, `ogImage`.
+  - **Редактирование slug** в блоке SEO на странице редактирования.
+  - **Удаление страницы**: доступно только для незашищённых слегов; для защищённых кнопка отключена.
+  - **Хелперы**: `src/lib/pages.ts` — `RESERVED_SLUGS`, `isProtectedSlug`, `isValidNewSlug`.
+- **Новые секции и формы**:
+  - About: `manufacturing_facilities`, `our_company` (без поля `image`), `stats_band`, `awards_carousel`.
+  - Contact: `contact_hero`, `contact_options`, `contact_form_info`.
+- **Кеш/инвалидация**: все CRUD‑эндпойнты админки вызывают `revalidateTag('page:{slug}')`.
+- **Сидинг**: `npm run seed:content` (без перезаписи) и `SEED_FORCE_UPDATE=1 npm run seed:content` (форс‑обновление). Обновлён `seed_content.mjs` для новых секций и очистки устаревших контактных блоков при наличии `contact_form_info`.
