@@ -2,17 +2,16 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
+import { RESERVED_SLUGS } from '@/lib/pages';
 
-const RESERVED_SLUGS = new Set([
-  'admin', 'api', 'login', 'logout', 'health',
-  // existing static routes
-  'about-us', 'contact-us', 'catalog', 'filters', 'industries', 'resources', 'warranty', 'newsroom', 'heavy-duty', 'automotive', 'test-colors',
-  // root
-  '',
-]);
-
-function isValidSlug(slug: string) {
-  return /^[a-z0-9-]+$/.test(slug) && !RESERVED_SLUGS.has(slug);
+function isValidSlugForType(slug: string, type?: 'CUSTOM' | 'INDUSTRY') {
+  // allow multi-segment slugs like industries/agriculture
+  if (!/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(slug)) return false;
+  const first = (slug.split('/')?.[0] || '') as string;
+  // INDUSTRY pages are allowed under the reserved first segment "industries"
+  if (type === 'INDUSTRY') return first === 'industries';
+  // Otherwise, first segment must not be reserved
+  return !RESERVED_SLUGS.has(first);
 }
 
 export async function POST(req: Request) {
@@ -20,9 +19,9 @@ export async function POST(req: Request) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  let { slug, title, description, ogImage } = body ?? {};
+  let { slug, title, description, ogImage, type } = body ?? {};
   if (typeof slug === 'string') slug = slug.trim();
-  if (!isValidSlug(slug || '')) {
+  if (!isValidSlugForType(slug || '', type)) {
     return NextResponse.json({ error: 'Invalid or reserved slug. Use lowercase letters, numbers, and dashes only.' }, { status: 400 });
   }
   if (!title || typeof title !== 'string') title = slug.replace(/-/g, ' ').replace(/\b\w/g, (m: string) => m.toUpperCase());
@@ -32,7 +31,7 @@ export async function POST(req: Request) {
     if (existing) return NextResponse.json({ error: 'Slug already exists' }, { status: 409 });
 
     const page = await prisma.page.create({
-      data: { slug, title, description: description || null, ogImage: ogImage || null },
+      data: { slug, title, description: description || null, ogImage: ogImage || null, type: type === 'INDUSTRY' ? 'INDUSTRY' : 'CUSTOM' },
     });
 
     try {

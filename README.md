@@ -186,13 +186,21 @@ docker compose -f docker/docker-compose.yml down
 
 ### CMS & Admin updates (2025-08-25)
 - **Generic CMS routing**: `src/app/(site)/[slug]/page.tsx` рендерит верхнеуровневые страницы из CMS по `slug` и формирует метаданные из SEO полей страницы.
+  - Для многоуровневых страниц используется `src/app/(site)/[...slug]/page.tsx`; в dev временно используется некешированная загрузка `loadPageBySlug`.
 - **Admin Pages**:
   - **Создание страницы** в модальном окне: `slug`, `title`, `description`, `ogImage`.
   - **Редактирование slug** в блоке SEO на странице редактирования.
   - **Удаление страницы**: доступно только для незашищённых слегов; для защищённых кнопка отключена.
   - **Хелперы**: `src/lib/pages.ts` — `RESERVED_SLUGS`, `isProtectedSlug`, `isValidNewSlug`.
+- **Industries**:
+  - Новый раздел `/admin/industries` — список страниц с `type=INDUSTRY`, кнопка “New industry page” (префикс `industries/`).
+  - Редактор секций доступен универсально по `admin/sections/{id}`.
+  - Динамический список на `/industries` рендерится секцией `industries_list` из страниц `type=INDUSTRY` c их `industry_meta` (title/description/image/popularFilters).
+  - Добавлены секции: `compact_search_hero`, `simple_search`, `popular_filters`, `related_filters`.
 - **Новые секции и формы**:
   - About: `manufacturing_facilities`, `our_company` (без поля `image`), `stats_band`, `awards_carousel`.
   - Contact: `contact_hero`, `contact_options`, `contact_form_info`.
+  - Industries: `industries_list`, `industry_meta`, `compact_search_hero`, `simple_search`, `popular_filters`, `related_filters`.
 - **Кеш/инвалидация**: все CRUD‑эндпойнты админки вызывают `revalidateTag('page:{slug}')`.
 - **Сидинг**: `npm run seed:content` (без перезаписи) и `SEED_FORCE_UPDATE=1 npm run seed:content` (форс‑обновление). Обновлён `seed_content.mjs` для новых секций и очистки устаревших контактных блоков при наличии `contact_form_info`.
+- **Изображения**: `next.config.ts` — добавлен `http://localhost:3000` в `images.remotePatterns` для dev.

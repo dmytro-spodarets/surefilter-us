@@ -8,10 +8,10 @@ export default function ReorderButtons({ slug, sectionId, isFirst, isLast }: { s
   const move = async (direction: 'up' | 'down') => {
     setLoading(direction);
     try {
-      await fetch(`/api/admin/pages/${slug}/sections/reorder`, {
-        method: 'POST',
+      await fetch(`/api/admin/pages/${slug}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sectionId, direction }),
+        body: JSON.stringify({ action: 'reorder', sectionId, direction }),
       });
       // Soft refresh
       window.location.reload();

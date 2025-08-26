@@ -50,6 +50,14 @@ export const QuickSearchSchema = z.object({
   ctaLabel: z.string().optional().default('Ask our team'),
   ctaHref: z.string().optional().default('#'),
 });
+export const SimpleSearchSchema = z.object({
+  title: z.string().optional().default('Find Your Filter'),
+  description: z.string().optional().default('Search by part number or equipment model'),
+  placeholder: z.string().optional().default('Enter part number or equipment model...'),
+  buttonText: z.string().optional().default('Search'),
+});
+export type SimpleSearchInput = z.infer<typeof SimpleSearchSchema>;
+
 
 export type QuickSearchInput = z.infer<typeof QuickSearchSchema>;
 
@@ -67,6 +75,13 @@ export const IndustriesSchema = z.object({
 });
 
 export type IndustriesInput = z.infer<typeof IndustriesSchema>;
+
+// Industries list section (dynamic, no fields now, kept for future settings)
+export const IndustriesListSchema = z.object({
+  title: z.string().optional().default('Our Industries'),
+  description: z.string().optional().default('Specialized filtration solutions tailored to the unique challenges of each industry'),
+});
+export type IndustriesListInput = z.infer<typeof IndustriesListSchema>;
 
 // AboutNews
 export const AboutNewsStatSchema = z.object({ number: z.string(), label: z.string() });
@@ -93,6 +108,14 @@ export const PageHeroSchema = z.object({
 });
 
 export type PageHeroInput = z.infer<typeof PageHeroSchema>;
+
+// SingleImageHero / FullScreenHero
+export const SingleImageHeroSchema = z.object({
+  title: z.string(),
+  description: z.string().optional().default(''),
+  image: z.string().optional().default(''),
+});
+export type SingleImageHeroInput = z.infer<typeof SingleImageHeroSchema>;
 
 // AboutWithStats
 export const AboutWithStatsFeatureSchema = z.object({ icon: z.string(), text: z.string() });
@@ -223,6 +246,24 @@ export const ContactOptionItemSchema = z.object({
   href: z.string().optional().default('#'),
   cta: z.string().optional().default(''),
 });
+// Popular filters
+export const PopularFilterItemSchema = z.object({
+  name: z.string(),
+  category: z.string().optional().default(''),
+  applications: z.string().optional().default(''),
+  image: z.string().optional().default(''),
+  href: z.string().optional().default('#'),
+});
+export const PopularFiltersSchema = z.object({
+  title: z.string().optional().default('Popular Filters'),
+  description: z.string().optional().default(''),
+  catalogHref: z.string().optional().default('/catalog'),
+  catalogText: z.string().optional().default('Browse All Filters'),
+  columnsPerRow: z.number().int().min(1).max(6).optional().default(5),
+  items: z.array(PopularFilterItemSchema).default([]),
+});
+export type PopularFiltersInput = z.infer<typeof PopularFiltersSchema>;
+
 
 export const ContactOptionsSchema = z.object({
   items: z.array(ContactOptionItemSchema).default([]),
@@ -239,5 +280,14 @@ export const ContactFormInfoSchema = z.object({
   info: ContactInfoSchema,
 });
 export type ContactFormInfoInput = z.infer<typeof ContactFormInfoSchema>;
+
+// Per-industry page meta for listing cards
+export const IndustryMetaSchema = z.object({
+  listTitle: z.string().optional().default(''),
+  listDescription: z.string().optional().default(''),
+  listImage: z.string().optional().default(''),
+  popularFilters: z.array(z.string()).default([]),
+});
+export type IndustryMetaInput = z.infer<typeof IndustryMetaSchema>;
 
 

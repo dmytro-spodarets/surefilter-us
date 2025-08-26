@@ -508,6 +508,95 @@ async function main() {
   await ensureHomePage();
   await ensureAboutPage();
   await ensureContactPage();
+  // Ensure industries landing page exists
+  const industriesSlug = 'industries';
+  let industriesPage = await prisma.page.findUnique({ where: { slug: industriesSlug } });
+  if (!industriesPage) {
+    industriesPage = await prisma.page.create({ data: { slug: industriesSlug, title: 'Industries', description: 'Industries we serve', type: 'CORE' } });
+  }
+  const industriesExisting = await prisma.page.findUnique({ where: { slug: industriesSlug }, include: { sections: { include: { section: true } } } });
+  const has = (t) => industriesExisting?.sections.some((s) => s.section.type === t);
+  const nextPos = async () => { const last = await prisma.pageSection.findFirst({ where: { pageId: industriesPage.id }, orderBy: { position: 'desc' } }); return (last?.position ?? 0) + 1; };
+  if (!has('single_image_hero')) {
+    const sec = await prisma.section.create({ data: { type: 'single_image_hero', data: { title: 'Industries We Serve', description: 'Comprehensive filtration solutions for agriculture, construction, mining, marine, oil & gas, power generation, transportation, waste management, and rail industries.', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80' } } });
+    await prisma.pageSection.create({ data: { pageId: industriesPage.id, sectionId: sec.id, position: await nextPos() } });
+  }
+  if (!has('industries_list')) {
+    const sec = await prisma.section.create({ data: { type: 'industries_list', data: { title: 'Our Industries', description: 'Explore our coverage' } } });
+    await prisma.pageSection.create({ data: { pageId: industriesPage.id, sectionId: sec.id, position: await nextPos() } });
+  }
+
+  // Seed example industry page heavy-duty-truck by copying from agriculture content
+  const industrySlug = 'industries/heavy-duty-truck';
+  let industryPage = await prisma.page.findUnique({ where: { slug: industrySlug } });
+  if (industryPage) {
+    // Add sections if empty
+    const existing = await prisma.page.findUnique({ where: { slug: industrySlug }, include: { sections: { include: { section: true } } } });
+    const hasType = (t) => existing?.sections.some((s) => s.section.type === t);
+    const nextPos2 = async () => { const last = await prisma.pageSection.findFirst({ where: { pageId: industryPage.id }, orderBy: { position: 'desc' } }); return (last?.position ?? 0) + 1; };
+    if (!hasType('compact_search_hero')) {
+      const sec = await prisma.section.create({ data: { type: 'compact_search_hero', data: { title: 'Sure Filter® Filters for the Heavy-Duty Truck Industry', description: 'Reliable filtration solutions engineered for heavy-duty trucking applications', image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80' } } });
+      await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
+    }
+    if (!hasType('about_with_stats')) {
+      const features = [
+        { icon: 'CheckIcon', text: 'Engineered for long-haul and severe service conditions' },
+        { icon: 'ShieldCheckIcon', text: 'Tested to SAE, JIS, and DIN standards' },
+        { icon: 'ClockIcon', text: 'Extended service intervals and reduced downtime' },
+        { icon: 'WrenchScrewdriverIcon', text: 'Reinforced construction for heavy-duty use' },
+      ];
+      const stats = [
+        { icon: 'StarIcon', title: 'ISO 9001:2015', subtitle: 'Certified Quality' },
+        { icon: 'GlobeAltIcon', title: 'Global Coverage', subtitle: '50+ Countries' },
+        { icon: 'Squares2X2Icon', title: '8,000+ SKUs', subtitle: 'Comprehensive Range' },
+        { icon: 'BoltIcon', title: 'High Efficiency', subtitle: 'Optimized Protection' },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'about_with_stats', data: { title: 'Heavy-Duty Truck Industry Filters', description: 'Our filters are engineered to withstand harsh conditions while delivering superior protection for engines and hydraulic systems.', features, stats } } });
+      await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
+    }
+    if (!hasType('content_with_images')) {
+      const content = [
+        'Heavy-duty trucks operate under demanding conditions including long-haul routes, extreme temperatures, and varying fuel quality. Sure Filter® products are engineered to protect critical systems and maximize uptime.',
+        'Our filters feature reinforced construction, extended service intervals, and superior filtration media to ensure peak performance and reduced maintenance costs.',
+        'All products are designed and manufactured in accordance with industry standards for reliability and performance.',
+      ];
+      const images = [
+        { src: 'https://images.unsplash.com/photo-1566151098783-dac1b565bb35?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Heavy-duty truck on road', position: 1 },
+        { src: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Engine components', position: 3 },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'content_with_images', data: { title: 'Sure Filter® for Heavy-Duty Trucks', subtitle: 'Reliable filtration solutions for trucking', content, images } } });
+      await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
+    }
+    if (!hasType('popular_filters')) {
+      const items = [
+        { name: 'Air Filter A4567', category: 'Air Filters', applications: 'Long-haul trucks', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/heavy-duty/air' },
+        { name: 'Fuel Filter F8901', category: 'Fuel Filters', applications: 'Diesel engines', image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/heavy-duty/fuel' },
+        { name: 'Hydraulic Filter H2345', category: 'Hydraulic Filters', applications: 'Suspension systems', image: 'https://images.unsplash.com/photo-1559123041-64f56cdc2c3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/heavy-duty' },
+        { name: 'Oil Filter O6789', category: 'Oil Filters', applications: 'HD engines', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/heavy-duty/oil' },
+        { name: 'Cabin Air Filter C3456', category: 'Cabin Filters', applications: 'Operator comfort', image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/heavy-duty/cabin' },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'popular_filters', data: { title: 'Popular Heavy-Duty Truck Filters', description: 'Top-performing filters for trucking applications', catalogHref: '/heavy-duty', catalogText: 'Browse All Filters', columnsPerRow: 5, items } } });
+      await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
+    }
+    if (!hasType('simple_search')) {
+      const sec = await prisma.section.create({ data: { type: 'simple_search', data: { title: 'Find Your Heavy-Duty Filter', description: 'Search by part number, OEM number, or equipment model', placeholder: 'Enter part number or equipment model', buttonText: 'Search Heavy-Duty Filters' } } });
+      await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
+    }
+    if (!hasType('related_filters')) {
+      const filters = [
+        { name: 'Air Filters', description: 'Engine air filtration solutions', href: '/heavy-duty/air', icon: 'CloudIcon' },
+        { name: 'Fuel Filters', description: 'Clean fuel delivery systems', href: '/heavy-duty/fuel', icon: 'FireIcon' },
+        { name: 'Oil Filters', description: 'Engine oil purification', href: '/heavy-duty/oil', icon: 'BeakerIcon' },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'related_filters', data: { title: 'Related Filter Types', description: 'Explore filtration solutions for trucking', filters } } });
+      await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
+    }
+  }
+  // Mark core pages types where applicable
+  const coreSlugs = ['home', 'about-us', 'contact-us', 'catalog', 'filters', 'industries', 'resources', 'warranty', 'newsroom', 'heavy-duty', 'automotive', 'test-colors'];
+  for (const slug of coreSlugs) {
+    try { await prisma.page.updateMany({ where: { slug }, data: { type: 'CORE' } }); } catch {}
+  }
 }
 
 main()

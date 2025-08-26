@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      // Allow dev-hosted absolute URLs
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+      },
     ],
     formats: ['image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

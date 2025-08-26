@@ -2,21 +2,53 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
-import { isProtectedSlug, isValidNewSlug, RESERVED_SLUGS } from '@/lib/pages';
+import { isProtectedSlug, RESERVED_SLUGS } from '@/lib/pages';
 
-// keep using shared helpers
+function joinSlug(parts: string[]) {
+  return (parts || []).join('/');
+}
 
-export async function PUT(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { slug } = await params;
+  const { slug: parts } = await params;
+  const slug = joinSlug(parts);
   const body = await req.json();
-  const { title, description, ogImage, slug: newSlug } = body ?? {};
+  const { title, description, ogImage, slug: newSlug, action } = body ?? {};
 
-  // If slug change requested, validate and ensure uniqueness
+  // Support action=reorder via PUT to avoid separate path after catch-all
+  if (action === 'reorder') {
+    const { sectionId, direction } = body ?? {};
+    if (!sectionId || !['up', 'down'].includes(direction)) {
+      return NextResponse.json({ error: 'Bad request' }, { status: 400 });
+    }
+    const page = await prisma.page.findUnique({ where: { slug }, include: { sections: { orderBy: { position: 'asc' } } } });
+    if (!page) return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+    const list = page.sections;
+    const idx = list.findIndex((ps) => ps.sectionId === sectionId);
+    if (idx === -1) return NextResponse.json({ error: 'Section not found' }, { status: 404 });
+    const swapWith = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapWith < 0 || swapWith >= list.length) {
+      return NextResponse.json({ ok: true, noop: true });
+    }
+    const a = list[idx];
+    const b = list[swapWith];
+    await prisma.$transaction([
+      prisma.pageSection.update({ where: { id: a.id }, data: { position: b.position } }),
+      prisma.pageSection.update({ where: { id: b.id }, data: { position: a.position } }),
+    ]);
+    try {
+      const { revalidateTag } = await import('next/cache');
+      revalidateTag(`page:${slug}`);
+    } catch {}
+    return NextResponse.json({ ok: true });
+  }
+
   if (newSlug && newSlug !== slug) {
-    if (!isValidNewSlug(newSlug)) return NextResponse.json({ error: 'Invalid or reserved slug' }, { status: 400 });
+    const first = (newSlug.split('/')?.[0] || '');
+    const valid = /^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(newSlug) && !RESERVED_SLUGS.has(first);
+    if (!valid) return NextResponse.json({ error: 'Invalid or reserved slug' }, { status: 400 });
     const exists = await prisma.page.findUnique({ where: { slug: newSlug } });
     if (exists) return NextResponse.json({ error: 'Slug already exists' }, { status: 409 });
   }
@@ -40,19 +72,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
   return NextResponse.json({ ok: true, slug: updated.slug });
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { slug } = await params;
+  const { slug: parts } = await params;
+  const slug = joinSlug(parts);
   const { type } = await req.json();
   if (!type) return NextResponse.json({ error: 'Type required' }, { status: 400 });
 
   const page = await prisma.page.findUnique({ where: { slug } });
   if (!page) return NextResponse.json({ error: 'Page not found' }, { status: 404 });
 
-  // Minimal defaults per type
   const defaults: Record<string, any> = {
     page_hero: { title: page.title, description: page.description ?? '' },
+    single_image_hero: { title: page.title, description: page.description ?? '', image: '' },
+    compact_search_hero: { title: page.title, description: page.description ?? '', image: '' },
+    simple_search: { title: 'Find Your Filter', description: 'Search by part number or equipment model', placeholder: 'Enter part number or equipment model...', buttonText: 'Search' },
     about_with_stats: { title: '', description: '', features: [], stats: [] },
     content_with_images: { title: '', subtitle: '', content: [], images: [] },
     quality_assurance: {},
@@ -70,6 +105,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     why_choose: { title: 'Why Choose Sure Filter®?', description: '', items: [] },
     quick_search: { title: 'Find Your Filter Fast', description: '', placeholder: '', ctaLabel: 'Ask our team', ctaHref: '#' },
     industries: { title: 'Industries We Serve', description: '', items: [] },
+    industries_list: { title: 'Our Industries', description: 'Specialized filtration solutions tailored to the unique challenges of each industry' },
+    industry_meta: { listTitle: '', listDescription: '', listImage: '', popularFilters: [] },
+    popular_filters: { title: 'Popular Filters', description: '', catalogHref: '/catalog', catalogText: 'Browse All Filters', columnsPerRow: 5, items: [] },
+    related_filters: { title: 'Related Filter Types', description: '', filters: [] },
     about_news: { aboutTitle: 'Who We Are', aboutParagraphs: [], stats: [], aboutCtaLabel: 'Learn More About Us', aboutCtaHref: '#', newsTitle: 'News & Updates', newsItems: [], newsCtaLabel: 'See All News', newsCtaHref: '#' },
   };
   const data = defaults[type] ?? {};
@@ -87,10 +126,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   return NextResponse.json({ ok: true, id: sec.id });
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { slug } = await params;
+  const { slug: parts } = await params;
+  const slug = joinSlug(parts);
   if (isProtectedSlug(slug)) return NextResponse.json({ error: 'This page is protected and cannot be deleted' }, { status: 400 });
   try {
     await prisma.page.delete({ where: { slug } });

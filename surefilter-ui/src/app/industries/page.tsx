@@ -1,7 +1,7 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import FullScreenHero from '@/components/sections/FullScreenHero';
-import IndustriesList from '@/components/sections/IndustriesList';
+import { loadCachedPageBySlug } from '@/cms/fetch';
+import { renderSection } from '@/cms/renderer';
 
 export const metadata = {
   title: 'Industries We Serve | Sure Filter',
@@ -9,19 +9,14 @@ export const metadata = {
   keywords: 'industrial filters, heavy duty filtration, agriculture filters, construction filters, mining filters, marine filters, oil gas filters, power generation filters, transportation filters, waste management filters, rail filters',
 };
 
-export default function IndustriesPage() {
+export default async function IndustriesPage() {
+  const page = await loadCachedPageBySlug('industries');
   return (
     <main>
       <Header />
-      
-      <FullScreenHero 
-        title="Industries We Serve"
-        description="Comprehensive filtration solutions for agriculture, construction, mining, marine, oil & gas, power generation, transportation, waste management, and rail industries."
-        backgroundImage="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
-      />
-      
-      <IndustriesList />
-
+      {(page?.sections || []).map((s) => (
+        <div key={s.id}>{renderSection(s)}</div>
+      ))}
       <Footer />
     </main>
   );

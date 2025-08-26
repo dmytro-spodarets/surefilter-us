@@ -14,6 +14,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link href="/admin" className="font-semibold text-gray-900">Admin</Link>
               <nav className="flex items-center gap-4 text-sm">
                 <Link href="/admin/pages" className="text-gray-700 hover:text-gray-900">Pages</Link>
+                <span className="text-gray-300">|</span>
+                <Link href="/admin/industries" className="text-gray-700 hover:text-gray-900">Industries</Link>
                 {/* Future: */}
                 <span className="text-gray-300">|</span>
                 <span className="text-gray-400">Products</span>

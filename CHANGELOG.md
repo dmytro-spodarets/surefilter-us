@@ -13,6 +13,10 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-08-25 — Индустрии в CMS: добавлены секции compact_search_hero, simple_search, popular_filters, related_filters; industries_list рендерит список из INDUSTRY‑страниц по их industry_meta; формы в админке
+- 2025-08-25 — Админка: раздел /admin/industries (список INDUSTRY‑страниц), редактор секций по id /admin/sections/[id]; единый catch‑all API /api/admin/pages/[...slug] с POST (добавление секции) и PUT action=reorder; удалены дублирующие одиночные роуты
+- 2025-08-25 — Роутинг сайта: catch‑all /(...)/[...slug] рендерит CMS‑страницы, временно использует некешированный загрузчик для dev; исправлен рендер compact_search_hero
+- 2025-08-25 — Конфиг изображений: next.config.ts разрешает http://localhost:3000 для next/image
 - 2025-08-25 — Подключена страница Contact Us к CMS; добавлены секции contact_hero, contact_options, contact_form_info; формы в админке; рендерер; сидинг
 - 2025-08-25 — Добавлен роут для верхнеуровневых CMS‑страниц `/(site)/[slug]` с рендером секций и метаданными
 - 2025-08-25 — Админка: модальное создание страниц, редактирование slug, удаление страниц; защита от удаления core‑страниц; список защищённых слегов

@@ -2,30 +2,40 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
-import NewPageForm from './NewPageForm';
+import NewPageForm from '../pages/NewPageForm';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function PagesList() {
+export default async function IndustriesPagesList() {
   const session = await getServerSession(authOptions);
-  if (!session) redirect('/login?callbackUrl=/admin/pages');
+  if (!session) redirect('/login?callbackUrl=/admin/industries');
 
-  const pages = await prisma.page.findMany({ where: { type: { not: 'INDUSTRY' } }, orderBy: { slug: 'asc' } });
+  const pages = await prisma.page.findMany({
+    where: { type: 'INDUSTRY' },
+    orderBy: { slug: 'asc' },
+  });
 
   return (
     <main className="min-h-screen px-6 py-10">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Pages</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Industries</h1>
           <div className="flex items-center gap-4">
-            <NewPageForm />
+            <NewPageForm presetType="INDUSTRY" presetPrefix="industries/" buttonLabel="New industry page" />
             <div className="text-sm">
               <Link href="/admin" className="text-sure-blue-600 hover:underline">← Back to dashboard</Link>
             </div>
           </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div>
+            <div className="font-medium text-gray-900">Industries — landing page</div>
+            <div className="text-sm text-gray-600">/industries</div>
+          </div>
+          <Link href="/admin/pages/industries" className="text-sure-blue-600 hover:underline">Edit</Link>
         </div>
         <ul className="mt-6 divide-y divide-gray-200 border border-gray-200 rounded-lg">
           {pages.map((p) => (

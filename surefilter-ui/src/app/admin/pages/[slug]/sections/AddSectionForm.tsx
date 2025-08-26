@@ -13,6 +13,7 @@ const OPTIONS = [
 
   // About Us
   { value: 'page_hero', label: 'About: Page Hero' },
+  { value: 'single_image_hero', label: 'Generic: FullScreen Hero' },
   { value: 'manufacturing_facilities', label: 'About: Manufacturing Facilities' },
   { value: 'our_company', label: 'About: Our Company (tabs)' },
   { value: 'stats_band', label: 'About: Stats Band' },
@@ -23,6 +24,14 @@ const OPTIONS = [
   { value: 'contact_hero', label: 'Contact: Hero' },
   { value: 'contact_options', label: 'Contact: Options (Call/Chat/Ask)' },
   { value: 'contact_form_info', label: 'Contact: Form + Info' },
+
+  // Industries
+  { value: 'industries_list', label: 'Industries: List (dynamic)' },
+  { value: 'industry_meta', label: 'Industry: Listing Meta (for industry detail page)' },
+  { value: 'compact_search_hero', label: 'Industry: Compact Search Hero' },
+  { value: 'popular_filters', label: 'Industry: Popular Filters' },
+  { value: 'simple_search', label: 'Industry: Simple Search' },
+  { value: 'related_filters', label: 'Industry: Related Filter Types' },
 ];
 
 export default function AddSectionForm({ slug }: { slug: string }) {
@@ -33,7 +42,7 @@ export default function AddSectionForm({ slug }: { slug: string }) {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch(`/api/admin/pages/${slug}/sections`, {
+      await fetch(`/api/admin/pages/${slug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type }),

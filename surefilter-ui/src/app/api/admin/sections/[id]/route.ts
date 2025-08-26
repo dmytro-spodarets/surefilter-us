@@ -7,9 +7,12 @@ import {
   FeaturedProductsSchema,
   WhyChooseSchema,
   QuickSearchSchema,
+  SimpleSearchSchema,
   IndustriesSchema,
+  IndustriesListSchema,
   AboutNewsSchema,
   PageHeroSchema,
+  SingleImageHeroSchema,
   AboutWithStatsSchema,
   ContentWithImagesSchema,
   QualityAssuranceSchema,
@@ -23,6 +26,8 @@ import {
   ContactDetailsSchema,
   ContactFormInfoSchema,
   ContactOptionsSchema,
+  IndustryMetaSchema,
+  PopularFiltersSchema,
 } from '@/cms/schemas';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -48,8 +53,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const parsed = QuickSearchSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'simple_search') {
+    const parsed = SimpleSearchSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'industries') {
     const parsed = IndustriesSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'industries_list') {
+    const parsed = IndustriesListSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'industry_meta') {
+    const parsed = IndustryMetaSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'about_news') {
@@ -58,6 +75,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'page_hero') {
     const parsed = PageHeroSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'single_image_hero') {
+    const parsed = SingleImageHeroSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'about_with_stats') {
@@ -110,6 +131,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'contact_options') {
     const parsed = ContactOptionsSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'popular_filters') {
+    const parsed = PopularFiltersSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else {

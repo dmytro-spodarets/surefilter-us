@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function NewPageForm() {
+export default function NewPageForm({ presetType, presetPrefix, buttonLabel }: { presetType?: 'CUSTOM' | 'INDUSTRY'; presetPrefix?: string; buttonLabel?: string }) {
   const [slug, setSlug] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -18,7 +18,7 @@ export default function NewPageForm() {
     const res = await fetch('/api/admin/pages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, title, description, ogImage }),
+      body: JSON.stringify({ slug: (presetPrefix || '') + slug, title, description, ogImage, type: presetType }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -32,7 +32,7 @@ export default function NewPageForm() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg">New page</button>
+      <button onClick={() => setOpen(true)} className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg">{buttonLabel || 'New page'}</button>
       {open && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
@@ -41,7 +41,10 @@ export default function NewPageForm() {
             <form onSubmit={onSubmit} className="grid gap-3">
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Slug</label>
-                <input placeholder="expo-aapex-2025" value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <div className="flex items-center gap-2">
+                  {presetPrefix ? <span className="text-sm text-gray-500">/{presetPrefix}</span> : null}
+                  <input placeholder={presetPrefix ? 'agriculture' : 'expo-aapex-2025'} value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Title</label>

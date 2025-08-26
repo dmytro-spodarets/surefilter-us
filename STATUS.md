@@ -99,4 +99,8 @@ Risks/notes
 - [x] About Us: добавлены `manufacturing_facilities`, `our_company` (без `image`), `stats_band`, `awards_carousel`
 - [x] Contact Us: `contact_hero`, `contact_options`, `contact_form_info`; сетка и контент синхронизированы с исходной статикой
 - [x] Сидинг и AddSectionForm: актуализированы типы; убраны legacy‑контактные блоки при наличии `contact_form_info`
+- [x] Industries: раздел `/admin/industries`, карточка лендинга `/industries`; секции `industries_list` и `industry_meta`; динамический список отраслей из БД
+- [x] Industry pages: добавлены секции `compact_search_hero`, `simple_search`, `popular_filters`, `related_filters`; рендер и формы в админке
+- [x] API: единый catch‑all `/api/admin/pages/[...slug]` для CRUD секций и reorder; удалены конфликтующие вложенные маршруты
+- [x] Изображения: разрешён `http://localhost:3000` для `next/image` в dev
 

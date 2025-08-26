@@ -2,9 +2,13 @@ import HeroCms from '@/components/sections/HeroCms';
 import FeaturedProductsCms from '@/components/sections/FeaturedProductsCms';
 import WhyChooseCms from '@/components/sections/WhyChooseCms';
 import QuickSearchCms from '@/components/sections/QuickSearchCms';
+import SimpleSearch from '@/components/sections/SimpleSearch';
 import IndustriesCms from '@/components/sections/IndustriesCms';
+import IndustriesList from '@/components/sections/IndustriesList';
 import AboutNewsCms from '@/components/sections/AboutNewsCms';
 import PageHero from '@/components/sections/PageHero';
+import FullScreenHero from '@/components/sections/FullScreenHero';
+import CompactSearchHero from '@/components/sections/CompactSearchHero';
 import AboutWithStats from '@/components/sections/AboutWithStats';
 import ContentWithImages from '@/components/sections/ContentWithImages';
 import QualityAssurance from '@/components/sections/QualityAssurance';
@@ -17,6 +21,8 @@ import ContactForm from '@/components/sections/ContactForm';
 import ContactInfo from '@/components/sections/ContactInfo';
 import ContactDetails from '@/components/sections/ContactDetails';
 import ContactFormInfo from '@/components/sections/ContactFormInfo';
+import RelatedFilters from '@/components/sections/RelatedFilters';
+import PopularFilters from '@/components/sections/PopularFilters';
 import ContactOptions from '@/components/sections/ContactOptions';
 import type { CmsSection } from './types';
 import { HeroFullSchema } from './schemas';
@@ -58,9 +64,17 @@ export function renderSection(section: CmsSection) {
       const d = section.data as any;
       return <QuickSearchCms title={d?.title} description={d?.description} placeholder={d?.placeholder} ctaLabel={d?.ctaLabel} ctaHref={d?.ctaHref} />;
     }
+    case 'simple_search': {
+      const d = section.data as any;
+      return <SimpleSearch title={d?.title} description={d?.description} placeholder={d?.placeholder} buttonText={d?.buttonText} />;
+    }
     case 'industries': {
       const d = section.data as any;
       return <IndustriesCms title={d?.title} description={d?.description} items={Array.isArray(d?.items) ? d.items : []} />;
+    }
+    case 'industries_list': {
+      const d = section.data as any;
+      return <IndustriesList title={d?.title} description={d?.description} />;
     }
     case 'about_news': {
       const d = section.data as any;
@@ -81,6 +95,14 @@ export function renderSection(section: CmsSection) {
     case 'page_hero': {
       const d = section.data as any;
       return <PageHero title={d?.title || ''} description={d?.description || ''} />;
+    }
+    case 'single_image_hero': {
+      const d = section.data as any;
+      return <FullScreenHero title={d?.title || ''} description={d?.description || ''} backgroundImage={d?.image || ''} />;
+    }
+    case 'compact_search_hero': {
+      const d = section.data as any;
+      return <CompactSearchHero title={d?.title || ''} description={d?.description || ''} backgroundImage={d?.image || ''} />;
     }
     case 'about_with_stats': {
       const d = section.data as any;
@@ -146,6 +168,14 @@ export function renderSection(section: CmsSection) {
     case 'contact_options': {
       const d = section.data as any;
       return <ContactOptions items={Array.isArray(d?.items) ? d.items : undefined} phone={d?.phone || ''} chatHref={d?.chatHref || '#'} askHref={d?.askHref || '#contact-form'} />;
+    }
+    case 'related_filters': {
+      const d = section.data as any;
+      return <RelatedFilters title={d?.title} description={d?.description} filters={Array.isArray(d?.filters) ? d.filters : []} />;
+    }
+    case 'popular_filters': {
+      const d = section.data as any;
+      return <PopularFilters title={d?.title} description={d?.description} filters={Array.isArray(d?.items) ? d.items : []} catalogHref={d?.catalogHref} catalogText={d?.catalogText} columnsPerRow={d?.columnsPerRow} />;
     }
     default:
       return null;

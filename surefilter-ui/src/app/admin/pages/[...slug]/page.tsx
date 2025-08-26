@@ -2,19 +2,23 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import HomeHeroForm from './sections/HomeHeroForm';
 import Link from 'next/link';
-import SeoForm from './SeoForm';
-import ReorderButtons from './ReorderButtons';
-import DeletePageButton from './DeletePageButton';
-import AddSectionForm from './sections/AddSectionForm';
+import SeoForm from '@/app/admin/pages/[slug]/SeoForm';
+import ReorderButtons from '@/app/admin/pages/[slug]/ReorderButtons';
+import DeletePageButton from '@/app/admin/pages/[slug]/DeletePageButton';
+import AddSectionForm from '@/app/admin/pages/[slug]/sections/AddSectionForm';
 
 export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function EditPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+function joinSlug(segments: string[]) {
+  return (segments || []).join('/');
+}
+
+export default async function EditPage({ params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug: parts } = await params;
+  const slug = joinSlug(parts);
   const session = await getServerSession(authOptions);
   if (!session) redirect(`/login?callbackUrl=/admin/pages/${slug}`);
 
@@ -26,7 +30,6 @@ export default async function EditPage({ params }: { params: Promise<{ slug: str
   });
   if (!page) redirect('/admin/pages');
 
-  // Find hero_full section for Home for now
   const sectionList = page.sections.map((s) => ({ id: s.section.id, type: s.section.type, position: s.position }));
 
   return (
