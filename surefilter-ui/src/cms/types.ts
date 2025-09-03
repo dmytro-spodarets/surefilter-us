@@ -13,7 +13,7 @@ export type SectionType =
   | 'quick_search'
   | 'industries'
   | 'industries_list'
-  | 'industry_meta'
+  | 'listing_card_meta'
   | 'filter_types_grid'
   | 'popular_filters'
   | 'about_with_stats'

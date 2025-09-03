@@ -505,9 +505,95 @@ async function ensureContactPage() {
   }
 }
 async function main() {
+  // Safety: convert any leftover old enum values in DB
+  try {
+    await prisma.$executeRawUnsafe('UPDATE "Section" SET type = $1::"SectionType" WHERE type::text = $2', 'listing_card_meta', 'industry_meta');
+  } catch {}
   await ensureHomePage();
   await ensureAboutPage();
   await ensureContactPage();
+  // Ensure category landing pages exist for admin editing
+  try {
+    const hd = await prisma.page.findUnique({ where: { slug: 'heavy-duty' } });
+    if (!hd) {
+      await prisma.page.create({ data: { slug: 'heavy-duty', title: 'Heavy Duty Filters', description: 'Filters for heavy-duty applications', type: 'CORE' } });
+      console.log('Created CMS page: heavy-duty');
+    }
+  } catch {}
+  // Seed heavy-duty sections to mirror original page
+  const hdPage = await prisma.page.findUnique({ where: { slug: 'heavy-duty' }, include: { sections: { include: { section: true }, orderBy: { position: 'asc' } } } });
+  const hasHd = (t) => hdPage?.sections.some((s) => s.section.type === t);
+  const nextHdPos = async () => { const last = await prisma.pageSection.findFirst({ where: { pageId: hdPage.id }, orderBy: { position: 'desc' } }); return (last?.position ?? 0) + 1; };
+  if (hdPage) {
+    if (!hasHd('search_hero')) {
+      const sec = await prisma.section.create({ data: { type: 'search_hero', data: { title: 'Heavy Duty Filters', description: 'Engineered for extreme conditions and heavy machinery. Superior filtration solutions for construction, mining, agriculture, and industrial equipment.', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' } } });
+      await prisma.pageSection.create({ data: { pageId: hdPage.id, sectionId: sec.id, position: await nextHdPos() } });
+    }
+    if (!hasHd('about_with_stats')) {
+      const features = [
+        { icon: 'CheckIcon', text: 'High-capacity filtration systems' },
+        { icon: 'CheckIcon', text: 'Extended service intervals' },
+        { icon: 'CheckIcon', text: 'Corrosion-resistant materials' },
+        { icon: 'CheckIcon', text: 'Temperature and pressure rated' },
+      ];
+      const stats = [
+        { icon: 'StarIcon', title: 'ISO 9001:2015', subtitle: 'Certified Quality' },
+        { icon: 'StarIcon', title: '99.9% Efficiency', subtitle: 'Filtration Rate' },
+        { icon: 'ClockIcon', title: '2X Longer Life', subtitle: 'Service Intervals' },
+        { icon: 'GlobeAltIcon', title: '50+ Countries', subtitle: 'Global Presence' },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'about_with_stats', data: { title: 'Professional Grade Filtration', description: 'Our heavy duty filters are designed to withstand extreme conditions while providing superior filtration performance. From construction sites to mining operations, our filters deliver reliable protection for your valuable equipment.', features, stats } } });
+      await prisma.pageSection.create({ data: { pageId: hdPage.id, sectionId: sec.id, position: await nextHdPos() } });
+    }
+    if (!hasHd('filter_types_grid')) {
+      const items = [
+        { name: 'Oil Filters', icon: 'CogIcon', href: '/heavy-duty/oil' },
+        { name: 'Air Filters', icon: 'CloudArrowUpIcon', href: '/heavy-duty/air' },
+        { name: 'Fuel Filters', icon: 'BeakerIcon', href: '/heavy-duty/fuel' },
+        { name: 'Cabin Filters', icon: 'ShieldCheckIcon', href: '/heavy-duty/cabin' },
+        { name: 'Cartridge Filters', icon: 'CircleStackIcon', href: '/heavy-duty/cartridge' },
+        { name: 'Hydraulic Filters', icon: 'WrenchScrewdriverIcon', href: '/heavy-duty/hydraulic' },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'filter_types_grid', data: { title: 'Heavy Duty Filter Types', description: 'Choose the right filter type for your heavy duty equipment', items } } });
+      await prisma.pageSection.create({ data: { pageId: hdPage.id, sectionId: sec.id, position: await nextHdPos() } });
+    }
+    if (!hasHd('popular_filters')) {
+      const items = [
+        { name: 'LF3325', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200&h=200&fit=crop', href: '/filters/LF3325' },
+        { name: 'AF25550', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop', href: '/filters/AF25550' },
+        { name: 'FF5320', image: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=200&h=200&fit=crop', href: '/filters/FF5320' },
+        { name: 'CF1000', image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=200&h=200&fit=crop', href: '/filters/CF1000' },
+        { name: 'HF6177', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=200&h=200&fit=crop', href: '/filters/HF6177' },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'popular_filters', data: { title: 'Popular Heavy Duty Filters', description: 'Top-selling filters for heavy duty applications', catalogHref: '/heavy-duty/catalog', catalogText: 'Browse Heavy Duty Catalog', columnsPerRow: 5, items } } });
+      await prisma.pageSection.create({ data: { pageId: hdPage.id, sectionId: sec.id, position: await nextHdPos() } });
+    }
+    if (!hasHd('simple_search')) {
+      const sec = await prisma.section.create({ data: { type: 'simple_search', data: { title: 'Find Your Heavy Duty Filter', description: 'Search by part number or equipment model', placeholder: 'Enter part number or equipment model...', buttonText: 'Search' } } });
+      await prisma.pageSection.create({ data: { pageId: hdPage.id, sectionId: sec.id, position: await nextHdPos() } });
+    }
+    if (!hasHd('industries')) {
+      const d = { title: 'Industries We Serve', description: '', items: [] };
+      const sec = await prisma.section.create({ data: { type: 'industries', data: d } });
+      await prisma.pageSection.create({ data: { pageId: hdPage.id, sectionId: sec.id, position: await nextHdPos() } });
+    }
+    if (!hasHd('why_choose')) {
+      const items = [
+        { icon: 'ShieldCheckIcon', title: 'Proven Reliability', description: 'Tested in the harshest conditions to ensure consistent performance and protection.' },
+        { icon: 'CogIcon', title: 'Advanced Technology', description: 'State-of-the-art filtration media and construction for maximum efficiency.' },
+        { icon: 'UserGroupIcon', title: 'Expert Support', description: 'Dedicated technical support team to help you choose the right filter solution.' },
+      ];
+      const sec = await prisma.section.create({ data: { type: 'why_choose', data: { title: 'Why Choose Sure Filter® Heavy Duty', description: 'Superior filtration performance you can trust for your most demanding applications', items } } });
+      await prisma.pageSection.create({ data: { pageId: hdPage.id, sectionId: sec.id, position: await nextHdPos() } });
+    }
+  }
+  try {
+    const auto = await prisma.page.findUnique({ where: { slug: 'automotive' } });
+    if (!auto) {
+      await prisma.page.create({ data: { slug: 'automotive', title: 'Automotive Filters', description: 'Filters for automotive applications', type: 'CORE' } });
+      console.log('Created CMS page: automotive');
+    }
+  } catch {}
   // Ensure industries landing page exists
   const industriesSlug = 'industries';
   let industriesPage = await prisma.page.findUnique({ where: { slug: industriesSlug } });
@@ -531,7 +617,15 @@ async function main() {
   let industryPage = await prisma.page.findUnique({ where: { slug: industrySlug } });
   if (industryPage) {
     // Add sections if empty
-    const existing = await prisma.page.findUnique({ where: { slug: industrySlug }, include: { sections: { include: { section: true } } } });
+    let existing;
+    try {
+      existing = await prisma.page.findUnique({ where: { slug: industrySlug }, include: { sections: { include: { section: true } } } });
+    } catch (e) {
+      try {
+        await prisma.$executeRawUnsafe('UPDATE "Section" SET type = $1::"SectionType" WHERE type::text = $2', 'listing_card_meta', 'industry_meta');
+        existing = await prisma.page.findUnique({ where: { slug: industrySlug }, include: { sections: { include: { section: true } } } });
+      } catch {}
+    }
     const hasType = (t) => existing?.sections.some((s) => s.section.type === t);
     const nextPos2 = async () => { const last = await prisma.pageSection.findFirst({ where: { pageId: industryPage.id }, orderBy: { position: 'desc' } }); return (last?.position ?? 0) + 1; };
     if (!hasType('compact_search_hero')) {
@@ -596,6 +690,203 @@ async function main() {
   const coreSlugs = ['home', 'about-us', 'contact-us', 'catalog', 'filters', 'industries', 'resources', 'warranty', 'newsroom', 'heavy-duty', 'automotive', 'test-colors'];
   for (const slug of coreSlugs) {
     try { await prisma.page.updateMany({ where: { slug }, data: { type: 'CORE' } }); } catch {}
+  }
+
+  // Ensure filter types (top-level) for categories
+  const toSlug = (name) => name.toLowerCase().replace(/\//g, ' ').replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-');
+  const iconFor = (name) => {
+    const n = name.toLowerCase();
+    if (n.includes('oil')) return 'CogIcon';
+    if (n.includes('air')) return 'CloudIcon';
+    if (n.includes('fuel')) return 'BeakerIcon';
+    if (n.includes('cabin')) return 'ShieldCheckIcon';
+    if (n.includes('cartridge')) return 'CircleStackIcon';
+    if (n.includes('hydraulic')) return 'WrenchScrewdriverIcon';
+    if (n.includes('transmission')) return 'BoltIcon';
+    return 'Squares2X2Icon';
+  };
+  const defs = [
+    { category: 'AUTOMOTIVE', names: ['Oil Filters', 'Air Filters', 'Fuel Filters', 'Cabin Air Filters', 'Cartridge Filters', 'Fuel/Oil Separator', 'Transmission'] },
+    { category: 'HEAVY_DUTY', names: ['Oil Filters', 'Air Filters', 'Fuel Filters', 'Cabin Filters', 'Cartridge Filters', 'Hydraulic Filters', 'Fuel/Oil Separator', 'Transmission'] },
+  ];
+  for (const def of defs) {
+    const root = def.category === 'HEAVY_DUTY' ? 'heavy-duty' : 'automotive';
+    for (let i = 0; i < def.names.length; i++) {
+      const name = def.names[i];
+      const slug = toSlug(name);
+      const fullSlug = `${root}/${slug}`;
+      const exists = await prisma.filterType.findFirst({ where: { fullSlug } });
+      if (exists) {
+        await prisma.filterType.update({ where: { id: exists.id }, data: { category: def.category, position: i, name, icon: exists.icon || iconFor(name) } }).catch(() => {});
+        // Ensure CMS Page exists and link
+        let page = await prisma.page.findUnique({ where: { slug: fullSlug } });
+        if (!page) {
+          page = await prisma.page.create({ data: { slug: fullSlug, title: name, description: null, type: 'CUSTOM' } });
+          // Add basic hero section for visibility
+          const hero = await prisma.section.create({ data: { type: 'page_hero', data: { title: name, description: '' } } });
+          await prisma.pageSection.create({ data: { pageId: page.id, sectionId: hero.id, position: 1 } });
+        }
+        await prisma.filterType.update({ where: { id: exists.id }, data: { pageSlug: fullSlug } }).catch(() => {});
+        // Ensure meta section exists
+        const pageWithSections = await prisma.page.findUnique({ where: { slug: fullSlug }, include: { sections: { include: { section: true } } } });
+        const hasMeta = pageWithSections?.sections.some((s) => s.section.type === 'listing_card_meta');
+        if (!hasMeta) {
+          const meta = await prisma.section.create({ data: { type: 'listing_card_meta', data: { listTitle: name, listDescription: `${name} for demanding applications`, listImage: '', popularFilters: [] } } });
+          await prisma.pageSection.create({ data: { pageId: page.id, sectionId: meta.id, position: 2 } });
+        } else if (process.env.SEED_FORCE_UPDATE === '1') {
+          const metaSec = pageWithSections.sections.find((s) => s.section.type === 'listing_card_meta');
+          await prisma.section.update({ where: { id: metaSec.sectionId }, data: { data: { listTitle: name, listDescription: `${name} for demanding applications`, listImage: '', popularFilters: [] } } });
+        }
+        continue;
+      }
+      // Create FilterType
+      const ft = await prisma.filterType.create({ data: { category: def.category, slug, name, position: i, fullSlug, isActive: true, icon: iconFor(name) } });
+      // Ensure CMS Page and basic section
+      let page = await prisma.page.findUnique({ where: { slug: fullSlug } });
+      if (!page) {
+        page = await prisma.page.create({ data: { slug: fullSlug, title: name, description: null, type: 'CUSTOM' } });
+        const hero = await prisma.section.create({ data: { type: 'page_hero', data: { title: name, description: '' } } });
+        await prisma.pageSection.create({ data: { pageId: page.id, sectionId: hero.id, position: 1 } });
+      }
+      await prisma.filterType.update({ where: { id: ft.id }, data: { pageSlug: fullSlug } });
+      // Add meta section for listing card data
+      const meta = await prisma.section.create({ data: { type: 'listing_card_meta', data: { listTitle: name, listDescription: `${name} for demanding applications`, listImage: '', popularFilters: [] } } });
+      await prisma.pageSection.create({ data: { pageId: page.id, sectionId: meta.id, position: 2 } });
+      console.log(`Created filter type: ${fullSlug}`);
+    }
+  }
+
+  // Ensure heavy-duty/air page exists and has sections; bind FilterType(Air) to this slug
+  const airSlug = 'heavy-duty/air';
+  let airPage = await prisma.page.findUnique({ where: { slug: airSlug } });
+  if (!airPage) {
+    airPage = await prisma.page.create({ data: { slug: airSlug, title: 'Heavy Duty Air Filters', description: 'Premium heavy duty air filters', type: 'CUSTOM' } });
+  }
+  const airExisting = await prisma.page.findUnique({ where: { slug: airSlug }, include: { sections: { include: { section: true } } } });
+  const airHas = (t) => airExisting?.sections.some((s) => s.section.type === t);
+  const nextAirPos = async () => { const last = await prisma.pageSection.findFirst({ where: { pageId: airPage.id }, orderBy: { position: 'desc' } }); return (last?.position ?? 0) + 1; };
+
+  if (!airHas('compact_search_hero')) {
+    const sec = await prisma.section.create({ data: { type: 'compact_search_hero', data: { title: 'Heavy Duty Air Filters', description: 'Advanced filtration technology for extreme operating conditions. Our heavy duty air filters provide superior engine protection and extended service life in the harshest environments.', image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80' } } });
+    await prisma.pageSection.create({ data: { pageId: airPage.id, sectionId: sec.id, position: await nextAirPos() } });
+  }
+
+  if (!airHas('content_with_images')) {
+    const content = [
+      'Heavy duty air filters are essential for protecting engines from dust, dirt, and debris in demanding environments. Our advanced filtration media captures even the smallest particles while maintaining optimal airflow for peak engine performance.',
+      'Multi-layer filtration, nano-fiber media, and moisture resistance ensure maximum efficiency and reliability in dusty, high-vibration operating conditions.',
+      'High-capacity dust holding extends service intervals and reduces maintenance costs for heavy-duty equipment.',
+    ];
+    const images = [
+      { src: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Air filter application', position: 1 },
+      { src: 'https://images.unsplash.com/photo-1566151098783-dac1b565bb35?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Dusty conditions', position: 3 },
+      { src: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Engine components', position: 5 },
+    ];
+    const sec = await prisma.section.create({ data: { type: 'content_with_images', data: { title: 'Heavy Duty Air Filters', subtitle: 'Maximum Engine Protection', content, images } } });
+    await prisma.pageSection.create({ data: { pageId: airPage.id, sectionId: sec.id, position: await nextAirPos() } });
+  }
+
+  if (!airHas('popular_filters')) {
+    const items = [
+      { name: 'HD-AIR-2001 — Heavy Duty Engine Air Filter', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-AIR-2002 — Secondary Air Filter', image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-AIR-2003 — Radial Seal Air Filter', image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-AIR-2004 — Panel Air Filter', image: 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-AIR-2005 — Conical Air Filter', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-AIR-2006 — Pre-Cleaner Assembly', image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+    ];
+    const sec = await prisma.section.create({ data: { type: 'popular_filters', data: { title: 'Popular Heavy Duty Air Filters', description: 'Our most trusted air filters for heavy-duty applications', catalogHref: '/heavy-duty/air/catalog', catalogText: 'Browse Air Filter Catalog', columnsPerRow: 5, items } } });
+    await prisma.pageSection.create({ data: { pageId: airPage.id, sectionId: sec.id, position: await nextAirPos() } });
+  }
+
+  if (!airHas('simple_search')) {
+    const sec = await prisma.section.create({ data: { type: 'simple_search', data: { title: 'Find Your Air Filter', description: 'Search by part number or equipment model', placeholder: 'Enter part number or equipment model...', buttonText: 'Search Air Filters' } } });
+    await prisma.pageSection.create({ data: { pageId: airPage.id, sectionId: sec.id, position: await nextAirPos() } });
+  }
+
+  if (!airHas('related_filters')) {
+    const filters = [
+      { name: 'Oil Filters', href: '/heavy-duty/oil', icon: 'CogIcon', description: 'Superior engine protection with premium oil filtration for heavy duty applications.' },
+      { name: 'Fuel Filters', href: '/heavy-duty/fuel', icon: 'BeakerIcon', description: 'Clean fuel delivery systems for optimal engine performance and longevity.' },
+      { name: 'Hydraulic Filters', href: '/heavy-duty/hydraulic', icon: 'WrenchScrewdriverIcon', description: 'Maintain hydraulic system efficiency with advanced filtration solutions.' },
+    ];
+    const sec = await prisma.section.create({ data: { type: 'related_filters', data: { title: 'Related Filter Types', description: 'Explore filtration solutions for other applications', filters } } });
+    await prisma.pageSection.create({ data: { pageId: airPage.id, sectionId: sec.id, position: await nextAirPos() } });
+  }
+
+  if (!airHas('industries')) {
+    const d = { title: 'Industries We Serve', description: '', items: [] };
+    const sec = await prisma.section.create({ data: { type: 'industries', data: d } });
+    await prisma.pageSection.create({ data: { pageId: airPage.id, sectionId: sec.id, position: await nextAirPos() } });
+  }
+
+  // Link FilterType (Air) to this page slug if exists
+  const ftAir = await prisma.filterType.findFirst({ where: { fullSlug: 'heavy-duty/air-filters' } });
+  if (ftAir) {
+    await prisma.filterType.update({ where: { id: ftAir.id }, data: { pageSlug: airSlug } });
+  }
+
+  // Ensure heavy-duty/oil page exists and has sections
+  const oilSlug = 'heavy-duty/oil';
+  let oilPage = await prisma.page.findUnique({ where: { slug: oilSlug } });
+  if (!oilPage) {
+    oilPage = await prisma.page.create({ data: { slug: oilSlug, title: 'Heavy Duty Oil Filters', description: 'Premium heavy duty oil filters', type: 'CUSTOM' } });
+  }
+  const oilExisting = await prisma.page.findUnique({ where: { slug: oilSlug }, include: { sections: { include: { section: true } } } });
+  const oilHas = (t) => oilExisting?.sections.some((s) => s.section.type === t);
+  const nextOilPos = async () => { const last = await prisma.pageSection.findFirst({ where: { pageId: oilPage.id }, orderBy: { position: 'desc' } }); return (last?.position ?? 0) + 1; };
+
+  if (!oilHas('compact_search_hero')) {
+    const sec = await prisma.section.create({ data: { type: 'compact_search_hero', data: { title: 'Heavy Duty Oil Filters', description: 'Engine oil filtration engineered for extreme duty cycles. Protect engines with superior contaminant control and extended service intervals.', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80' } } });
+    await prisma.pageSection.create({ data: { pageId: oilPage.id, sectionId: sec.id, position: await nextOilPos() } });
+  }
+
+  if (!oilHas('content_with_images')) {
+    const content = [
+      'Heavy duty oil filters safeguard engines from wear by trapping microscopic contaminants in harsh environments and high-load operations.',
+      'Our premium media, robust construction, and anti-drainback valve designs ensure reliable lubrication and protection across extended drain intervals.',
+      'Validated to industry standards to maintain oil cleanliness and engine performance.',
+    ];
+    const images = [
+      { src: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Oil filtration components', position: 1 },
+      { src: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Engine close-up', position: 3 },
+    ];
+    const sec = await prisma.section.create({ data: { type: 'content_with_images', data: { title: 'Heavy Duty Oil Filters', subtitle: 'Engine Protection You Can Trust', content, images } } });
+    await prisma.pageSection.create({ data: { pageId: oilPage.id, sectionId: sec.id, position: await nextOilPos() } });
+  }
+
+  if (!oilHas('popular_filters')) {
+    const items = [
+      { name: 'HD-OIL-3001 — Heavy Duty Spin-On Oil Filter', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-OIL-3002 — Cartridge Oil Filter', image: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-OIL-3003 — High Efficiency Oil Filter', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-OIL-3004 — Extended Life Oil Filter', image: 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+      { name: 'HD-OIL-3005 — Bypass Oil Filter', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', href: '/filters/SFO241' },
+    ];
+    const sec = await prisma.section.create({ data: { type: 'popular_filters', data: { title: 'Popular Heavy Duty Oil Filters', description: 'Top-performing oil filters for heavy duty engines', catalogHref: '/heavy-duty/oil/catalog', catalogText: 'Browse Oil Filter Catalog', columnsPerRow: 5, items } } });
+    await prisma.pageSection.create({ data: { pageId: oilPage.id, sectionId: sec.id, position: await nextOilPos() } });
+  }
+
+  if (!oilHas('simple_search')) {
+    const sec = await prisma.section.create({ data: { type: 'simple_search', data: { title: 'Find Your Oil Filter', description: 'Search by part number or equipment model', placeholder: 'Enter part number or equipment model...', buttonText: 'Search Oil Filters' } } });
+    await prisma.pageSection.create({ data: { pageId: oilPage.id, sectionId: sec.id, position: await nextOilPos() } });
+  }
+
+  if (!oilHas('related_filters')) {
+    const sec = await prisma.section.create({ data: { type: 'related_filters', data: { title: 'Related Filter Types', description: 'Explore filtration solutions for other systems', category: 'HEAVY_DUTY' } } });
+    await prisma.pageSection.create({ data: { pageId: oilPage.id, sectionId: sec.id, position: await nextOilPos() } });
+  }
+
+  if (!oilHas('industries')) {
+    const d = { title: 'Industries We Serve', description: '', items: [] };
+    const sec = await prisma.section.create({ data: { type: 'industries', data: d } });
+    await prisma.pageSection.create({ data: { pageId: oilPage.id, sectionId: sec.id, position: await nextOilPos() } });
+  }
+
+  // Link FilterType (Oil) to this page slug if exists
+  const ftOil = await prisma.filterType.findFirst({ where: { fullSlug: 'heavy-duty/oil-filters' } });
+  if (ftOil) {
+    await prisma.filterType.update({ where: { id: ftOil.id }, data: { pageSlug: oilSlug } });
   }
 }
 

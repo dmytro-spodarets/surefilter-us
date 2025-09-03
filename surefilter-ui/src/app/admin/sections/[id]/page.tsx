@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import Link from 'next/link';
+import DeleteSectionButton from '@/app/admin/pages/[slug]/sections/DeleteSectionButton';
 import HomeHeroForm from '@/app/admin/pages/[slug]/sections/HomeHeroForm';
 import FeaturedProductsForm from '@/app/admin/pages/[slug]/sections/FeaturedProductsForm';
 import WhyChooseForm from '@/app/admin/pages/[slug]/sections/WhyChooseForm';
@@ -26,6 +27,7 @@ import ContactFormInfoForm from '@/app/admin/pages/[slug]/sections/ContactFormIn
 import ContactOptionsForm from '@/app/admin/pages/[slug]/sections/ContactOptionsForm';
 import IndustriesListForm from '@/app/admin/pages/[slug]/sections/IndustriesListForm';
 import IndustryMetaForm from '@/app/admin/pages/[slug]/sections/IndustryMetaForm';
+import RelatedFiltersForm from '@/app/admin/pages/[slug]/sections/RelatedFiltersForm';
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -38,6 +40,9 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
 
   const section = await prisma.section.findUnique({ where: { id } });
   if (!section) redirect('/admin/pages');
+  // Find parent page to enable back link and delete redirect
+  const pageSection = await prisma.pageSection.findFirst({ where: { sectionId: id }, include: { page: true } as any });
+  const parentSlug = (pageSection as any)?.page?.slug as string | undefined;
 
   return (
     <main className="min-h-screen px-6 py-10">
@@ -45,7 +50,12 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Edit Section: {section.type}</h1>
           <div className="flex items-center gap-4 text-sm">
-            <Link href="/admin/industries" className="text-sure-blue-600 hover:underline">← Back</Link>
+            {parentSlug ? (
+              <Link href={`/admin/pages/${parentSlug}`} className="text-sure-blue-600 hover:underline">← Back</Link>
+            ) : (
+              <Link href="/admin/pages" className="text-sure-blue-600 hover:underline">← Back</Link>
+            )}
+            <DeleteSectionButton sectionId={section.id} slug={parentSlug || ''} />
           </div>
         </div>
 
@@ -115,8 +125,11 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         {section.type === 'industries_list' && (
           <IndustriesListForm sectionId={section.id} initialData={section.data as any} />
         )}
-        {section.type === 'industry_meta' && (
+        {section.type === 'listing_card_meta' && (
           <IndustryMetaForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'related_filters' && (
+          <RelatedFiltersForm sectionId={section.id} initialData={section.data as any} />
         )}
       </div>
     </main>

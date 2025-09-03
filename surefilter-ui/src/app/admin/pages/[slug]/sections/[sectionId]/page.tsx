@@ -3,47 +3,46 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import Link from 'next/link';
-import DeleteSectionButton from '../DeleteSectionButton';
-import HomeHeroForm from '../../sections/HomeHeroForm';
-import FeaturedProductsForm from '../../sections/FeaturedProductsForm';
-import WhyChooseForm from '../../sections/WhyChooseForm';
-import QuickSearchForm from '../../sections/QuickSearchForm';
-import IndustriesForm from '../../sections/IndustriesForm';
-import AboutNewsForm from '../../sections/AboutNewsForm';
+import DeleteSectionButton from '@/app/admin/pages/[slug]/sections/DeleteSectionButton';
+import HomeHeroForm from '@/app/admin/pages/[slug]/sections/HomeHeroForm';
+import FeaturedProductsForm from '@/app/admin/pages/[slug]/sections/FeaturedProductsForm';
+import WhyChooseForm from '@/app/admin/pages/[slug]/sections/WhyChooseForm';
+import QuickSearchForm from '@/app/admin/pages/[slug]/sections/QuickSearchForm';
+import IndustriesForm from '@/app/admin/pages/[slug]/sections/IndustriesForm';
+import AboutNewsForm from '@/app/admin/pages/[slug]/sections/AboutNewsForm';
 import PageHeroForm from '@/app/admin/pages/[slug]/sections/PageHeroForm';
 import SingleImageHeroForm from '@/app/admin/pages/[slug]/sections/SingleImageHeroForm';
 import AboutWithStatsForm from '@/app/admin/pages/[slug]/sections/AboutWithStatsForm';
 import ContentWithImagesForm from '@/app/admin/pages/[slug]/sections/ContentWithImagesForm';
 import QualityAssuranceForm from '@/app/admin/pages/[slug]/sections/QualityAssuranceForm';
-import ManufacturingFacilitiesForm from '../../sections/ManufacturingFacilitiesForm';
-import OurCompanyForm from '../../sections/OurCompanyForm';
-import StatsBandForm from '../../sections/StatsBandForm';
-import AwardsCarouselForm from '../../sections/AwardsCarouselForm';
-import ContactHeroForm from '../../sections/ContactHeroForm';
-import ContactFormForm from '../../sections/ContactFormForm';
-import ContactInfoForm from '../../sections/ContactInfoForm';
-import ContactDetailsForm from '../../sections/ContactDetailsForm';
-import ContactFormInfoForm from '../../sections/ContactFormInfoForm';
-import ContactOptionsForm from '../../sections/ContactOptionsForm';
-import IndustriesListForm from '../../sections/IndustriesListForm';
-import IndustryMetaForm from '../../sections/IndustryMetaForm';
+import ManufacturingFacilitiesForm from '@/app/admin/pages/[slug]/sections/ManufacturingFacilitiesForm';
+import OurCompanyForm from '@/app/admin/pages/[slug]/sections/OurCompanyForm';
+import StatsBandForm from '@/app/admin/pages/[slug]/sections/StatsBandForm';
+import AwardsCarouselForm from '@/app/admin/pages/[slug]/sections/AwardsCarouselForm';
+import ContactHeroForm from '@/app/admin/pages/[slug]/sections/ContactHeroForm';
+import ContactFormForm from '@/app/admin/pages/[slug]/sections/ContactFormForm';
+import ContactInfoForm from '@/app/admin/pages/[slug]/sections/ContactInfoForm';
+import ContactDetailsForm from '@/app/admin/pages/[slug]/sections/ContactDetailsForm';
+import ContactFormInfoForm from '@/app/admin/pages/[slug]/sections/ContactFormInfoForm';
+import ContactOptionsForm from '@/app/admin/pages/[slug]/sections/ContactOptionsForm';
+import IndustriesListForm from '@/app/admin/pages/[slug]/sections/IndustriesListForm';
+import RelatedFiltersForm from '@/app/admin/pages/[slug]/sections/RelatedFiltersForm';
+import FilterTypesGridForm from '@/app/admin/pages/[slug]/sections/FilterTypesGridForm';
+import IndustryMetaForm from '@/app/admin/pages/[slug]/sections/IndustryMetaForm';
 import SimpleSearchForm from '../../sections/SimpleSearchForm';
 import PopularFiltersForm from '../../sections/PopularFiltersForm';
-import RelatedFiltersForm from '../../sections/RelatedFiltersForm';
 
 export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function EditSection({ params }: { params: Promise<{ slug: string; sectionId: string }> }) {
+export default async function EditSectionById({ params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login');
-  const { slug, sectionId } = await params;
+  const { id } = await params;
 
-  const page = await prisma.page.findUnique({ where: { slug }, select: { title: true, slug: true } });
-  if (!page) redirect('/admin/pages');
-  const section = await prisma.section.findUnique({ where: { id: sectionId } });
-  if (!section) redirect(`/admin/pages/${slug}`);
+  const section = await prisma.section.findUnique({ where: { id } });
+  if (!section) redirect('/admin/pages');
 
   return (
     <main className="min-h-screen px-6 py-10">
@@ -51,118 +50,91 @@ export default async function EditSection({ params }: { params: Promise<{ slug: 
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Edit Section: {section.type}</h1>
           <div className="flex items-center gap-4 text-sm">
-            <Link href={`/admin/pages/${slug}`} className="text-sure-blue-600 hover:underline">← Back to page</Link>
+            <Link href="/admin/industries" className="text-sure-blue-600 hover:underline">← Back</Link>
           </div>
         </div>
 
         {section.type === 'hero_full' && (
           <HomeHeroForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'featured_products' && (
           <FeaturedProductsForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'why_choose' && (
           <WhyChooseForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'quick_search' && (
           <QuickSearchForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'industries' && (
           <IndustriesForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'about_news' && (
           <AboutNewsForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'page_hero' && (
           <PageHeroForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'single_image_hero' && (
           <SingleImageHeroForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'about_with_stats' && (
           <AboutWithStatsForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'content_with_images' && (
           <ContentWithImagesForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'quality_assurance' && (
           <QualityAssuranceForm sectionId={section.id} />
         )}
-
         {section.type === 'manufacturing_facilities' && (
           <ManufacturingFacilitiesForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'our_company' && (
           <OurCompanyForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'stats_band' && (
           <StatsBandForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'awards_carousel' && (
           <AwardsCarouselForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'contact_hero' && (
           <ContactHeroForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'contact_form' && (
           <ContactFormForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'contact_info' && (
           <ContactInfoForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'contact_details' && (
           <ContactDetailsForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'contact_form_info' && (
           <ContactFormInfoForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'contact_options' && (
           <ContactOptionsForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'industries_list' && (
           <IndustriesListForm sectionId={section.id} initialData={section.data as any} />
         )}
-
-        {section.type === 'industry_meta' && (
+        {section.type === 'listing_card_meta' && (
           <IndustryMetaForm sectionId={section.id} initialData={section.data as any} />
         )}
-
         {section.type === 'simple_search' && (
           <SimpleSearchForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'popular_filters' && (
           <PopularFiltersForm sectionId={section.id} initialData={section.data as any} />
         )}
-        {section.type === 'related_filters' && (
-          <RelatedFiltersForm sectionId={section.id} initialData={section.data as any} />
-        )}
-
-        {section.type !== 'hero_full' && section.type !== 'featured_products' && section.type !== 'why_choose' && section.type !== 'quick_search' && section.type !== 'simple_search' && section.type !== 'industries' && section.type !== 'industries_list' && section.type !== 'industry_meta' && section.type !== 'about_news' && section.type !== 'page_hero' && section.type !== 'single_image_hero' && section.type !== 'about_with_stats' && section.type !== 'content_with_images' && section.type !== 'quality_assurance' && section.type !== 'manufacturing_facilities' && section.type !== 'our_company' && section.type !== 'stats_band' && section.type !== 'awards_carousel' && section.type !== 'popular_filters' && section.type !== 'related_filters' && section.type !== 'contact_hero' && section.type !== 'contact_form' && section.type !== 'contact_info' && section.type !== 'contact_details' && section.type !== 'contact_form_info' && section.type !== 'contact_options' && (
-          <div className="text-sm text-gray-600">Editor for this section type is not yet implemented.</div>
+        {section.type === 'filter_types_grid' && (
+          <FilterTypesGridForm sectionId={section.id} initialData={section.data as any} />
         )}
 
         <div className="mt-6">
-          <DeleteSectionButton sectionId={section.id} slug={slug} />
+          <DeleteSectionButton sectionId={section.id} slug={''} />
         </div>
       </div>
     </main>

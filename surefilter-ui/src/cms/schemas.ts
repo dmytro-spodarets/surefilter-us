@@ -117,6 +117,14 @@ export const SingleImageHeroSchema = z.object({
 });
 export type SingleImageHeroInput = z.infer<typeof SingleImageHeroSchema>;
 
+// SearchHero (full-width hero with search styling)
+export const SearchHeroSchema = z.object({
+  title: z.string(),
+  description: z.string().optional().default(''),
+  image: z.string().optional().default(''),
+});
+export type SearchHeroInput = z.infer<typeof SearchHeroSchema>;
+
 // AboutWithStats
 export const AboutWithStatsFeatureSchema = z.object({ icon: z.string(), text: z.string() });
 export const AboutWithStatsStatSchema = z.object({ icon: z.string(), title: z.string(), subtitle: z.string() });
@@ -264,6 +272,23 @@ export const PopularFiltersSchema = z.object({
 });
 export type PopularFiltersInput = z.infer<typeof PopularFiltersSchema>;
 
+// Related Filters (auto from catalog category)
+export const RelatedFiltersSchema = z.object({
+  title: z.string().optional().default('Related Filter Types'),
+  description: z.string().optional().default(''),
+  category: z.enum(['HEAVY_DUTY', 'AUTOMOTIVE']).optional(),
+});
+export type RelatedFiltersInput = z.infer<typeof RelatedFiltersSchema>;
+
+// Filter Types Grid
+export const FilterTypesGridItemSchema = z.object({ name: z.string(), icon: z.string().optional().default(''), href: z.string().optional().default('#') });
+export const FilterTypesGridSchema = z.object({
+  title: z.string().optional().default('Filter Types'),
+  description: z.string().optional().default('Choose the right filter type'),
+  items: z.array(FilterTypesGridItemSchema).default([]),
+});
+export type FilterTypesGridInput = z.infer<typeof FilterTypesGridSchema>;
+
 
 export const ContactOptionsSchema = z.object({
   items: z.array(ContactOptionItemSchema).default([]),
@@ -289,5 +314,9 @@ export const IndustryMetaSchema = z.object({
   popularFilters: z.array(z.string()).default([]),
 });
 export type IndustryMetaInput = z.infer<typeof IndustryMetaSchema>;
+
+// Generic listing meta (same shape as industry_meta)
+export const ListingCardMetaSchema = IndustryMetaSchema;
+export type ListingCardMetaInput = IndustryMetaInput;
 
 

@@ -195,8 +195,15 @@ docker compose -f docker/docker-compose.yml down
 - **Industries**:
   - Новый раздел `/admin/industries` — список страниц с `type=INDUSTRY`, кнопка “New industry page” (префикс `industries/`).
   - Редактор секций доступен универсально по `admin/sections/{id}`.
-  - Динамический список на `/industries` рендерится секцией `industries_list` из страниц `type=INDUSTRY` c их `industry_meta` (title/description/image/popularFilters).
+  - Динамический список на `/industries` рендерится секцией `industries_list` из страниц `type=INDUSTRY` c их `industry_meta` (title/description/image/popularFilters). Компонент `IndustriesCms` подтягивает данные из БД.
   - Добавлены секции: `compact_search_hero`, `simple_search`, `popular_filters`, `related_filters`.
+- **Filter Types**:
+  - БД: `FilterCategory` (HEAVY_DUTY, AUTOMOTIVE), `FilterType` (иерархия, fullSlug, pageSlug).
+  - Админка: `/admin/filter-types` (списки по категориям), создание типов, быстрые ссылки “Edit page content” на страницы типов, карточки для редактирования лендингов категорий `/heavy-duty`, `/automotive`.
+  - Сидинг: верхнеуровневые типы для обеих категорий; автосоздание CMS‑страниц с базовым Hero для каждого типа; страницы типов скрыты из общего списка Pages.
+
+- **Heavy Duty**:
+  - Страница `/heavy-duty` рендерится из CMS; добавлены секции `search_hero` и `filter_types_grid`, перенесён контент из статической версии.
 - **Новые секции и формы**:
   - About: `manufacturing_facilities`, `our_company` (без поля `image`), `stats_band`, `awards_carousel`.
   - Contact: `contact_hero`, `contact_options`, `contact_form_info`.
@@ -204,3 +211,27 @@ docker compose -f docker/docker-compose.yml down
 - **Кеш/инвалидация**: все CRUD‑эндпойнты админки вызывают `revalidateTag('page:{slug}')`.
 - **Сидинг**: `npm run seed:content` (без перезаписи) и `SEED_FORCE_UPDATE=1 npm run seed:content` (форс‑обновление). Обновлён `seed_content.mjs` для новых секций и очистки устаревших контактных блоков при наличии `contact_form_info`.
 - **Изображения**: `next.config.ts` — добавлен `http://localhost:3000` в `images.remotePatterns` для dev.
+
+### CMS & Admin updates (2025-08-26)
+- **Замена industry_meta на listing_card_meta**
+  - Универсальная мета‑секция для карточек списков: `listing_card_meta` (title/description/image/popularFilters).
+  - Полный отказ от `industry_meta` в коде и БД. Добавлены миграции для конвертации и очистки enum.
+  - Формы и рендереры обновлены; Add Section предлагает “Listing Card Meta (for list cards)”.
+- **Related Filters (переработка)**
+  - Вернули исходный UI‑карусель и сделали серверный враппер `FilterTypesCms`, который подтягивает список типов фильтров по категории.
+  - Заголовок/описание/иконка карточек берутся из страниц типов через `listing_card_meta` (fallback не нужен).
+  - Категория определяется по полю секции или автоматически по slug страницы (`/heavy-duty*` → HEAVY_DUTY, `/automotive*` → AUTOMOTIVE).
+- **Admin UX**
+  - Кнопка удаления секции возвращена в универсальный редактор `/admin/sections/[id]`. Back‑ссылка ведёт на страницу‑родителя.
+  - Добавление секции теперь показывает текст ошибки из API и при успехе перекидывает сразу в редактор новой секции.
+- **API и валидация**
+  - `POST /api/admin/pages/[...slug]`: добавлена защита/сообщения об ошибках, возвращает `{ id }` новой секции.
+  - Разрешены многоуровневые слеги с префиксами `heavy-duty`/`automotive`; обновлена валидация при обновлении slug.
+  - Единый маршрут для reorder через `PUT action=reorder`.
+- **Страницы типов фильтров**
+  - Сидинг: для верхнеуровневых типов добавлены иконки, связка `FilterType.pageSlug`, создание `listing_card_meta` на страницах типов.
+  - Обновлены страницы `heavy-duty/oil` и `heavy-duty/air`: добавлены все секции (hero, контент, popular/related, search, industries), рендерятся из CMS.
+- **Миграции (Prisma/Postgres)**
+  - `20250826080000_drop_industry_meta` — конвертация данных и пересоздание enum без `industry_meta`.
+  - `20250826090000_add_listing_and_convert` — гарантия наличия `listing_card_meta` и финальная конвертация остатков.
+  - После миграций требуется перезапуск dev‑сервера и `npx prisma generate`.

@@ -27,27 +27,41 @@ const OPTIONS = [
 
   // Industries
   { value: 'industries_list', label: 'Industries: List (dynamic)' },
-  { value: 'industry_meta', label: 'Industry: Listing Meta (for industry detail page)' },
+  { value: 'listing_card_meta', label: 'Listing Card Meta (for list cards)' },
   { value: 'compact_search_hero', label: 'Industry: Compact Search Hero' },
+  { value: 'search_hero', label: 'Heavy Duty: Search Hero' },
   { value: 'popular_filters', label: 'Industry: Popular Filters' },
   { value: 'simple_search', label: 'Industry: Simple Search' },
   { value: 'related_filters', label: 'Industry: Related Filter Types' },
+  { value: 'filter_types_grid', label: 'Heavy Duty: Filter Types Grid' },
 ];
 
 export default function AddSectionForm({ slug }: { slug: string }) {
   const [type, setType] = useState('page_hero');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      await fetch(`/api/admin/pages/${slug}`, {
+      const res = await fetch(`/api/admin/pages/${slug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type }),
       });
-      location.reload();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data?.error || 'Failed to add section');
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (data?.id) {
+        window.location.href = `/admin/sections/${data.id}`;
+        return;
+      }
+      window.location.reload();
     } finally {
       setLoading(false);
     }
@@ -61,6 +75,7 @@ export default function AddSectionForm({ slug }: { slug: string }) {
         ))}
       </select>
       <button type="submit" className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg" disabled={loading}>{loading ? 'Adding…' : 'Add section'}</button>
+      {error && <span className="text-sm text-red-600">{error}</span>}
     </form>
   );
 }

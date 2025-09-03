@@ -39,15 +39,15 @@ enum SectionType {
   page_hero_reverse
   single_image_hero
   compact_search_hero
-  simple_search
   search_hero
+  simple_search
   why_choose
   featured_products
   products
   quick_search
   industries
   industries_list
-  industry_meta
+  listing_card_meta
   filter_types_grid
   popular_filters
   about_with_stats
@@ -114,4 +114,34 @@ enum PageType {
   CORE
   CUSTOM
   INDUSTRY
+}
+
+// Catalog taxonomy
+enum FilterCategory {
+  HEAVY_DUTY
+  AUTOMOTIVE
+}
+
+model FilterType {
+  id          String          @id @default(cuid())
+  category    FilterCategory
+  parentId    String?
+  parent      FilterType?     @relation("FilterTypeToChildren", fields: [parentId], references: [id])
+  children    FilterType[]    @relation("FilterTypeToChildren")
+
+  slug        String
+  name        String
+  description String?
+  icon        String?
+  heroImage   String?
+  position    Int             @default(0)
+  pageSlug    String?
+  isActive    Boolean         @default(true)
+  fullSlug    String          @unique
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([category, parentId, slug])
+  @@index([category, position])
 }

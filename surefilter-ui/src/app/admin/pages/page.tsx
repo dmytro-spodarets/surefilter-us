@@ -13,7 +13,16 @@ export default async function PagesList() {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login?callbackUrl=/admin/pages');
 
-  const pages = await prisma.page.findMany({ where: { type: { not: 'INDUSTRY' } }, orderBy: { slug: 'asc' } });
+  const pages = await prisma.page.findMany({
+    where: {
+      AND: [
+        { type: { not: 'INDUSTRY' } },
+        { slug: { not: { startsWith: 'heavy-duty/' } } },
+        { slug: { not: { startsWith: 'automotive/' } } },
+      ],
+    },
+    orderBy: { slug: 'asc' },
+  });
 
   return (
     <main className="min-h-screen px-6 py-10">

@@ -5,10 +5,12 @@ import prisma from '@/lib/prisma';
 import { RESERVED_SLUGS } from '@/lib/pages';
 
 function isValidSlugForType(slug: string, type?: 'CUSTOM' | 'INDUSTRY') {
-  // allow multi-segment slugs like industries/agriculture
+  // allow multi-segment slugs like industries/agriculture or heavy-duty/oil
   if (!/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(slug)) return false;
   const first = (slug.split('/')?.[0] || '') as string;
-  // INDUSTRY pages are allowed under the reserved first segment "industries"
+  const allowedPrefixed = new Set(['industries', 'heavy-duty', 'automotive']);
+  if (slug.includes('/') && allowedPrefixed.has(first)) return true;
+  // INDUSTRY pages must be under industries
   if (type === 'INDUSTRY') return first === 'industries';
   // Otherwise, first segment must not be reserved
   return !RESERVED_SLUGS.has(first);

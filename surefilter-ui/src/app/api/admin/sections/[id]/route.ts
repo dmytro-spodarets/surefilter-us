@@ -13,6 +13,7 @@ import {
   AboutNewsSchema,
   PageHeroSchema,
   SingleImageHeroSchema,
+  SearchHeroSchema,
   AboutWithStatsSchema,
   ContentWithImagesSchema,
   QualityAssuranceSchema,
@@ -26,8 +27,9 @@ import {
   ContactDetailsSchema,
   ContactFormInfoSchema,
   ContactOptionsSchema,
-  IndustryMetaSchema,
+  ListingCardMetaSchema,
   PopularFiltersSchema,
+  FilterTypesGridSchema,
 } from '@/cms/schemas';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -65,10 +67,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const parsed = IndustriesListSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
-  } else if (type === 'industry_meta') {
-    const parsed = IndustryMetaSchema.safeParse(data);
-    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
-    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'about_news') {
     const parsed = AboutNewsSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
@@ -79,6 +77,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'single_image_hero') {
     const parsed = SingleImageHeroSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'search_hero') {
+    const parsed = SearchHeroSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'about_with_stats') {
@@ -135,6 +137,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'popular_filters') {
     const parsed = PopularFiltersSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'filter_types_grid') {
+    const parsed = FilterTypesGridSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'listing_card_meta') {
+    const parsed = ListingCardMetaSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else {

@@ -92,6 +92,13 @@ Risks/notes
 - Gradual migration: pages can remain mixed (static + CMS) until complete.
 
 
+### Progress — 2025-08-26
+- [x] Полная замена `industry_meta` → `listing_card_meta` (миграции БД, формы, рендереры)
+- [x] Related Filters: исходный UI, данные из `FilterType` + `listing_card_meta`, авто‑категория по slug/полю секции
+- [x] Admin UX: удаление секций в `/admin/sections/[id]`, редирект в редактор после добавления секции
+- [x] Валидация и slug: разрешены `heavy-duty/*`, `automotive/*` для новых/редактируемых страниц
+- [x] Seed: иконки для типов фильтров, мета‑секции на страницах типов, сидинг HD страниц (oil/air) с полным набором секций
+
 ### Progress — 2025-08-25
 - [x] Generic роут `/(site)/[slug]` для верхнеуровневых страниц из CMS + метаданные
 - [x] Админка: модальное создание страниц, редактирование slug, удаление страниц
@@ -103,4 +110,6 @@ Risks/notes
 - [x] Industry pages: добавлены секции `compact_search_hero`, `simple_search`, `popular_filters`, `related_filters`; рендер и формы в админке
 - [x] API: единый catch‑all `/api/admin/pages/[...slug]` для CRUD секций и reorder; удалены конфликтующие вложенные маршруты
 - [x] Изображения: разрешён `http://localhost:3000` для `next/image` в dev
+- [x] Filter Types: БД (FilterCategory/FilterType), админка `/admin/filter-types`, сидинг верхнеуровневых типов, автосоздание страниц типов и скрытие их из Pages
+- [x] Heavy Duty: страница переведена на CMS; добавлены секции `search_hero`, `filter_types_grid`, перенесён контент
 

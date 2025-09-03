@@ -9,6 +9,7 @@ import AboutNewsCms from '@/components/sections/AboutNewsCms';
 import PageHero from '@/components/sections/PageHero';
 import FullScreenHero from '@/components/sections/FullScreenHero';
 import CompactSearchHero from '@/components/sections/CompactSearchHero';
+import SearchHero from '@/components/sections/SearchHero';
 import AboutWithStats from '@/components/sections/AboutWithStats';
 import ContentWithImages from '@/components/sections/ContentWithImages';
 import QualityAssurance from '@/components/sections/QualityAssurance';
@@ -21,11 +22,13 @@ import ContactForm from '@/components/sections/ContactForm';
 import ContactInfo from '@/components/sections/ContactInfo';
 import ContactDetails from '@/components/sections/ContactDetails';
 import ContactFormInfo from '@/components/sections/ContactFormInfo';
-import RelatedFilters from '@/components/sections/RelatedFilters';
+import FilterTypesCms from '@/components/sections/FilterTypesCms';
+import prisma from '@/lib/prisma';
 import PopularFilters from '@/components/sections/PopularFilters';
 import ContactOptions from '@/components/sections/ContactOptions';
 import type { CmsSection } from './types';
 import { HeroFullSchema } from './schemas';
+import FilterTypesGrid from '@/components/sections/FilterTypesGrid';
 
 export function renderSection(section: CmsSection) {
   switch ((section as any).type) {
@@ -43,6 +46,10 @@ export function renderSection(section: CmsSection) {
           image={image}
         />
       );
+    }
+    case 'filter_types_grid': {
+      const d = section.data as any;
+      return <FilterTypesGrid title={d?.title} description={d?.description} filterTypes={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'featured_products': {
       // Dynamic featured products from DB
@@ -70,7 +77,7 @@ export function renderSection(section: CmsSection) {
     }
     case 'industries': {
       const d = section.data as any;
-      return <IndustriesCms title={d?.title} description={d?.description} items={Array.isArray(d?.items) ? d.items : []} />;
+      return <IndustriesCms title={d?.title} description={d?.description} />;
     }
     case 'industries_list': {
       const d = section.data as any;
@@ -103,6 +110,10 @@ export function renderSection(section: CmsSection) {
     case 'compact_search_hero': {
       const d = section.data as any;
       return <CompactSearchHero title={d?.title || ''} description={d?.description || ''} backgroundImage={d?.image || ''} />;
+    }
+    case 'search_hero': {
+      const d = section.data as any;
+      return <SearchHero title={d?.title || ''} description={d?.description || ''} backgroundImage={d?.image || ''} />;
     }
     case 'about_with_stats': {
       const d = section.data as any;
@@ -171,7 +182,8 @@ export function renderSection(section: CmsSection) {
     }
     case 'related_filters': {
       const d = section.data as any;
-      return <RelatedFilters title={d?.title} description={d?.description} filters={Array.isArray(d?.filters) ? d.filters : []} />;
+      const category = d?.category as 'HEAVY_DUTY' | 'AUTOMOTIVE' | undefined;
+      return <FilterTypesCms title={d?.title} description={d?.description} category={category} sectionId={(section as any).id} />;
     }
     case 'popular_filters': {
       const d = section.data as any;

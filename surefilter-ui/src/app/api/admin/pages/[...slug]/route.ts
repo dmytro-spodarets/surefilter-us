@@ -47,7 +47,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
 
   if (newSlug && newSlug !== slug) {
     const first = (newSlug.split('/')?.[0] || '');
-    const valid = /^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(newSlug) && !RESERVED_SLUGS.has(first);
+    const allowedPrefixed = ['industries', 'heavy-duty', 'automotive'];
+    const isMultiSegment = newSlug.includes('/');
+    const validPrefix = isMultiSegment && allowedPrefixed.includes(first);
+    const valid = /^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(newSlug) && (validPrefix || !RESERVED_SLUGS.has(first));
     if (!valid) return NextResponse.json({ error: 'Invalid or reserved slug' }, { status: 400 });
     const exists = await prisma.page.findUnique({ where: { slug: newSlug } });
     if (exists) return NextResponse.json({ error: 'Slug already exists' }, { status: 409 });
@@ -87,6 +90,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     page_hero: { title: page.title, description: page.description ?? '' },
     single_image_hero: { title: page.title, description: page.description ?? '', image: '' },
     compact_search_hero: { title: page.title, description: page.description ?? '', image: '' },
+    search_hero: { title: page.title, description: page.description ?? '', image: '' },
     simple_search: { title: 'Find Your Filter', description: 'Search by part number or equipment model', placeholder: 'Enter part number or equipment model...', buttonText: 'Search' },
     about_with_stats: { title: '', description: '', features: [], stats: [] },
     content_with_images: { title: '', subtitle: '', content: [], images: [] },
@@ -106,17 +110,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     quick_search: { title: 'Find Your Filter Fast', description: '', placeholder: '', ctaLabel: 'Ask our team', ctaHref: '#' },
     industries: { title: 'Industries We Serve', description: '', items: [] },
     industries_list: { title: 'Our Industries', description: 'Specialized filtration solutions tailored to the unique challenges of each industry' },
-    industry_meta: { listTitle: '', listDescription: '', listImage: '', popularFilters: [] },
+    listing_card_meta: { listTitle: '', listDescription: '', listImage: '', popularFilters: [] },
     popular_filters: { title: 'Popular Filters', description: '', catalogHref: '/catalog', catalogText: 'Browse All Filters', columnsPerRow: 5, items: [] },
-    related_filters: { title: 'Related Filter Types', description: '', filters: [] },
+    related_filters: { title: 'Related Filter Types', description: '', category: undefined },
     about_news: { aboutTitle: 'Who We Are', aboutParagraphs: [], stats: [], aboutCtaLabel: 'Learn More About Us', aboutCtaHref: '#', newsTitle: 'News & Updates', newsItems: [], newsCtaLabel: 'See All News', newsCtaHref: '#' },
   };
   const data = defaults[type] ?? {};
 
-  const sec = await prisma.section.create({ data: { type, data } });
-  const last = await prisma.pageSection.findFirst({ where: { pageId: page.id }, orderBy: { position: 'desc' } });
-  const position = (last?.position ?? 0) + 1;
-  await prisma.pageSection.create({ data: { pageId: page.id, sectionId: sec.id, position } });
+  let sec;
+  try {
+    sec = await prisma.section.create({ data: { type, data } });
+    const last = await prisma.pageSection.findFirst({ where: { pageId: page.id }, orderBy: { position: 'desc' } });
+    const position = (last?.position ?? 0) + 1;
+    await prisma.pageSection.create({ data: { pageId: page.id, sectionId: sec.id, position } });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || 'Failed to add section' }, { status: 500 });
+  }
 
   try {
     const { revalidateTag } = await import('next/cache');

@@ -9,7 +9,7 @@ export default async function IndustriesList({ title = 'Our Industries', descrip
     orderBy: { slug: 'asc' },
   });
   const cards = industryPages.map((p) => {
-    const meta = p.sections.find((ps) => ps.section.type === 'industry_meta')?.section.data as any;
+    const meta = p.sections.find((ps) => ps.section.type === 'listing_card_meta')?.section.data as any;
     const slug = p.slug.split('/').slice(1).join('/');
     return {
       slug,

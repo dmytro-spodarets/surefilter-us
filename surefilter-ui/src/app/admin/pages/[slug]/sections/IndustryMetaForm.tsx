@@ -24,7 +24,7 @@ export default function IndustryMetaForm({ sectionId, initialData }: { sectionId
       await fetch(`/api/admin/sections/${sectionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'industry_meta', data: { listTitle, listDescription, listImage, popularFilters } }),
+        body: JSON.stringify({ type: 'listing_card_meta', data: { listTitle, listDescription, listImage, popularFilters } }),
       });
     } finally {
       setSaving(false);
