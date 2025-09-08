@@ -3,6 +3,8 @@ import Footer from '@/components/layout/Footer';
 import { loadCachedPageBySlug } from '@/cms/fetch';
 import { renderSection } from '@/cms/renderer';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HeavyDutyPage() {
   const page = await loadCachedPageBySlug('heavy-duty');
   return (

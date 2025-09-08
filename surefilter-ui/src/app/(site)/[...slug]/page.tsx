@@ -1,17 +1,27 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { loadCachedPageBySlug, loadPageBySlug } from '@/cms/fetch';
+import { loadPageBySlug } from '@/cms/fetch';
 import { renderSection } from '@/cms/renderer';
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 
-function joinSlug(segments: string[]) {
-  return (segments || []).join('/');
+export const dynamic = 'force-dynamic';
+
+function joinSlug(segments: string[] | string | undefined) {
+  if (Array.isArray(segments)) return segments.join('/');
+  if (typeof segments === 'string') return segments;
+  return '';
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] | string }> }): Promise<Metadata> {
   const { slug } = await params;
   const key = joinSlug(slug);
+  if (!key) {
+    // Пустой ключ — вернем пустые метаданные, применятся значения по умолчанию из RootLayout
+    return {};
+  }
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
   const page = await prisma.page.findUnique({ where: { slug: key } });
   const title = page?.title || key;
   const description = page?.description || undefined;
@@ -23,22 +33,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title,
       description,
       images: image ? [image] : undefined,
-      url: process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL}/${key}` : undefined,
+      url: base && key ? `${base}/${key}` : undefined,
       type: 'website',
     },
     robots: { index: true, follow: true },
   };
 }
 
-export default async function DynamicPage({ params }: { params: Promise<{ slug: string[] }> }) {
+export default async function DynamicPage({ params }: { params: Promise<{ slug?: string[] | string }> }) {
   const { slug } = await params;
   const key = joinSlug(slug);
   // Use uncached fetch to avoid stale/null cache when pages are created/seeded in dev
   const page = await loadPageBySlug(key);
   if (!page) {
-    // Next.js notFound
-    // @ts-expect-error Async notFound available in app router
-    return (await import('next/navigation')).notFound();
+    notFound();
   }
   return (
     <main>
@@ -50,5 +58,3 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug: 
     </main>
   );
 }
-
-

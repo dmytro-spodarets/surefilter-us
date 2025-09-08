@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
 import SeoForm from '@/app/admin/pages/[slug]/SeoForm';
 import ReorderButtons from '@/app/admin/pages/[slug]/ReorderButtons';

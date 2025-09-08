@@ -184,6 +184,23 @@ docker compose -f docker/docker-compose.yml down
 - Планы развития: см. `ROADMAP.md`.
 - История изменений и правила записей: см. `CHANGELOG.md`.
 
+### Products & Specs updates (2025-09-04)
+- Админка спецификаций продуктов:
+  - Новый раздел `/admin/spec-parameters` — список, создание и редактирование параметров (название, единица измерения, категория, позиция, активность).
+- Редактор спецификаций в формах продуктов:
+  - Компонент `src/app/admin/products/ProductForm.tsx` поддерживает редактирование `specValues` — набор записей `{ parameterId, value, unitOverride?, position? }`.
+  - На странице нового продукта и редактирования продукта доступен блок «Specifications» с добавлением/удалением строк и выбором параметров.
+- API:
+  - `POST /api/admin/products` и `PUT /api/admin/products/[id]` принимают поле `specValues` и сохраняют его транзакционно.
+  - `GET /api/admin/products` и `GET /api/admin/products/[id]` возвращают `specValues` с вложенными `parameter` и сортировкой по `position`.
+  - CRUD для `/api/admin/spec-parameters`.
+- База данных и Prisma:
+  - Модели `SpecParameter` и `ProductSpecValue` добавлены в схему Prisma; связи с `Product` настроены.
+  - Схема синхронизирована (`prisma db push`), клиент сгенерирован в `src/generated/prisma`.
+- Быстрый тест:
+  - Создайте несколько параметров в `/admin/spec-parameters`.
+  - Создайте/отредактируйте продукт в `/admin/products/new` или `/admin/products/[id]` и заполните спецификации.
+
 ### CMS & Admin updates (2025-08-25)
 - **Generic CMS routing**: `src/app/(site)/[slug]/page.tsx` рендерит верхнеуровневые страницы из CMS по `slug` и формирует метаданные из SEO полей страницы.
   - Для многоуровневых страниц используется `src/app/(site)/[...slug]/page.tsx`; в dev временно используется некешированная загрузка `loadPageBySlug`.

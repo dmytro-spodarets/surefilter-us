@@ -1,0 +1,52 @@
+import { getServerSession } from 'next-auth';
+import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
+import prisma from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
+import ProductForm from '../ProductForm';
+
+export const metadata = { robots: { index: false, follow: false } };
+
+export default async function EditProductPage({ params }: any) {
+  const session = await getServerSession(authOptions);
+  if (!session) redirect(`/login?callbackUrl=/admin/products/${params.id}`);
+
+  const [product, filterTypes, specParameters] = await Promise.all([
+    prisma.product.findUnique({
+      where: { id: params.id },
+      include: {
+        specValues: {
+          orderBy: { position: 'asc' },
+          include: { parameter: true },
+        },
+      },
+    }),
+    prisma.filterType.findMany({
+      where: { isActive: true },
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true, category: true, fullSlug: true },
+    }),
+    prisma.specParameter.findMany({
+      where: { isActive: true },
+      orderBy: [{ category: 'asc' }, { position: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true, unit: true, category: true, position: true, isActive: true },
+    }),
+  ]);
+
+  if (!product) notFound();
+
+  return (
+    <main className="min-h-screen px-6 py-10">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-gray-900">Edit Product</h1>
+          <Link href="/admin/products" className="text-sure-blue-600 hover:underline">← Back to products</Link>
+        </div>
+        <div className="border border-gray-200 rounded-lg p-5">
+          <ProductForm mode="edit" initial={product as any} filterTypes={filterTypes as any} specParameters={specParameters as any} />
+        </div>
+      </div>
+    </main>
+  );
+}
+

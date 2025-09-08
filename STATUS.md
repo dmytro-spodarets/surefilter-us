@@ -19,6 +19,11 @@ Legend
 - [x] Enum SectionType (hero_full, why_choose, featured_products, quick_search, industries, about_news, ...)
 - [x] Migrations applied
 - [x] Server mappers: SectionType -> React component props (parsers/validators)
+- [x] Generic CMS routes: `/(site)/[slug]` and `/(site)/[...slug]` with metadata
+- [x] Admin API: unified catch‑all `/api/admin/pages/[...slug]`
+- [x] Slug validation for `heavy-duty/*`, `automotive/*`
+- [x] Seed updates: filter type icons, `listing_card_meta`; seeded HD pages (oil/air)
+- [x] Related Filters powered by `FilterType` + `listing_card_meta`
 
 2) Admin UI
 - [x] /admin/pages: list, edit
@@ -26,6 +31,10 @@ Legend
 - [x] Sections on page: list with order (up/down), edit per type
 - [x] Section editors: hero_full, featured_products, why_choose, quick_search, industries, about_news
 - [x] Hide from robots (already) and no links in menu (already)
+- [x] Modal page creation
+- [x] Protect core‑pages from deletion (`RESERVED_SLUGS`, disabled button)
+- [x] Redirect to page editor after Add Section; section deletion UX
+- [x] Admin: `/admin/industries`, `/admin/filter-types`
 
 3) Page-by-page migration
 Home (/)
@@ -41,42 +50,58 @@ About Us (/about-us)
 - [x] AboutWithStats
 - [x] QualityAssurance
 - [x] ContentWithImages
+- [x] manufacturing_facilities
+- [x] our_company
+- [x] stats_band
+- [x] awards_carousel
 
 Heavy Duty (/heavy-duty and subpages /air|cabin|fuel|oil)
-- [ ] PageHero
-- [ ] FilterTypesGrid / Products
+- [x] SearchHero (CMS)
+- [x] FilterTypesGrid (CMS)
 - [ ] ContentWithImages
+- Note: Subpages `/heavy-duty/air|fuel|cabin|oil` are static; CMS migration pending
 
 Automotive (/automotive)
-- [ ] PageHero
-- [ ] ContentWithImages / Products
+- [~] SearchHero (static)
+- [ ] CMS sections (ContentWithImages / Products)
 
 Industries (/industries, /industries/agriculture)
-- [ ] IndustriesList / PageHero
-- [ ] ContentWithImages
+- [x] /industries: FullScreenHero + IndustriesList (CMS)
+- [ ] /industries/[slug]: detail pages and content
+- Note: Legacy `/industry` removed in favor of `/industries`
 
 Resources (/resources, /resources/heavy-duty-catalog)
-- [ ] PageHero
-- [ ] Resource items (separate entity)
+- [~] CompactHero + UI (static)
+- [ ] Resource items (entity + CMS)
+- Note: Filtering, gallery/list toggle, pagination done in UI; backend pending
 
 Newsroom (/newsroom, /newsroom/heavy-duty-filter-launch)
+- [~] CompactHero + list UI (static)
 - [ ] News list (NewsArticle entity)
-- [ ] News detail
+- [ ] News detail (CMS)
+- Note: One static detail page exists
 
 Warranty (/warranty)
+- [~] MagnussonMossAct (static)
+- [~] QualityAssurance (static)
+- [~] LimitedWarrantyDetails (static)
+- [~] WarrantyContact (static)
 - [ ] WarrantyPromise
-- [ ] LimitedWarrantyDetails
-- [ ] MagnussonMossAct
-- [ ] WarrantyClaimProcess
-- [ ] WarrantyContact
+- [ ] WarrantyClaimProcess (component exists; not on page)
+- Note: Page currently static; CMS migration pending
 
 Contact Us (/contact-us)
-- [ ] ContactOptions
-- [ ] Content blocks
+- [x] ContactOptions (CMS)
+- [x] Content blocks (CMS)
+- [x] contact_hero
+- [x] contact_options
+- [x] contact_form_info
+- Note: Uses `contact_hero`, `contact_options`, `contact_form_info` sections
 
 Filters and Catalog (/filters/[code], /catalog)
 - [ ] Data models for products/filters
 - [ ] Server filtering/search, Pagination component reuse
+- Note: UI implemented with filters, view toggle, pagination; using mock data
 
 4) Shared content
 - [ ] NavigationItem (Header)
@@ -87,29 +112,17 @@ Filters and Catalog (/filters/[code], /catalog)
 - [ ] Draft/Published flags and visibility
 - [ ] Revalidation hooks for ISR (later)
 
+6) Products & Specifications (Admin)
+- [x] Prisma schema: SpecParameter, ProductSpecValue; relation with Product
+- [x] Admin API: spec-parameters CRUD
+- [x] Products API: accept/persist specValues; include on fetch (with parameter)
+- [x] Admin UI: /admin/spec-parameters (list/new/edit)
+- [x] ProductForm: specifications editor wired to API
+- [x] Admin nav: Specs link
+- [x] Prisma db push and generate
+- [ ] End-to-end QA and UX polish (inline validation hints, drag-and-drop ordering)
+- [ ] Catalog integration: spec filters and product details rendering
+
 Risks/notes
 - JSONB data validated at runtime; add Zod schemas per SectionType.
 - Gradual migration: pages can remain mixed (static + CMS) until complete.
-
-
-### Progress — 2025-08-26
-- [x] Полная замена `industry_meta` → `listing_card_meta` (миграции БД, формы, рендереры)
-- [x] Related Filters: исходный UI, данные из `FilterType` + `listing_card_meta`, авто‑категория по slug/полю секции
-- [x] Admin UX: удаление секций в `/admin/sections/[id]`, редирект в редактор после добавления секции
-- [x] Валидация и slug: разрешены `heavy-duty/*`, `automotive/*` для новых/редактируемых страниц
-- [x] Seed: иконки для типов фильтров, мета‑секции на страницах типов, сидинг HD страниц (oil/air) с полным набором секций
-
-### Progress — 2025-08-25
-- [x] Generic роут `/(site)/[slug]` для верхнеуровневых страниц из CMS + метаданные
-- [x] Админка: модальное создание страниц, редактирование slug, удаление страниц
-- [x] Защита от удаления core‑страниц (`RESERVED_SLUGS`, отключение кнопки в UI)
-- [x] About Us: добавлены `manufacturing_facilities`, `our_company` (без `image`), `stats_band`, `awards_carousel`
-- [x] Contact Us: `contact_hero`, `contact_options`, `contact_form_info`; сетка и контент синхронизированы с исходной статикой
-- [x] Сидинг и AddSectionForm: актуализированы типы; убраны legacy‑контактные блоки при наличии `contact_form_info`
-- [x] Industries: раздел `/admin/industries`, карточка лендинга `/industries`; секции `industries_list` и `industry_meta`; динамический список отраслей из БД
-- [x] Industry pages: добавлены секции `compact_search_hero`, `simple_search`, `popular_filters`, `related_filters`; рендер и формы в админке
-- [x] API: единый catch‑all `/api/admin/pages/[...slug]` для CRUD секций и reorder; удалены конфликтующие вложенные маршруты
-- [x] Изображения: разрешён `http://localhost:3000` для `next/image` в dev
-- [x] Filter Types: БД (FilterCategory/FilterType), админка `/admin/filter-types`, сидинг верхнеуровневых типов, автосоздание страниц типов и скрытие их из Pages
-- [x] Heavy Duty: страница переведена на CMS; добавлены секции `search_hero`, `filter_types_grid`, перенесён контент
-

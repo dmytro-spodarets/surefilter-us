@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sure Filter — Website Under Construction</title>
+  <meta name="description" content="Sure Filter — Premium Automotive & Industrial Filters. Our new website is under construction. Contact us for sales and support." />
+  <style>
+    :root {
+      /* Brand palette from src/app/globals.css */
+      --color-sure-blue-500: #182375;
+      --color-sure-blue-700: #121a4a;
+      --color-sure-blue-900: #0c1128;
+      --color-sure-orange-500: #f97316;
+      --color-sure-red-500: #db360e;
+      --color-text: #0a0a0a;
+      --color-muted: #6b7280; /* gray-500 */
+      --bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--color-text);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--color-sure-blue-700), var(--color-sure-blue-500));
+      color: #fff;
+      padding: 16px;
+    }
+    .topbar .brand {
+      display: flex; align-items: center; gap: 12px;
+      max-width: 1200px; margin: 0 auto; padding: 0 16px;
+    }
+    .brand-mark {
+      display: inline-grid; place-items: center;
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--color-sure-blue-700);
+      font-weight: 900; font-size: 18px;
+    }
+    .brand-title { font-weight: 700; letter-spacing: .3px; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb; /* gray-200 */
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+
+    .hero {
+      display: grid; gap: 20px;
+      align-items: center;
+      padding: 36px 0 20px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(24,35,117,0.06);
+      color: var(--color-sure-blue-700);
+      border: 1px solid rgba(24,35,117,0.18);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px; font-weight: 600; letter-spacing: .3px;
+      width: fit-content;
+    }
+    .title {
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.15;
+      margin: 6px 0 10px;
+      color: var(--color-sure-blue-900);
+      font-weight: 800;
+    }
+    .subtitle {
+      color: var(--color-muted);
+      font-size: 16px; line-height: 1.6;
+      max-width: 800px;
+    }
+
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      border-radius: 10px; padding: 12px 16px;
+      text-decoration: none; font-weight: 700; letter-spacing: .2px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-sure-orange-500), var(--color-sure-red-500));
+      color: #fff;
+      border: none;
+    }
+    .btn-outline {
+      color: var(--color-sure-blue-700);
+      border: 2px solid rgba(24,35,117,0.3);
+      background: transparent;
+    }
+
+    .grid { display: grid; gap: 16px; }
+    @media (min-width: 768px) { .grid-cols-3 { grid-template-columns: repeat(3, 1fr); } }
+
+    .info {
+      display: grid; gap: 14px; margin-top: 8px;
+    }
+    .info-item { display: flex; gap: 12px; align-items: start; }
+    .info-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: inline-grid; place-items: center;
+      background: rgba(24,35,117,0.06);
+      color: var(--color-sure-blue-700);
+      border: 1px solid rgba(24,35,117,0.18);
+      flex: 0 0 auto;
+    }
+    .info-title { font-weight: 700; margin-bottom: 2px; color: var(--color-sure-blue-900); }
+    .info-desc { color: var(--color-muted); }
+
+    .footer {
+      margin-top: 24px; padding: 24px 16px; color: #6b7280; font-size: 14px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    /* Accessibility focus */
+    .btn:focus-visible, a:focus-visible {
+      outline: 2px solid var(--color-sure-red-500);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">SF</div>
+        <div class="brand-title">Sure Filter®</div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="hero">
+          <span class="badge">Website Update in Progress</span>
+          <h1 class="title">Many Industries. One Solution.</h1>
+          <p class="subtitle">
+            We are crafting a modern experience for our automotive and industrial filtration lines.
+            While we finish the final touches, please use the contacts below — our team is ready to help.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="mailto:info@surefilter.com">
+              <!-- mail icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 6h16a2 2 0 0 1 2 2v.2l-10 5.6L2 8.2V8a2 2 0 0 1 2-2Z" fill="currentColor"/><path d="M2 9.8 11.4 15a2 2 0 0 0 1.9 0L22 9.8V16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.8Z" fill="currentColor" opacity=".85"/></svg>
+              Email us
+            </a>
+            <a class="btn btn-outline" href="tel:+15551234567">
+              <!-- phone icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6.6 2.8c.5-.5 1.2-.6 1.8-.3l2.1 1.1c.6.3.9 1 .8 1.7l-.4 2.2a1.8 1.8 0 0 0 .5 1.6l3.1 3.1c.4.4 1 .6 1.6.5l2.2-.4c.7-.1 1.4.2 1.7.8l1.1 2.1c.3.6.2 1.3-.3 1.8l-1.2 1.2c-1 .9-2.4 1.3-3.8.9-2.8-.8-5.5-2.5-8-5s-4.2-5.2-5-8c-.4-1.4 0-2.8.9-3.8l1.2-1.2Z" fill="currentColor"/></svg>
+              +1 (555) 123-4567
+            </a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 info" style="margin-top:24px;">
+          <div class="info-item">
+            <div class="info-icon" aria-hidden="true">📍</div>
+            <div>
+              <div class="info-title">Headquarters</div>
+              <div class="info-desc">123 Industrial Blvd, Suite 100<br/>Manufacturing District, CA 90210</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon" aria-hidden="true">✉️</div>
+            <div>
+              <div class="info-title">Sales & Support</div>
+              <div class="info-desc"><a href="mailto:info@surefilter.com">info@surefilter.com</a></div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon" aria-hidden="true">📞</div>
+            <div>
+              <div class="info-title">Phone</div>
+              <div class="info-desc"><a href="tel:+15551234567">+1 (555) 123-4567</a></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="container" style="padding:0;">
+          © 2025 Sure Filter®. All rights reserved.
+        </div>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

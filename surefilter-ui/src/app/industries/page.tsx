@@ -3,6 +3,8 @@ import Footer from '@/components/layout/Footer';
 import { loadCachedPageBySlug } from '@/cms/fetch';
 import { renderSection } from '@/cms/renderer';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Industries We Serve | Sure Filter',
   description: 'Comprehensive filtration solutions for agriculture, construction, mining, marine, oil & gas, power generation, transportation, waste management, and rail industries.',

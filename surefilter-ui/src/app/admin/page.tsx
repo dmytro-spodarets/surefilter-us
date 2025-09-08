@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -20,10 +20,10 @@ export default async function AdminPage() {
         <p className="text-gray-600 mt-2">Welcome, {session.user?.email}</p>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="border border-gray-200 rounded-lg p-4">
+          <Link href="/admin/products" className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
             <h2 className="font-medium text-gray-900">Products</h2>
             <p className="text-sm text-gray-600">Manage filters and catalog.</p>
-          </div>
+          </Link>
           <Link href="/admin/pages" className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
             <h2 className="font-medium text-gray-900">Pages</h2>
             <p className="text-sm text-gray-600">Edit site pages and sections.</p>

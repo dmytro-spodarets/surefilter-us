@@ -138,11 +138,11 @@ async function ensureHomePage() {
     description: 'Comprehensive filtration solutions for every heavy-duty application',
     items: [
       { name: 'On-Highway', description: 'Trucks, buses, and commercial vehicles', image: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=400&h=300&fit=crop&q=80', href: '/industries/on-highway' },
-      { name: 'Agriculture', description: 'Tractors, harvesters, and farm equipment', image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400&h=300&fit=crop&q=80', href: '/industries/agriculture' },
+      { name: 'Agriculture', description: 'Tractors, harvesters, and farm equipment', image: 'https://images.unsplash.com/photo-1500937386664-40aa08e78837?w=400&h=300&fit=crop&q=80', href: '/industries/agriculture' },
       { name: 'Rental Equipment', description: 'Construction and industrial rental fleets', image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop&q=80', href: '/industries/rental-equipment' },
       { name: 'Construction', description: 'Excavators, bulldozers, and heavy machinery', image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop&q=80', href: '/industries/construction' },
       { name: 'Mining', description: 'Open-pit and underground equipment', image: '/images/image-2.jpg', href: '/industries/mining' },
-      { name: 'Marine', description: 'Commercial vessels and port equipment', image: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=400&h=300&fit=crop&q=80', href: '/industries/marine' },
+      { name: 'Marine', description: 'Commercial vessels and port equipment', image: 'https://images.unsplash.com/photo-1500462918059-b1c0cb512f1d?w=400&h=300&fit=crop&q=80', href: '/industries/marine' },
     ],
   };
   const existingIndustries = existing?.sections.find((s) => s.section.type === 'industries');
@@ -431,7 +431,7 @@ async function ensureContactPage() {
   const hasType = (t) => existing?.sections.some((s) => s.section.type === t);
   const nextPos = async () => { const last = await prisma.pageSection.findFirst({ where: { pageId: page.id }, orderBy: { position: 'desc' } }); return (last?.position ?? 0) + 1; };
 
-  const hero = { title: 'Contact Us', description: "Get in touch with our team for technical support, product inquiries, or partnership opportunities. We're here to help you find the right filtration solution.", image: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=1000&q=80' };
+  const hero = { title: 'Contact Us', description: "Get in touch with our team for technical support, product inquiries, or partnership opportunities. We're here to help you find the right filtration solution.", image: 'https://images.unsplash.com/photo-1446776653964-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80' };
   if (!hasType('contact_hero')) {
     const sec = await prisma.section.create({ data: { type: 'contact_hero', data: hero } });
     await prisma.pageSection.create({ data: { pageId: page.id, sectionId: sec.id, position: await nextPos() } });
@@ -504,6 +504,111 @@ async function ensureContactPage() {
     }
   }
 }
+
+async function ensureProducts() {
+  const samples = [
+    {
+      code: 'SFO241',
+      name: 'Sure Filter SFO241 Oil Filter',
+      description: 'Heavy-duty spin-on oil filter for extended service intervals.',
+      category: 'HEAVY_DUTY',
+      filterTypeFullSlug: 'heavy-duty/oil-filters',
+      status: 'Release Product',
+      images: [
+        { src: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=800&q=80', alt: 'Oil filter' },
+      ],
+      specsLeft: [
+        { label: 'Application', value: 'Heavy Duty' },
+        { label: 'Media', value: 'Cellulose/Synthetic Blend' },
+      ],
+      specsRight: [
+        { label: 'Efficiency', value: '99% @ 30µm' },
+        { label: 'Bypass Valve', value: 'Yes' },
+      ],
+      oems: [
+        { number: 'PH8A', manufacturer: 'FRAM' },
+        { number: '51348', manufacturer: 'WIX' },
+      ],
+      tags: ['oil', 'heavy-duty'],
+      manufacturer: 'Sure Filter',
+      industries: ['Construction', 'Transportation'],
+      heightMm: 120,
+      odMm: 95,
+      idMm: 62,
+      thread: '3/4-16 UNF',
+      model: 'Spin-On',
+    },
+    {
+      code: 'SFG84801E',
+      name: 'Sure Filter SFG84801E Fuel Filter',
+      description: 'High-efficiency diesel fuel filter with water separation.',
+      category: 'HEAVY_DUTY',
+      filterTypeFullSlug: 'heavy-duty/fuel-filters',
+      status: 'Release Product',
+      images: [
+        { src: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80', alt: 'Fuel filter' },
+      ],
+      specsLeft: [
+        { label: 'Application', value: 'Diesel' },
+        { label: 'Media', value: 'Multi-stage' },
+      ],
+      specsRight: [
+        { label: 'Water Separation', value: '98%' },
+        { label: 'Micron Rating', value: '10µm' },
+      ],
+      oems: [
+        { number: 'FF5488', manufacturer: 'Fleetguard' },
+        { number: '33960', manufacturer: 'WIX' },
+      ],
+      tags: ['fuel', 'diesel'],
+      manufacturer: 'Sure Filter',
+      industries: ['Mining', 'Transportation'],
+      heightMm: 140,
+      odMm: 90,
+      idMm: 58,
+      thread: 'M16x1.5',
+      model: 'Cartridge',
+    },
+  ];
+
+  for (const p of samples) {
+    const ft = await prisma.filterType.findFirst({ where: { fullSlug: p.filterTypeFullSlug } });
+    const existing = await prisma.product.findUnique({ where: { code: p.code } });
+    const data = {
+      code: p.code,
+      name: p.name,
+      description: p.description,
+      category: p.category,
+      filterTypeId: ft?.id ?? null,
+      status: p.status,
+      images: p.images,
+      specsLeft: p.specsLeft,
+      specsRight: p.specsRight,
+      oems: p.oems,
+      tags: p.tags,
+      manufacturer: p.manufacturer,
+      industries: p.industries,
+      heightMm: p.heightMm,
+      odMm: p.odMm,
+      idMm: p.idMm,
+      thread: p.thread,
+      model: p.model,
+    };
+
+    if (existing) {
+      if (process.env.SEED_FORCE_UPDATE === '1') {
+        await prisma.product.update({ where: { code: p.code }, data });
+        console.log(`Updated product ${p.code}`);
+      } else {
+        console.log(`Product ${p.code} already exists (skipped)`);
+      }
+    } else {
+      await prisma.product.create({ data });
+      console.log(`Created product ${p.code}`);
+    }
+  }
+}
+
 async function main() {
   // Safety: convert any leftover old enum values in DB
   try {
@@ -655,8 +760,9 @@ async function main() {
         'All products are designed and manufactured in accordance with industry standards for reliability and performance.',
       ];
       const images = [
-        { src: 'https://images.unsplash.com/photo-1566151098783-dac1b565bb35?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Heavy-duty truck on road', position: 1 },
-        { src: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Engine components', position: 3 },
+        { src: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Air filter application', position: 1 },
+        { src: 'https://images.unsplash.com/photo-1566151098783-dac1b565bb35?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Dusty conditions', position: 3 },
+        { src: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80', alt: 'Engine components', position: 5 },
       ];
       const sec = await prisma.section.create({ data: { type: 'content_with_images', data: { title: 'Sure Filter® for Heavy-Duty Trucks', subtitle: 'Reliable filtration solutions for trucking', content, images } } });
       await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
@@ -673,7 +779,7 @@ async function main() {
       await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
     }
     if (!hasType('simple_search')) {
-      const sec = await prisma.section.create({ data: { type: 'simple_search', data: { title: 'Find Your Heavy-Duty Filter', description: 'Search by part number, OEM number, or equipment model', placeholder: 'Enter part number or equipment model', buttonText: 'Search Heavy-Duty Filters' } } });
+      const sec = await prisma.section.create({ data: { type: 'simple_search', data: { title: 'Find Your Heavy-Duty Filter', description: 'Search by part number or equipment model', placeholder: 'Enter part number or equipment model...', buttonText: 'Search Heavy-Duty Filters' } } });
       await prisma.pageSection.create({ data: { pageId: industryPage.id, sectionId: sec.id, position: await nextPos2() } });
     }
     if (!hasType('related_filters')) {
@@ -891,6 +997,7 @@ async function main() {
 }
 
 main()
+  .then(ensureProducts)
   .catch((e) => {
     console.error(e);
     process.exit(1);
@@ -898,5 +1005,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-

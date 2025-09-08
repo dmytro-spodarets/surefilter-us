@@ -18,9 +18,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link href="/admin/industries" className="text-gray-700 hover:text-gray-900">Industries</Link>
                 <span className="text-gray-300">|</span>
                 <Link href="/admin/filter-types" className="text-gray-700 hover:text-gray-900">Filter Types</Link>
-                {/* Future: */}
                 <span className="text-gray-300">|</span>
-                <span className="text-gray-400">Products</span>
+                <Link href="/admin/spec-parameters" className="text-gray-700 hover:text-gray-900">Specs</Link>
+                <span className="text-gray-300">|</span>
+                <Link href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</Link>
                 <span className="text-gray-300">|</span>
                 <span className="text-gray-400">Settings</span>
               </nav>
@@ -33,5 +34,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </html>
   );
 }
+
 
 
