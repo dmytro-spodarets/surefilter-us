@@ -66,13 +66,6 @@ module "apprunner" {
   memory                   = "2048"
 }
 
-module "apprunner_domain" {
-  source         = "../../modules/apprunner_domain"
-  service_arn    = module.apprunner.service_arn
-  domain_name    = "app.new.surefilter.us"
-  hosted_zone_id = "Z003662317J6SYETHU44S"
-}
-
 module "acm" {
   source         = "../../modules/acm"
   domain_name    = "new.surefilter.us"
