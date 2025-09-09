@@ -21,6 +21,9 @@ resource "aws_apprunner_service" "this" {
       image_configuration {
         port = "3000"
         runtime_environment_variables = {
+          NODE_ENV              = "production"
+          PORT                  = "3000"
+          HOSTNAME              = "0.0.0.0"
           NEXT_PUBLIC_SITE_URL = var.public_site_url
           NEXTAUTH_URL         = var.public_site_url
         }
@@ -31,7 +34,7 @@ resource "aws_apprunner_service" "this" {
       }
     }
 
-    auto_deployments_enabled = true
+    auto_deployments_enabled = false
   }
 
   network_configuration {
