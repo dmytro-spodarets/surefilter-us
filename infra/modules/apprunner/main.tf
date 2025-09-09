@@ -46,16 +46,22 @@ resource "aws_apprunner_service" "this" {
   health_check_configuration {
     protocol               = "HTTP"
     path                   = "/api/health"
-    interval               = 10
+    interval               = 5
     healthy_threshold      = 1
-    unhealthy_threshold    = 5
-    timeout                = 5
+    unhealthy_threshold    = 3
+    timeout                = 2
   }
 
   instance_configuration {
     cpu    = var.cpu
     memory = var.memory
     instance_role_arn = var.instance_role_arn
+  }
+
+  timeouts {
+    create = "5m"
+    update = "5m"
+    delete = "15m"
   }
 }
 
