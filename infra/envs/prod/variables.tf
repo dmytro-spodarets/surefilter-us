@@ -3,21 +3,10 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-// github_repo no longer required (CI uses static credentials)
-
-variable "public_ingress_cidrs" {
-  type    = list(string)
-  default = ["0.0.0.0/0"]
-}
-
-variable "vpc_id" {
-  type    = string
-  default = ""
-}
-
-variable "subnet_ids" {
-  type    = list(string)
-  default = []
+variable "placeholder_db_host" {
+  description = "Temporary DB host for building DATABASE_URL SSM param (can be updated later)"
+  type        = string
+  default     = "localhost"
 }
 
 
