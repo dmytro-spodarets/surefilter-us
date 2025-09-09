@@ -34,6 +34,15 @@ resource "aws_apprunner_service" "this" {
     auto_deployments_enabled = true
   }
 
+  network_configuration {
+    egress_configuration {
+      egress_type = "DEFAULT"
+    }
+    ingress_configuration {
+      is_publicly_accessible = true
+    }
+  }
+
   health_check_configuration {
     protocol               = "HTTP"
     path                   = "/api/health"
