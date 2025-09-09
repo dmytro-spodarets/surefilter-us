@@ -23,8 +23,13 @@ resource "aws_cloudfront_distribution" "this" {
 
   aliases = [var.domain_name]
 
+  locals {
+    origin_no_scheme    = regexreplace(var.origin_domain, "^https?://", "")
+    clean_origin_domain = regexreplace(local.origin_no_scheme, "/$", "")
+  }
+
   origin {
-    domain_name              = var.origin_domain
+    domain_name              = local.clean_origin_domain
     origin_id                = "apprunner-origin"
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
     custom_origin_config {
@@ -48,7 +53,11 @@ resource "aws_cloudfront_distribution" "this" {
     }
   }
 
-  restrictions { geo_restriction { restriction_type = "none" } }
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
 
   viewer_certificate {
     acm_certificate_arn            = var.certificate_arn
