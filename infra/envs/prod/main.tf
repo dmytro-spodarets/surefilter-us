@@ -83,7 +83,8 @@ module "cloudfront" {
   source          = "../../modules/cloudfront"
   domain_name     = "new.surefilter.us"
   certificate_arn = module.acm.certificate_arn
-  origin_domain   = module.apprunner.service_url
+  # Pass a clean domain without scheme for CloudFront origin
+  origin_domain   = replace(replace(module.apprunner.service_url, "https://", ""), "/", "")
   hosted_zone_id  = "Z003662317J6SYETHU44S"
 }
 

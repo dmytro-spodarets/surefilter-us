@@ -7,19 +7,6 @@ terraform {
   }
 }
 
-locals {
-  origin_no_scheme    = regexreplace(var.origin_domain, "^https?://", "")
-  clean_origin_domain = regexreplace(local.origin_no_scheme, "/$", "")
-}
-
-resource "aws_cloudfront_origin_access_control" "oac" {
-  name                              = "surefilter-apprunner-oac"
-  description                       = "OAC for App Runner origin"
-  origin_access_control_origin_type = "web"
-  signing_behavior                  = "never"
-  signing_protocol                  = "sigv4"
-}
-
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -29,9 +16,8 @@ resource "aws_cloudfront_distribution" "this" {
   aliases = [var.domain_name]
 
   origin {
-    domain_name              = local.clean_origin_domain
+    domain_name              = var.origin_domain
     origin_id                = "apprunner-origin"
-    origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
     custom_origin_config {
       http_port              = 80
       https_port             = 443
