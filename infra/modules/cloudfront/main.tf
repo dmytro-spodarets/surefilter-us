@@ -7,6 +7,11 @@ terraform {
   }
 }
 
+locals {
+  origin_no_scheme    = regexreplace(var.origin_domain, "^https?://", "")
+  clean_origin_domain = regexreplace(local.origin_no_scheme, "/$", "")
+}
+
 resource "aws_cloudfront_origin_access_control" "oac" {
   name                              = "surefilter-apprunner-oac"
   description                       = "OAC for App Runner origin"
@@ -22,11 +27,6 @@ resource "aws_cloudfront_distribution" "this" {
   default_root_object = ""
 
   aliases = [var.domain_name]
-
-  locals {
-    origin_no_scheme    = regexreplace(var.origin_domain, "^https?://", "")
-    clean_origin_domain = regexreplace(local.origin_no_scheme, "/$", "")
-  }
 
   origin {
     domain_name              = local.clean_origin_domain
