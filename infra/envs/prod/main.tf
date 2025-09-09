@@ -48,8 +48,6 @@ module "secrets" {
 
 module "iam" {
   source                     = "../../modules/iam"
-  github_oidc_role_name      = "surefilter-github-oidc"
-  github_repo                = var.github_repo
   apprunner_task_role_name   = "surefilter-apprunner-task"
   apprunner_instance_role_name = "surefilter-apprunner-instance"
   secretsmanager_secret_arns = [module.secrets.secret_arn]
@@ -87,10 +85,6 @@ output "rds_endpoint" {
 
 output "database_url_secret_arn" {
   value = module.secrets.secret_arn
-}
-
-output "github_oidc_role_arn" {
-  value = module.iam.github_oidc_role_arn
 }
 
 

@@ -1,7 +1,5 @@
 # Copy these keys into Scalr Workspace Variables (as Terraform variables)
-# github_repo must be in format OWNER/REPO
-
-github_repo = "spodarets/surefilter-us"
+## No required variables for CI now (uses static AWS keys)
 
 # Optional overrides (otherwise default VPC is used)
 # vpc_id     = "vpc-xxxxxxxx"

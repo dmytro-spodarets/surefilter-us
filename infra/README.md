@@ -2,7 +2,7 @@
 
 ## Overview
 - Region: us-east-1
-- Components: ECR (surefilter), RDS PostgreSQL, Secrets Manager (DATABASE_URL), App Runner (surefilter-prod), IAM roles (GitHub OIDC, App Runner)
+- Components: ECR (surefilter), RDS PostgreSQL, Secrets Manager (DATABASE_URL), App Runner (surefilter-prod), IAM roles (App Runner)
 - Orchestration: Scalr (remote runs, state, RBAC) — connect repo and create prod workspace.
 
 ## Structure
@@ -17,23 +17,21 @@
 ## Prerequisites
 - AWS account with permissions to create IAM/ECR/RDS/Secrets/App Runner
 - Scalr organization/workspace configured for OpenTofu in "us-east-1" (remote runs)
-- GitHub secret AWS_GHA_ROLE_ARN — IAM role ARN to assume from GitHub OIDC
+- GitHub secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (for ECR push)
 
 ## First Run (prod)
 1) In Scalr, create workspace "prod" pointing to path infra/envs/prod. State is stored in Scalr via Terraform remote backend (see providers.tf).
 2) Set variables as needed:
-   - github_repo = "owner/repo"
    - aws_region = "us-east-1"
    - vpc_id, subnet_ids (optional; fallback to default VPC)
 3) Plan → Apply.
 4) Note outputs:
    - rds_endpoint
    - database_url_secret_arn
-   - github_oidc_role_arn
 
 ## CI (GitHub Actions)
 - Workflow .github/workflows/ci-build-push.yml builds surefilter-ui/Dockerfile and pushes to ECR with tags ${sha} and release.
-- Requires secret AWS_GHA_ROLE_ARN with the role ARN from outputs.
+- Requires secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
 
 ## Database import (temporary public access)
 - Local dump (example):

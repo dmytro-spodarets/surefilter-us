@@ -1,12 +1,4 @@
-variable "github_oidc_role_name" {
-  description = "IAM role name for GitHub Actions OIDC"
-  type        = string
-}
-
-variable "github_repo" {
-  description = "GitHub repository in format owner/repo"
-  type        = string
-}
+// OIDC inputs removed; static credentials are used in CI
 
 variable "apprunner_task_role_name" {
   description = "IAM role for App Runner to pull from ECR and read Secrets Manager"

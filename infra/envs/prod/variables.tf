@@ -3,14 +3,7 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "github_repo" {
-  description = "GitHub repository in format OWNER/REPO (e.g. spodarets/surefilter-us). Used for GitHub Actions OIDC trust."
-  type        = string
-  validation {
-    condition     = can(regex("^[^/]+/[^/]+$", var.github_repo))
-    error_message = "github_repo must be in format OWNER/REPO, e.g. 'spodarets/surefilter-us'."
-  }
-}
+// github_repo no longer required (CI uses static credentials)
 
 variable "public_ingress_cidrs" {
   type    = list(string)
