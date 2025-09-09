@@ -36,7 +36,7 @@ resource "aws_apprunner_service" "this" {
 
   health_check_configuration {
     protocol               = "HTTP"
-    path                   = "/"
+    path                   = "/api/health/db"
     interval               = 5
     healthy_threshold      = 1
     unhealthy_threshold    = 5
