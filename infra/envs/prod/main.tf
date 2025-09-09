@@ -6,7 +6,7 @@ module "ecr" {
 locals {
   # Optional: discover default VPC and two subnets if not provided via variables
   vpc_id     = var.vpc_id != "" ? var.vpc_id : data.aws_vpc.default.id
-  subnet_ids = length(var.subnet_ids) > 0 ? var.subnet_ids : [for s in data.aws_subnets.default.ids : s][0:2]
+  subnet_ids = length(var.subnet_ids) > 0 ? var.subnet_ids : slice(data.aws_subnets.default.ids, 0, 2)
 }
 
 data "aws_vpc" "default" {
