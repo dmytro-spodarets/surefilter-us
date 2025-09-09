@@ -57,12 +57,6 @@ resource "aws_apprunner_service" "this" {
     memory = var.memory
     instance_role_arn = var.instance_role_arn
   }
-
-  timeouts {
-    create = "5m"
-    update = "5m"
-    delete = "15m"
-  }
 }
 
 output "service_arn" {
