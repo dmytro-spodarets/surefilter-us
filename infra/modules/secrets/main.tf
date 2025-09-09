@@ -8,7 +8,7 @@ terraform {
 }
 
 locals {
-  database_url = "postgresql://${var.username}:${var.password}@${var.host}:5432/${var.db_name}?schema=public"
+  database_url = "postgresql://${var.username}:${urlencode(var.password)}@${var.host}:5432/${var.db_name}?schema=public"
 }
 
 resource "aws_secretsmanager_secret" "database_url" {
