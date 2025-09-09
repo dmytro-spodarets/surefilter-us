@@ -7,6 +7,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 # System packages kept minimal; OpenSSL required by Prisma at runtime
 RUN apt-get update -y && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends openssl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 

@@ -20,8 +20,13 @@ resource "aws_apprunner_service" "this" {
       image_repository_type = "ECR"
       image_configuration {
         port = "3000"
+        runtime_environment_variables = {
+          NEXT_PUBLIC_SITE_URL = var.public_site_url
+          NEXTAUTH_URL         = var.public_site_url
+        }
         runtime_environment_secrets = {
           DATABASE_URL = var.database_url_secret_arn
+          NEXTAUTH_SECRET = var.nextauth_secret_arn
         }
       }
     }

@@ -46,11 +46,29 @@ module "secrets" {
   db_name    = module.rds.db_name
 }
 
+resource "random_password" "nextauth" {
+  length  = 32
+  special = true
+}
+
+resource "aws_secretsmanager_secret" "nextauth" {
+  name        = "surefilter/prod/NEXTAUTH_SECRET"
+  description = "NEXTAUTH_SECRET for production"
+}
+
+resource "aws_secretsmanager_secret_version" "nextauth" {
+  secret_id     = aws_secretsmanager_secret.nextauth.id
+  secret_string = random_password.nextauth.result
+}
+
 module "iam" {
   source                     = "../../modules/iam"
   apprunner_task_role_name   = "surefilter-apprunner-task"
   apprunner_instance_role_name = "surefilter-apprunner-instance"
-  secretsmanager_secret_arns = [module.secrets.secret_arn]
+  secretsmanager_secret_arns = [
+    module.secrets.secret_arn,
+    aws_secretsmanager_secret.nextauth.arn
+  ]
 }
 
 module "apprunner" {
@@ -58,6 +76,8 @@ module "apprunner" {
   service_name             = "surefilter-prod"
   ecr_repository_url       = module.ecr.this_repository_url
   database_url_secret_arn  = module.secrets.secret_arn
+  public_site_url          = "https://new.surefilter.us"
+  nextauth_secret_arn      = aws_secretsmanager_secret.nextauth.arn
   access_role_arn          = module.iam.apprunner_task_role_arn
   instance_role_arn        = module.iam.apprunner_instance_role_arn
   cpu                      = "1024"
