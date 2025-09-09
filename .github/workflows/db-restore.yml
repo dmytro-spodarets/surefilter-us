@@ -37,6 +37,9 @@ jobs:
           DB_URL=$(aws ssm get-parameter --with-decryption --name "$SSM_DB_PARAM" --query 'Parameter.Value' --output text)
           if [ -z "$DB_URL" ]; then echo "DATABASE_URL not found in SSM" && exit 1; fi
           echo "db_url=$DB_URL" >> $GITHUB_OUTPUT
+          # Strip Prisma-specific query params (e.g., ?schema=public) for libpq tools
+          DB_URL_PG="${DB_URL%%\?*}"
+          echo "db_url_pg=$DB_URL_PG" >> $GITHUB_OUTPUT
 
       - name: Install PostgreSQL client
         run: |
@@ -52,7 +55,7 @@ jobs:
 
       - name: Restore dump
         env:
-          DATABASE_URL: ${{ steps.ssm.outputs.db_url }}
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url_pg }}
         run: |
           set -e
           DUMP_PATH="${{ github.event.inputs.dump_path }}"
