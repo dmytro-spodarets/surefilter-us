@@ -2,6 +2,10 @@ name: CI - Build and Push to ECR
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Image version tag (e.g. v1.0.0)"
+        required: true
 
 permissions:
   contents: read
@@ -30,10 +34,12 @@ jobs:
       - name: Build and push image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          VERSION_TAG: ${{ github.event.inputs.version }}
         run: |
-          docker build -t $REGISTRY/${ECR_REPOSITORY}:$IMAGE_TAG -t $REGISTRY/${ECR_REPOSITORY}:release surefilter-ui
-          docker push $REGISTRY/${ECR_REPOSITORY}:$IMAGE_TAG
-          docker push $REGISTRY/${ECR_REPOSITORY}:release
+          set -e
+          if [ -z "$VERSION_TAG" ]; then echo "version input is required" && exit 1; fi
+          IMAGE="$REGISTRY/${ECR_REPOSITORY}:$VERSION_TAG"
+          docker build -t "$IMAGE" surefilter-ui
+          docker push "$IMAGE"
 
 
