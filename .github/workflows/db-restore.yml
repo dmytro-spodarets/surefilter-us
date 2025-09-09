@@ -1,0 +1,62 @@
+name: DB - Restore from Repo Dump
+
+on:
+  workflow_dispatch:
+    inputs:
+      dump_path:
+        description: "Path to dump file in repo (custom format), e.g. db/backup.dump"
+        required: true
+      drop_schema:
+        description: "Drop and recreate public schema before restore"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      SSM_DB_PARAM: /surefilter/DATABASE_URL
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Read DATABASE_URL from SSM
+        id: ssm
+        run: |
+          DB_URL=$(aws ssm get-parameter --with-decryption --name "$SSM_DB_PARAM" --query 'Parameter.Value' --output text)
+          if [ -z "$DB_URL" ]; then echo "DATABASE_URL not found in SSM" && exit 1; fi
+          echo "db_url=$DB_URL" >> $GITHUB_OUTPUT
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+
+      - name: Optionally drop schema
+        if: ${{ github.event.inputs.drop_schema == 'true' }}
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url }}
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+
+      - name: Restore dump
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url }}
+        run: |
+          set -e
+          DUMP_PATH="${{ github.event.inputs.dump_path }}"
+          if [ ! -f "$DUMP_PATH" ]; then echo "Dump not found: $DUMP_PATH" && exit 1; fi
+          pg_restore --no-owner --no-privileges --clean --if-exists -d "$DATABASE_URL" "$DUMP_PATH"
+
+
