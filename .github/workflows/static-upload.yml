@@ -3,6 +3,10 @@ name: Static - Upload to S3
 on:
   workflow_dispatch:
     inputs:
+      bucket:
+        description: "S3 bucket name (e.g. surefilter-static-prod)"
+        required: false
+        default: "surefilter-static-prod"
       invalidate:
         description: "Invalidate CloudFront paths after upload"
         required: false
@@ -38,23 +42,15 @@ jobs:
           npm ci
           npm run build
 
-      - name: Discover outputs
-        id: outputs
-        run: |
-          BUCKET=$(aws cloudformation list-exports --query "Exports[?Name=='static_bucket_name'].Value" --output text || true)
-          if [ -z "$BUCKET" ]; then BUCKET=${{ env.STATIC_BUCKET_OVERRIDE }}; fi
-          # fallback: read from state via env output not trivial here; require override if CFN export not present
-          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
-
       - name: Upload _next/static
         run: |
-          aws s3 sync surefilter-ui/.next/static s3://${{ steps.outputs.outputs.bucket }}/_next/static/ \
+          aws s3 sync surefilter-ui/.next/static s3://${{ github.event.inputs.bucket || 'surefilter-static-prod' }}/_next/static/ \
             --cache-control "public,max-age=31536000,immutable" --delete
 
       - name: Upload public/images
         run: |
           if [ -d surefilter-ui/public/images ]; then \
-            aws s3 sync surefilter-ui/public/images s3://${{ steps.outputs.outputs.bucket }}/images/ \
+            aws s3 sync surefilter-ui/public/images s3://${{ github.event.inputs.bucket || 'surefilter-static-prod' }}/images/ \
               --cache-control "public,max-age=31536000,immutable" --delete; \
           fi
 
