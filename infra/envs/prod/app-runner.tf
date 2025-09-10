@@ -19,11 +19,11 @@ resource "aws_apprunner_service" "surefilter" {
           HOSTNAME              = "0.0.0.0"
           NEXT_PUBLIC_SITE_URL = "https://new.surefilter.us"
           NEXTAUTH_URL         = "https://new.surefilter.us"
-          ORIGIN_SECRET         = aws_ssm_parameter.origin_secret.value
         }
         runtime_environment_secrets = {
           DATABASE_URL    = aws_ssm_parameter.database_url.arn
           NEXTAUTH_SECRET = aws_ssm_parameter.nextauth_secret.arn
+          ORIGIN_SECRET   = aws_ssm_parameter.origin_secret.arn
         }
       }
     }

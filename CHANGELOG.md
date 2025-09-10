@@ -13,6 +13,11 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-09-10 — Прод: домен `new.surefilter.us` через CloudFront+ACM+Route53, канонический домен (middleware) и защита origin заголовком; статика вынесена в S3+CloudFront
+- 2025-09-10 — CI: сборка и публикация образа с input `version`; извлечение статики из образа и выгрузка в S3; опциональная инвалидация CloudFront
+- 2025-09-10 — DB: добавлены workflows `DB - Prisma Migrate Deploy` и `DB - Restore from Repo Dump`; миграции запускаются вручную, восстановление из локального дампа поддержано
+- 2025-09-10 — Infra: ECR репозиторий, App Runner сервис, RDS PostgreSQL (public, minimal), SSM параметры (`/surefilter/DATABASE_URL`, `/surefilter/NEXTAUTH_SECRET`, `/surefilter/ORIGIN_SECRET`)
+- 2025-09-10 — Безопасность: Dockerfile обновлён (apt-get upgrade) для закрытия CVE (pam), URL‑эскейп пароля в `DATABASE_URL`
 - 2025-09-04 — Добавлена админ‑панель для параметров спецификаций продуктов; редактор спецификаций в ProductForm; API продуктов принимает/сохраняет specValues и возвращает их; Prisma схема синхронизирована и клиент сгенерирован
 - 2025-08-26 — Полный переход на listing_card_meta вместо industry_meta (миграции, формы, рендер); возвращена кнопка удаления секций в универсальном редакторе
 - 2025-08-26 — Related Filters: сохранён исходный дизайн, авто-наполнение по категории через FilterTypesCms; мета карточек берётся из listing_card_meta

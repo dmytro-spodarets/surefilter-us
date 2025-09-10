@@ -184,6 +184,19 @@ docker compose -f docker/docker-compose.yml down
 - Планы развития: см. `ROADMAP.md`.
 - История изменений и правила записей: см. `CHANGELOG.md`.
 
+### Продовая инфраструктура (кратко)
+- Домен и CDN: `new.surefilter.us` через CloudFront + ACM + Route53. Канонический домен принудительно в `middleware`, origin защищён заголовком `X-Origin-Secret`.
+- Хостинг приложения: AWS App Runner (автодеплой вручную по образу из ECR).
+- База данных: RDS PostgreSQL (публично на период миграции; далее — VPC Connector и закрытие SG).
+- Секреты: SSM параметры `/surefilter/DATABASE_URL`, `/surefilter/NEXTAUTH_SECRET`, `/surefilter/ORIGIN_SECRET`.
+- Статика: `/_next/static/*` и `/images/*` в S3 (`surefilter-static-prod`) за CloudFront, TTL 1 год, immutable.
+
+### CI/CD (ручной запуск)
+- Сборка образа и выгрузка статики: GitHub Actions → “CI - Build and Push to ECR”
+  - inputs: `version` (обяз.), `static_bucket` (по умолчанию `surefilter-static-prod`), `invalidate` (true/false)
+  - шаги: build image → push ECR → extract `/app/.next/static` и `/app/public` → upload в S3 → (опц.) invalidate CF
+- База данных: “DB - Prisma Migrate Deploy”, “DB - Restore from Repo Dump”
+
 ### Products & Specs updates (2025-09-04)
 - Админка спецификаций продуктов:
   - Новый раздел `/admin/spec-parameters` — список, создание и редактирование параметров (название, единица измерения, категория, позиция, активность).

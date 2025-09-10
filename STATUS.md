@@ -111,6 +111,9 @@ Filters and Catalog (/filters/[code], /catalog)
 5) Publishing
 - [ ] Draft/Published flags and visibility
 - [ ] Revalidation hooks for ISR (later)
+- [x] Production domain via CloudFront+ACM+Route53 (`new.surefilter.us`), canonical redirect, origin protection header
+- [x] Static assets offloaded to S3+CloudFront (`/_next/static/*`, `/images/*`) with long TTL
+- [x] CI: image build & push (manual, tag input) + S3 upload of static from the same image; optional CF invalidation
 
 6) Products & Specifications (Admin)
 - [x] Prisma schema: SpecParameter, ProductSpecValue; relation with Product
@@ -126,3 +129,5 @@ Filters and Catalog (/filters/[code], /catalog)
 Risks/notes
 - JSONB data validated at runtime; add Zod schemas per SectionType.
 - Gradual migration: pages can remain mixed (static + CMS) until complete.
+- After DB import: restrict RDS SG (remove 0.0.0.0/0) and consider VPC Connector for App Runner
+- Consider moving from OAI to OAC for S3 origin access in CloudFront (SigV4, less drift)

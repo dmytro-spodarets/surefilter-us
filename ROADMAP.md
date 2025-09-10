@@ -29,7 +29,15 @@
 ### Деплой и мониторинг
 - CI/CD
 - Prod URL конфигурация (`NEXT_PUBLIC_SITE_URL`), доменные OG при необходимости
+- CloudFront + ACM для apex домена `new.surefilter.us` (готово):
+  - Default: SSR без кеша или по Cache-Control
+  - Static: `/_next/static/*`, `/images/*` из S3, TTL 1y, immutable
+  - `/_next/image*`: форвард `url,w,q` и header `Accept`
+- Перевести S3 origin на OAC (вместо OAI) — современная best‑practice, SigV4
+- Добавить VPC Connector для App Runner и закрыть публичный доступ к RDS
+- Запланировать WAF и логи CloudFront позже
 
 ### Документация
 - Расширить описание новых компонентов и их пропсов
 - Конвенции по цветам/типографике/пагинации в README
+- Добавить раздел про инфраструктуру: CI (versioned images + S3 upload), домен (CF+ACM), S3 статику и инвалидации
