@@ -20,6 +20,39 @@ resource "aws_cloudfront_cache_policy" "static_long" {
   }
 }
 
+resource "aws_cloudfront_cache_policy" "image_optimizer" {
+  name        = "surefilter-image-optimizer"
+  default_ttl = 86400
+  max_ttl     = 604800
+  min_ttl     = 0
+  parameters_in_cache_key_and_forwarded_to_origin {
+    enable_accept_encoding_brotli = true
+    enable_accept_encoding_gzip   = true
+    headers_config {
+      header_behavior = "whitelist"
+      headers         = ["Accept"]
+    }
+    cookies_config { cookie_behavior = "none" }
+    query_strings_config {
+      query_string_behavior = "whitelist"
+      query_strings         = ["url", "w", "q"]
+    }
+  }
+}
+
+resource "aws_cloudfront_origin_request_policy" "image_optimizer" {
+  name    = "surefilter-image-optimizer"
+  headers_config {
+    header_behavior = "whitelist"
+    headers         = ["Accept"]
+  }
+  cookies_config { cookie_behavior = "none" }
+  query_strings_config {
+    query_string_behavior = "whitelist"
+    query_strings         = ["url", "w", "q"]
+  }
+}
+
 resource "aws_cloudfront_distribution" "site" {
   enabled         = true
   is_ipv6_enabled = true
@@ -42,6 +75,14 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
+  origin {
+    domain_name = aws_s3_bucket.static.bucket_regional_domain_name
+    origin_id   = "static-origin"
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
+    }
+  }
+
   default_cache_behavior {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
@@ -52,7 +93,26 @@ resource "aws_cloudfront_distribution" "site" {
 
   ordered_cache_behavior {
     path_pattern           = "/_next/static/*"
-    target_origin_id       = "apprunner-origin"
+    target_origin_id       = "static-origin"
+    viewer_protocol_policy = "redirect-to-https"
+    cache_policy_id        = aws_cloudfront_cache_policy.static_long.id
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD"]
+  }
+
+  ordered_cache_behavior {
+    path_pattern                 = "/_next/image*"
+    target_origin_id             = "apprunner-origin"
+    viewer_protocol_policy       = "redirect-to-https"
+    cache_policy_id              = aws_cloudfront_cache_policy.image_optimizer.id
+    origin_request_policy_id     = aws_cloudfront_origin_request_policy.image_optimizer.id
+    allowed_methods              = ["GET", "HEAD", "OPTIONS"]
+    cached_methods               = ["GET", "HEAD"]
+  }
+
+  ordered_cache_behavior {
+    path_pattern           = "/images/*"
+    target_origin_id       = "static-origin"
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = aws_cloudfront_cache_policy.static_long.id
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
