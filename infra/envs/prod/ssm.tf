@@ -19,4 +19,15 @@ resource "aws_ssm_parameter" "nextauth_secret" {
   value = random_password.nextauth.result
 }
 
+resource "random_password" "origin_secret" {
+  length  = 32
+  special = false
+}
+
+resource "aws_ssm_parameter" "origin_secret" {
+  name  = "/surefilter/ORIGIN_SECRET"
+  type  = "SecureString"
+  value = random_password.origin_secret.result
+}
+
 

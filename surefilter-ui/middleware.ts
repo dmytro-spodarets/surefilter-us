@@ -3,7 +3,17 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, hostname } = req.nextUrl;
+
+  // Enforce canonical domain via CloudFront: only allow requests carrying origin secret header
+  const originSecret = process.env.ORIGIN_SECRET;
+  const headerFromCf = req.headers.get('x-origin-secret');
+  const siteHost = process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, '');
+  if (originSecret && (!headerFromCf || headerFromCf !== originSecret)) {
+    if (siteHost && hostname !== siteHost) {
+      return NextResponse.redirect(`https://${siteHost}${req.nextUrl.pathname}${req.nextUrl.search}`, 301);
+    }
+  }
   if (pathname.startsWith('/admin')) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
@@ -16,7 +26,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/:path*'],
 };
 
 
