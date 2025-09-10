@@ -30,12 +30,16 @@ resource "aws_cloudfront_cache_policy" "image_optimizer" {
     enable_accept_encoding_gzip   = true
     headers_config {
       header_behavior = "whitelist"
-      headers         = ["Accept"]
+      headers {
+        items = ["Accept"]
+      }
     }
     cookies_config { cookie_behavior = "none" }
     query_strings_config {
       query_string_behavior = "whitelist"
-      query_strings         = ["url", "w", "q"]
+      query_strings {
+        items = ["url", "w", "q"]
+      }
     }
   }
 }
@@ -44,12 +48,16 @@ resource "aws_cloudfront_origin_request_policy" "image_optimizer" {
   name    = "surefilter-image-optimizer"
   headers_config {
     header_behavior = "whitelist"
-    headers         = ["Accept"]
+    headers {
+      items = ["Accept"]
+    }
   }
   cookies_config { cookie_behavior = "none" }
   query_strings_config {
     query_string_behavior = "whitelist"
-    query_strings         = ["url", "w", "q"]
+    query_strings {
+      items = ["url", "w", "q"]
+    }
   }
 }
 
