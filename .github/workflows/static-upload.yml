@@ -51,8 +51,9 @@ jobs:
           docker pull "$IMAGE"
           CID=$(docker create "$IMAGE")
           mkdir -p extracted/_next/static extracted/public
-          docker cp "$CID":/app/.next/static ./extracted/_next/static
-          docker cp "$CID":/app/public ./extracted/public
+          # Copy contents to avoid nested directories like _next/static/static
+          docker cp "$CID":/app/.next/static/. ./extracted/_next/static || true
+          docker cp "$CID":/app/public/. ./extracted/public || true
           docker rm "$CID"
 
       - name: Upload _next/static
