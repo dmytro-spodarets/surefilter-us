@@ -46,7 +46,7 @@ resource "aws_cloudfront_distribution" "site" {
       origin_protocol_policy = "https-only"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
-    origin_custom_headers {
+    custom_header {
       name  = "X-Origin-Secret"
       value = aws_ssm_parameter.origin_secret.value
     }
