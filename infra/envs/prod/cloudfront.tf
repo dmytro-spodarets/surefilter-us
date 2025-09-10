@@ -2,18 +2,8 @@ locals {
   origin_domain = replace(replace(aws_apprunner_service.surefilter.service_url, "https://", ""), "/", "")
 }
 
-resource "aws_cloudfront_cache_policy" "html_disabled" {
-  name        = "surefilter-html-disabled"
-  default_ttl = 0
-  max_ttl     = 0
-  min_ttl     = 0
-  parameters_in_cache_key_and_forwarded_to_origin {
-    enable_accept_encoding_brotli = true
-    enable_accept_encoding_gzip   = true
-    headers_config { header_behavior = "none" }
-    cookies_config { cookie_behavior = "none" }
-    query_strings_config { query_string_behavior = "none" }
-  }
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  name = "Managed-CachingDisabled"
 }
 
 resource "aws_cloudfront_cache_policy" "static_long" {
@@ -55,7 +45,7 @@ resource "aws_cloudfront_distribution" "site" {
   default_cache_behavior {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
-    cache_policy_id        = aws_cloudfront_cache_policy.html_disabled.id
+    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
   }
