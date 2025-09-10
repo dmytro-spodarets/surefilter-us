@@ -6,6 +6,14 @@ on:
       version:
         description: "Image version tag (e.g. v1.0.0)"
         required: true
+      static_bucket:
+        description: "S3 bucket for static assets"
+        required: false
+        default: "surefilter-static-prod"
+      invalidate:
+        description: "Invalidate CloudFront paths after upload"
+        required: false
+        default: "false"
 
 permissions:
   contents: read
@@ -41,5 +49,41 @@ jobs:
           IMAGE="$REGISTRY/${ECR_REPOSITORY}:$VERSION_TAG"
           docker build -t "$IMAGE" surefilter-ui
           docker push "$IMAGE"
+
+      - name: Extract static assets from image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          VERSION_TAG: ${{ github.event.inputs.version }}
+        run: |
+          set -e
+          IMAGE="$REGISTRY/${ECR_REPOSITORY}:$VERSION_TAG"
+          docker pull "$IMAGE"
+          CID=$(docker create "$IMAGE")
+          mkdir -p extracted/_next/static extracted/public
+          docker cp "$CID":/app/.next/static ./extracted/_next/static || true
+          docker cp "$CID":/app/public ./extracted/public || true
+          docker rm "$CID"
+
+      - name: Upload _next/static to S3
+        run: |
+          if [ -d extracted/_next/static ]; then \
+            aws s3 sync extracted/_next/static s3://${{ github.event.inputs.static_bucket }}/_next/static/ \
+              --cache-control "public,max-age=31536000,immutable" --delete; \
+          fi
+
+      - name: Upload public/images to S3
+        run: |
+          if [ -d extracted/public/images ]; then \
+            aws s3 sync extracted/public/images s3://${{ github.event.inputs.static_bucket }}/images/ \
+              --cache-control "public,max-age=31536000,immutable" --delete; \
+          fi
+
+      - name: Invalidate CloudFront paths (optional)
+        if: ${{ github.event.inputs.invalidate == 'true' }}
+        run: |
+          DIST_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='surefilter new.surefilter.us'].Id" --output text)
+          if [ -n "$DIST_ID" ]; then \
+            aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/_next/static/*" "/images/*"; \
+          fi
 
 
