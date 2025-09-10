@@ -7,6 +7,13 @@ on:
         description: "S3 bucket name (e.g. surefilter-static-prod)"
         required: false
         default: "surefilter-static-prod"
+      version:
+        description: "Image version tag to pull assets from (e.g. v1.0.0)"
+        required: true
+      ecr_repository:
+        description: "ECR repository name"
+        required: false
+        default: "surefilter"
       invalidate:
         description: "Invalidate CloudFront paths after upload"
         required: false
@@ -31,26 +38,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Next.js
-        working-directory: surefilter-ui
+      - name: Pull image and extract static assets
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          npm ci
-          npm run build
+          set -e
+          IMAGE="$REGISTRY/${{ github.event.inputs.ecr_repository }}:${{ github.event.inputs.version }}"
+          docker pull "$IMAGE"
+          CID=$(docker create "$IMAGE")
+          mkdir -p extracted/_next/static extracted/public
+          docker cp "$CID":/app/.next/static ./extracted/_next/static
+          docker cp "$CID":/app/public ./extracted/public
+          docker rm "$CID"
 
       - name: Upload _next/static
         run: |
-          aws s3 sync surefilter-ui/.next/static s3://${{ github.event.inputs.bucket || 'surefilter-static-prod' }}/_next/static/ \
+          aws s3 sync extracted/_next/static s3://${{ github.event.inputs.bucket || 'surefilter-static-prod' }}/_next/static/ \
             --cache-control "public,max-age=31536000,immutable" --delete
 
       - name: Upload public/images
         run: |
-          if [ -d surefilter-ui/public/images ]; then \
-            aws s3 sync surefilter-ui/public/images s3://${{ github.event.inputs.bucket || 'surefilter-static-prod' }}/images/ \
+          if [ -d extracted/public/images ]; then \
+            aws s3 sync extracted/public/images s3://${{ github.event.inputs.bucket || 'surefilter-static-prod' }}/images/ \
               --cache-control "public,max-age=31536000,immutable" --delete; \
           fi
 
