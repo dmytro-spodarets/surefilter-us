@@ -61,6 +61,10 @@ resource "aws_cloudfront_origin_request_policy" "image_optimizer" {
   }
 }
 
+data "aws_cloudfront_origin_request_policy" "all_viewer" {
+  name = "Managed-AllViewer"
+}
+
 resource "aws_cloudfront_distribution" "site" {
   enabled         = true
   is_ipv6_enabled = true
@@ -79,7 +83,7 @@ resource "aws_cloudfront_distribution" "site" {
     }
     custom_header {
       name  = "X-Origin-Secret"
-      value = з
+      value = aws_ssm_parameter.origin_secret.value
     }
   }
 
@@ -89,10 +93,6 @@ resource "aws_cloudfront_distribution" "site" {
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
     }
-  }
-
-  data "aws_cloudfront_origin_request_policy" "all_viewer" {
-    name = "Managed-AllViewer"
   }
 
   default_cache_behavior {
