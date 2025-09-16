@@ -79,7 +79,7 @@ resource "aws_cloudfront_distribution" "site" {
     }
     custom_header {
       name  = "X-Origin-Secret"
-      value = aws_ssm_parameter.origin_secret.value
+      value = з
     }
   }
 
@@ -91,11 +91,16 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
+  data "aws_cloudfront_origin_request_policy" "all_viewer" {
+    name = "Managed-AllViewer"
+  }
+
   default_cache_behavior {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
   }
 
