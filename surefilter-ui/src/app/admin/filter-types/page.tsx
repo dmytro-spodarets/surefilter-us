@@ -27,7 +27,7 @@ export default async function FilterTypesPage() {
           <li key={it.id} className="px-4 py-3 flex items-center justify-between gap-4">
             <div>
               <div className="font-medium text-gray-900">{it.name}</div>
-              <div className="text-sm text-gray-600">/{it.fullSlug}</div>
+              <div className="text-sm text-gray-600">/{it.pageSlug || 'No page linked'}</div>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <Link href={`/admin/pages/${it.pageSlug || it.fullSlug}`} className="text-sure-blue-600 hover:underline">Edit page content</Link>

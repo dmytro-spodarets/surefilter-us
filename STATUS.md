@@ -59,18 +59,18 @@ Heavy Duty (/heavy-duty and subpages /air|cabin|fuel|oil)
 - [x] SearchHero (CMS)
 - [x] FilterTypesGrid (CMS) - Updated to 7 columns for large screens
 - [ ] ContentWithImages
-- Note: Subpages `/heavy-duty/air|fuel|cabin|oil` are static; CMS migration pending
+- Note: All subpages migrated to CMS
 
-Heavy Duty Subpages (Static - CMS migration required)
-- [ ] /heavy-duty/air - Static page → CMS migration needed
-- [ ] /heavy-duty/cabin - Static page → CMS migration needed
-- [ ] /heavy-duty/fuel - Static page → CMS migration needed
-- [ ] /heavy-duty/oil - Empty folder, create as CMS page
+Heavy Duty Subpages (CMS - Migration completed)
+- [x] /heavy-duty/air - Migrated to CMS
+- [x] /heavy-duty/cabin - Migrated to CMS
+- [x] /heavy-duty/fuel - Migrated to CMS
+- [x] /heavy-duty/oil - Migrated to CMS
 
 Automotive (/automotive)
-- [ ] SearchHero (static) → CMS migration needed
+- [x] SearchHero (CMS) - Migrated to CMS
 - [ ] CMS sections (ContentWithImages / Products)
-- Note: Static page → CMS migration required
+- Note: Page migrated to CMS
 
 Industries (/industries, /industries/agriculture)
 - [x] /industries: FullScreenHero + IndustriesList (CMS)
@@ -170,10 +170,16 @@ Risks/notes
 - [x] Fixed CloudFront 404 issue (resolved)
 - [x] Updated README with comprehensive documentation of changes
 
+### CMS Migration Progress
+- [x] /heavy-duty/air - Migrated to CMS, static files removed
+- [x] /heavy-duty/cabin - Migrated to CMS, static files removed
+- [x] /heavy-duty/fuel - Migrated to CMS, static files removed
+- [x] /heavy-duty/oil - Migrated to CMS, static files removed
+- [x] /automotive - Migrated to CMS, static files removed
+
 ### Static vs CMS Pages Status
-**Static Pages (12 total) - CMS Migration Required:**
-- /heavy-duty/air, /heavy-duty/cabin, /heavy-duty/fuel
-- /automotive, /catalog, /filters/[code]
+**Static Pages (10 total) - CMS Migration Required:**
+- /catalog, /filters/[code]
 - /industries/agriculture
 - /newsroom, /newsroom/heavy-duty-filter-launch
 - /resources, /resources/heavy-duty-catalog
@@ -182,14 +188,16 @@ Risks/notes
 **Admin/System Pages (2 total) - Keep Static:**
 - /login, /test-colors
 
-**CMS Pages (6+ total) - Already Migrated:**
+**CMS Pages (10+ total) - Already Migrated:**
 - / (home), /about-us, /heavy-duty (main), /contact-us, /industries (main)
+- /heavy-duty/air, /heavy-duty/cabin, /heavy-duty/fuel, /heavy-duty/oil
+- /automotive
 - Dynamic pages: /(site)/[...slug], /(site)/[slug]
 
 **Migration Priority:**
 1. High Priority: /catalog, /filters/[code] (product pages)
-2. Medium Priority: /heavy-duty/* subpages, /automotive
-3. Low Priority: /newsroom, /resources, /warranty, /industries/agriculture
+2. Low Priority: /newsroom, /resources, /warranty, /industries/agriculture
+3. ✅ COMPLETED: /heavy-duty/* subpages, /automotive
 
 ## CMS Migration Plan
 
@@ -198,14 +206,13 @@ Risks/notes
 - [ ] /filters/[code] → Create dynamic CMS page for individual products
 - [ ] Create product data models and admin interfaces
 
-### Phase 2: Heavy Duty Subpages (Medium Priority)
-- [ ] /heavy-duty/air → Migrate to CMS with existing content
-- [ ] /heavy-duty/cabin → Migrate to CMS with existing content
-- [ ] /heavy-duty/fuel → Migrate to CMS with existing content
-- [ ] /heavy-duty/oil → Create new CMS page
+### Phase 2: Heavy Duty Subpages (Medium Priority) - COMPLETED ✅
+- [x] /heavy-duty/air → Migrated to CMS with existing content
+- [x] /heavy-duty/cabin → Migrated to CMS with existing content
+- [x] /heavy-duty/fuel → Migrated to CMS with existing content
+- [x] /heavy-duty/oil → Migrated to CMS with existing content
 
 ### Phase 3: Other Pages (Low Priority)
-- [ ] /automotive → Migrate to CMS
 - [ ] /industries/agriculture → Migrate to CMS
 - [ ] /newsroom → Migrate to CMS with news articles
 - [ ] /newsroom/heavy-duty-filter-launch → Migrate to CMS
@@ -219,3 +226,11 @@ Risks/notes
 3. Update routing to use CMS page
 4. Remove static page file
 5. Test and verify functionality
+
+## Code Cleanup TODOs
+
+### Database Schema Cleanup
+- [ ] **Check `fullSlug` usage**: Investigate if `fullSlug` field in `FilterType` model is still needed
+  - Currently used in admin filter-types page as fallback for links
+  - If not used elsewhere, consider removing to simplify schema
+  - Update admin page to handle missing `pageSlug` properly instead of falling back to `fullSlug`
