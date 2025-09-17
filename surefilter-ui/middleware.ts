@@ -8,6 +8,7 @@ export async function middleware(req: NextRequest) {
   // Identify CloudFront -> origin requests by presence/value of header set in CloudFront origin config
   const headerFromCf = req.headers.get('x-origin-secret');
   const originSecret = process.env.ORIGIN_SECRET;
+  const enforceOrigin = process.env.ENFORCE_ORIGIN === '1';
   
   // If we have an origin secret configured and the request is coming to the App Runner domain directly
   // (not through CloudFront), redirect to the canonical domain
@@ -19,7 +20,7 @@ export async function middleware(req: NextRequest) {
 
   // If request hits App Runner domain directly and is not coming via CloudFront (missing/invalid header),
   // redirect to the canonical domain to enforce viewer access only via CloudFront.
-  if (isAppRunnerDomain && !isFromCloudFront && siteUrl) {
+  if (enforceOrigin && isAppRunnerDomain && !isFromCloudFront && siteUrl) {
     const canonicalUrl = new URL(siteUrl);
     canonicalUrl.pathname = req.nextUrl.pathname;
     canonicalUrl.search = req.nextUrl.search;
