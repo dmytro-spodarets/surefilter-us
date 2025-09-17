@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
+import AdminContainer from '@/components/admin/AdminContainer';
 import DeleteSectionButton from '@/app/admin/pages/[slug]/sections/DeleteSectionButton';
 import HomeHeroForm from '@/app/admin/pages/[slug]/sections/HomeHeroForm';
 import FeaturedProductsForm from '@/app/admin/pages/[slug]/sections/FeaturedProductsForm';
@@ -45,8 +46,7 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
   if (!section) redirect('/admin/pages');
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <AdminContainer className="space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Edit Section: {section.type}</h1>
           <div className="flex items-center gap-4 text-sm">
@@ -136,8 +136,7 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         <div className="mt-6">
           <DeleteSectionButton sectionId={section.id} slug={''} />
         </div>
-      </div>
-    </main>
+    </AdminContainer>
   );
 }
 

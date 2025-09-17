@@ -218,6 +218,76 @@ docker compose -f docker/docker-compose.yml down
 - [ ] Добавить CloudFront access logs для мониторинга
 - [ ] Настроить response headers policy для безопасности
 
+### Локальная работа с OpenTofu
+
+**Настройка для локальной разработки**:
+
+1. **Установка OpenTofu**:
+   ```bash
+   # macOS
+   brew install opentofu
+   
+   # Проверка версии
+   tofu --version
+   ```
+
+2. **Настройка AWS профиля**:
+   ```bash
+   # Создание профиля
+   aws configure --profile surefilter-local
+   
+   # Или через переменную окружения
+   export AWS_PROFILE=surefilter-local
+   ```
+
+3. **Переключение на локальный backend**:
+   - В `infra/envs/prod/providers.tf` backend уже настроен на `local`
+   - State файл: `infra/envs/prod/terraform.tfstate`
+
+4. **Экспорт state из Scalr** (если нужно):
+   ```bash
+   cd infra/envs/prod
+   
+   # В оригинальной Scalr среде
+   tofu state pull > terraform.tfstate
+   
+   # Инициализация локально
+   tofu init -reconfigure
+   ```
+
+5. **Основные команды**:
+   ```bash
+   cd infra/envs/prod
+   
+   # Планирование изменений
+   tofu plan
+   
+   # Применение изменений
+   tofu apply
+   
+   # Применение без подтверждения
+   tofu apply -auto-approve
+   
+   # Просмотр state
+   tofu state list
+   tofu state show <resource_name>
+   
+   # Уничтожение ресурсов (осторожно!)
+   tofu destroy
+   ```
+
+6. **Возврат в Scalr** (после отладки):
+   ```bash
+   # Вернуть backend в providers.tf на remote
+   # Затем мигрировать state
+   tofu init -reconfigure -migrate-state
+   ```
+
+**Важно**:
+- Локальные файлы (`.terraform/`, `terraform.tfstate*`) добавлены в `.gitignore`
+- Не коммитьте локальные state файлы в репозиторий
+- При работе с командой убедитесь, что никто не запускает Scalr параллельно
+
 ### Search Disabled for Phase 1 Release (2025-09-17)
 
 **Цель**: Подготовить сайт к релизу первой фазы без каталога, временно отключив все функции поиска.
@@ -254,6 +324,10 @@ docker compose -f docker/docker-compose.yml down
 - `src/app/admin/pages/[slug]/sections/SearchHeroForm.tsx` — новая форма
 - `src/app/admin/pages/[slug]/sections/CompactSearchHeroForm.tsx` — новая форма
 - `src/app/admin/sections/[id]/page.tsx` — добавлена обработка новых типов секций
+- Подключены формы редактирования для `filter_types_grid` и `popular_filters` секций (заголовок и описание)
+- Улучшен лейаут админки — создан `AdminContainer` компонент с шириной `max-w-7xl` для больших мониторов
+- Обновлены ВСЕ страницы админки для использования нового широкого лейаута
+- Проверен компонент `SimpleSearch` — полностью готов для редактирования в админке
 - Обновлен `.gitignore` — добавлены все Terraform/OpenTofu локальные файлы
 
 ### CI/CD (ручной запуск)

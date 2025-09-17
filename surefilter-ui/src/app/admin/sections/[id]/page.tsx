@@ -30,6 +30,10 @@ import ContactOptionsForm from '@/app/admin/pages/[slug]/sections/ContactOptions
 import IndustriesListForm from '@/app/admin/pages/[slug]/sections/IndustriesListForm';
 import IndustryMetaForm from '@/app/admin/pages/[slug]/sections/IndustryMetaForm';
 import RelatedFiltersForm from '@/app/admin/pages/[slug]/sections/RelatedFiltersForm';
+import FilterTypesGridForm from '@/app/admin/pages/[slug]/sections/FilterTypesGridForm';
+import PopularFiltersForm from '@/app/admin/pages/[slug]/sections/PopularFiltersForm';
+import SimpleSearchForm from '@/app/admin/pages/[slug]/sections/SimpleSearchForm';
+import AdminContainer from '@/components/admin/AdminContainer';
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -47,8 +51,7 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
   const parentSlug = (pageSection as any)?.page?.slug as string | undefined;
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <AdminContainer className="space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Edit Section: {section.type}</h1>
           <div className="flex items-center gap-4 text-sm">
@@ -139,8 +142,16 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         {section.type === 'related_filters' && (
           <RelatedFiltersForm sectionId={section.id} initialData={section.data as any} />
         )}
-      </div>
-    </main>
+        {section.type === 'filter_types_grid' && (
+          <FilterTypesGridForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'popular_filters' && (
+          <PopularFiltersForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'simple_search' && (
+          <SimpleSearchForm sectionId={section.id} initialData={section.data as any} />
+        )}
+    </AdminContainer>
   );
 }
 

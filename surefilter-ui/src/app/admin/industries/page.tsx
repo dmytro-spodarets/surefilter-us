@@ -4,6 +4,7 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import NewPageForm from '../pages/NewPageForm';
 import { authOptions } from '@/lib/auth';
+import AdminContainer from '@/components/admin/AdminContainer';
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -19,8 +20,7 @@ export default async function IndustriesPagesList() {
   });
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="max-w-5xl mx-auto">
+    <AdminContainer>
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold text-gray-900">Industries</h1>
           <div className="flex items-center gap-4">
@@ -50,8 +50,7 @@ export default async function IndustriesPagesList() {
             </li>
           ))}
         </ul>
-      </div>
-    </main>
+    </AdminContainer>
   );
 }
 

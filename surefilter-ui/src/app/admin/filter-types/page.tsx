@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import AdminContainer from '@/components/admin/AdminContainer';
 
 export const metadata = { robots: { index: false, follow: false } };
 
@@ -38,8 +39,7 @@ export default async function FilterTypesPage() {
   );
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <AdminContainer className="space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Filter Types</h1>
           <Link href="/admin" className="text-sure-blue-600 hover:underline">← Back to dashboard</Link>
@@ -62,8 +62,7 @@ export default async function FilterTypesPage() {
         </div>
         <Section title="Heavy Duty" items={hd} />
         <Section title="Automotive" items={auto} />
-      </div>
-    </main>
+    </AdminContainer>
   );
 }
 

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
+import AdminContainer from '@/components/admin/AdminContainer';
 
 export const metadata = { robots: { index: false, follow: false } };
 
@@ -29,8 +30,7 @@ export default async function ProductsPage({ searchParams }: any) {
   });
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <AdminContainer className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
           <div className="flex items-center gap-3">
@@ -92,7 +92,6 @@ export default async function ProductsPage({ searchParams }: any) {
             </tbody>
           </table>
         </div>
-      </div>
-    </main>
+    </AdminContainer>
   );
 }

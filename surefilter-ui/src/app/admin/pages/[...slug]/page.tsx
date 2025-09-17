@@ -7,6 +7,7 @@ import SeoForm from '@/app/admin/pages/[slug]/SeoForm';
 import ReorderButtons from '@/app/admin/pages/[slug]/ReorderButtons';
 import DeletePageButton from '@/app/admin/pages/[slug]/DeletePageButton';
 import AddSectionForm from '@/app/admin/pages/[slug]/sections/AddSectionForm';
+import AdminContainer from '@/components/admin/AdminContainer';
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -33,8 +34,7 @@ export default async function EditPage({ params }: { params: Promise<{ slug: str
   const sectionList = page.sections.map((s) => ({ id: s.section.id, type: s.section.type, position: s.position }));
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <AdminContainer className="space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Edit: {page.title}</h1>
           <div className="flex items-center gap-4 text-sm">
@@ -67,8 +67,7 @@ export default async function EditPage({ params }: { params: Promise<{ slug: str
             ))}
           </ul>
         </section>
-      </div>
-    </main>
+    </AdminContainer>
   );
 }
 
