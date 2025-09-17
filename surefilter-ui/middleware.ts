@@ -5,23 +5,22 @@ import type { NextRequest } from 'next/server';
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Enforce canonical domain via CloudFront: only allow requests carrying origin secret header
-  const originSecret = process.env.ORIGIN_SECRET;
+  // Identify CloudFront -> origin requests by presence of header set in CloudFront origin config
   const headerFromCf = req.headers.get('x-origin-secret');
   
-  // Get the actual host from headers (CloudFront forwards this)
-  const hostHeader = req.headers.get('host') || req.headers.get('x-forwarded-host');
-  const siteHostRaw = process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, '');
-  const host = hostHeader?.toLowerCase();
-  const siteHost = siteHostRaw?.toLowerCase();
+  // If we have an origin secret configured and the request is coming to the App Runner domain directly
+  // (not through CloudFront), redirect to the canonical domain
+  const host = req.headers.get('host') || '';
+  const isAppRunnerDomain = host.includes('awsapprunner.com');
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   
-  // If origin secret is configured and request doesn't have it or it's wrong, 
-  // AND we're not on the canonical domain, redirect to canonical
-  if (originSecret && headerFromCf !== originSecret) {
-    // Request is not from CloudFront, check if we need to redirect
-    if (siteHost && host && host !== siteHost) {
-      return NextResponse.redirect(`https://${siteHost}${req.nextUrl.pathname}${req.nextUrl.search}`, 301);
-    }
+  // If request hits App Runner domain directly and is not coming via CloudFront (no header),
+  // redirect to the canonical domain to enforce viewer access only via CloudFront.
+  if (isAppRunnerDomain && !headerFromCf && siteUrl) {
+    const canonicalUrl = new URL(siteUrl);
+    canonicalUrl.pathname = req.nextUrl.pathname;
+    canonicalUrl.search = req.nextUrl.search;
+    return NextResponse.redirect(canonicalUrl.toString(), 301);
   }
   if (pathname.startsWith('/admin')) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
