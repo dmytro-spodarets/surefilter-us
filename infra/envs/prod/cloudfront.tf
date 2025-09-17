@@ -65,45 +65,15 @@ data "aws_cloudfront_origin_request_policy" "all_viewer" {
   name = "Managed-AllViewer"
 }
 
+data "aws_cloudfront_response_headers_policy" "security_headers" {
+  name = "Managed-SecurityHeadersPolicy"
+}
+
 # Custom origin request policy that excludes Host header
 resource "aws_cloudfront_origin_request_policy" "app_runner_no_host" {
+  count   = 0
   name    = "surefilter-app-runner-no-host"
-  comment = "Forward all headers except Host to App Runner"
-  lifecycle {
-    create_before_destroy = true
-  }
-  
-  headers_config {
-    header_behavior = "whitelist"
-    headers {
-      items = [
-        "Accept",
-        "Accept-Charset",
-        "Accept-Datetime",
-        "Accept-Encoding",
-        "Accept-Language",
-        "CloudFront-Forwarded-Proto",
-        "CloudFront-Is-Desktop-Viewer",
-        "CloudFront-Is-Mobile-Viewer",
-        "CloudFront-Is-SmartTV-Viewer",
-        "CloudFront-Is-Tablet-Viewer",
-        "CloudFront-Viewer-Country",
-        "Content-Type",
-        "Origin",
-        "Referer",
-        "User-Agent",
-        "X-Forwarded-For"
-      ]
-    }
-  }
-  
-  cookies_config {
-    cookie_behavior = "all"
-  }
-  
-  query_strings_config {
-    query_string_behavior = "all"
-  }
+  comment = "(unused)"
 }
 
 resource "aws_cloudfront_distribution" "site" {
@@ -140,8 +110,9 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id = aws_cloudfront_origin_request_policy.app_runner_no_host.id
-    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security_headers.id
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
   }
 
@@ -159,7 +130,7 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
     cache_policy_id              = aws_cloudfront_cache_policy.image_optimizer.id
-    origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_no_host.id
+    origin_request_policy_id     = aws_cloudfront_origin_request_policy.image_optimizer.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS"]
     cached_methods               = ["GET", "HEAD"]
   }
@@ -170,7 +141,8 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
     cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_no_host.id
+    origin_request_policy_id     = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    response_headers_policy_id   = data.aws_cloudfront_response_headers_policy.security_headers.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods               = ["GET", "HEAD"]
   }
@@ -195,6 +167,39 @@ resource "aws_cloudfront_distribution" "site" {
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
+
+  logging_config {
+    bucket          = aws_s3_bucket.cf_logs.bucket_domain_name
+    include_cookies = true
+    prefix          = "cloudfront/"
+  }
+}
+
+# CloudFront access logs bucket (standard logs)
+resource "aws_s3_bucket" "cf_logs" {
+  bucket = "surefilter-cf-logs-prod"
+}
+
+resource "aws_s3_bucket_public_access_block" "cf_logs" {
+  bucket                  = aws_s3_bucket.cf_logs.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Required for CloudFront standard logs delivery (uses ACLs)
+resource "aws_s3_bucket_ownership_controls" "cf_logs" {
+  bucket = aws_s3_bucket.cf_logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "cf_logs" {
+  bucket = aws_s3_bucket.cf_logs.id
+  acl    = "log-delivery-write"
+  depends_on = [aws_s3_bucket_ownership_controls.cf_logs]
 }
 
 resource "aws_route53_record" "alias_a" {
