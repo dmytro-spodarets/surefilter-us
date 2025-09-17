@@ -57,38 +57,49 @@ About Us (/about-us)
 
 Heavy Duty (/heavy-duty and subpages /air|cabin|fuel|oil)
 - [x] SearchHero (CMS)
-- [x] FilterTypesGrid (CMS)
+- [x] FilterTypesGrid (CMS) - Updated to 7 columns for large screens
 - [ ] ContentWithImages
 - Note: Subpages `/heavy-duty/air|fuel|cabin|oil` are static; CMS migration pending
 
+Heavy Duty Subpages (Static - CMS migration required)
+- [ ] /heavy-duty/air - Static page → CMS migration needed
+- [ ] /heavy-duty/cabin - Static page → CMS migration needed
+- [ ] /heavy-duty/fuel - Static page → CMS migration needed
+- [ ] /heavy-duty/oil - Empty folder, create as CMS page
+
 Automotive (/automotive)
-- [~] SearchHero (static)
+- [ ] SearchHero (static) → CMS migration needed
 - [ ] CMS sections (ContentWithImages / Products)
+- Note: Static page → CMS migration required
 
 Industries (/industries, /industries/agriculture)
 - [x] /industries: FullScreenHero + IndustriesList (CMS)
+- [ ] /industries/agriculture: Static page → CMS migration needed
 - [ ] /industries/[slug]: detail pages and content
 - Note: Legacy `/industry` removed in favor of `/industries`
 
 Resources (/resources, /resources/heavy-duty-catalog)
-- [~] CompactHero + UI (static)
+- [ ] /resources: Static page → CMS migration needed
+- [ ] /resources/heavy-duty-catalog: Static page → CMS migration needed
 - [ ] Resource items (entity + CMS)
 - Note: Filtering, gallery/list toggle, pagination done in UI; backend pending
 
 Newsroom (/newsroom, /newsroom/heavy-duty-filter-launch)
-- [~] CompactHero + list UI (static)
+- [ ] /newsroom: Static page → CMS migration needed
+- [ ] /newsroom/heavy-duty-filter-launch: Static page → CMS migration needed
 - [ ] News list (NewsArticle entity)
 - [ ] News detail (CMS)
 - Note: One static detail page exists
 
 Warranty (/warranty)
-- [~] MagnussonMossAct (static)
-- [~] QualityAssurance (static)
-- [~] LimitedWarrantyDetails (static)
-- [~] WarrantyContact (static)
+- [ ] /warranty: Static page → CMS migration needed
+- [ ] MagnussonMossAct (static) → CMS migration needed
+- [ ] QualityAssurance (static) → CMS migration needed
+- [ ] LimitedWarrantyDetails (static) → CMS migration needed
+- [ ] WarrantyContact (static) → CMS migration needed
 - [ ] WarrantyPromise
 - [ ] WarrantyClaimProcess (component exists; not on page)
-- Note: Page currently static; CMS migration pending
+- Note: Page currently static; CMS migration required
 
 Contact Us (/contact-us)
 - [x] ContactOptions (CMS)
@@ -99,6 +110,8 @@ Contact Us (/contact-us)
 - Note: Uses `contact_hero`, `contact_options`, `contact_form_info` sections
 
 Filters and Catalog (/filters/[code], /catalog)
+- [ ] /catalog: Static page → CMS migration needed
+- [ ] /filters/[code]: Static page → CMS migration needed
 - [ ] Data models for products/filters
 - [ ] Server filtering/search, Pagination component reuse
 - Note: UI implemented with filters, view toggle, pagination; using mock data
@@ -131,3 +144,78 @@ Risks/notes
 - Gradual migration: pages can remain mixed (static + CMS) until complete.
 - After DB import: restrict RDS SG (remove 0.0.0.0/0) and consider VPC Connector for App Runner
 - Consider moving from OAI to OAC for S3 origin access in CloudFront (SigV4, less drift)
+
+## Recent Changes (2025-01-17)
+
+### Search Functionality Disabled for Phase 1 Release
+- [x] Header search form commented out, replaced with "Browse Catalog" link
+- [x] Hero components search forms commented out (Hero, HeroCms, SearchHero, CompactSearchHero)
+- [x] QuickSearch components search forms commented out (QuickSearch, QuickSearchCms, SimpleSearch)
+- [x] All search functionality temporarily disabled with TODO comments for future uncommenting
+- [x] Replaced with temporary "Browse Full Catalog" links
+
+### Admin Panel Improvements
+- [x] Created AdminContainer component with max-w-7xl width for large screens
+- [x] Updated ALL admin pages to use new wide layout (15 pages total)
+- [x] Added missing admin forms for search_hero and compact_search_hero sections
+- [x] Connected filter_types_grid and popular_filters forms to admin panel
+- [x] Connected simple_search form to admin panel
+
+### Component Updates
+- [x] FilterTypesGrid: Changed from 6 to 7 columns for large screens
+- [x] All search components: Search functionality disabled, replaced with catalog links
+
+### Infrastructure Updates
+- [x] Updated .gitignore to exclude all Terraform/OpenTofu local files
+- [x] Fixed CloudFront 404 issue (resolved)
+- [x] Updated README with comprehensive documentation of changes
+
+### Static vs CMS Pages Status
+**Static Pages (12 total) - CMS Migration Required:**
+- /heavy-duty/air, /heavy-duty/cabin, /heavy-duty/fuel
+- /automotive, /catalog, /filters/[code]
+- /industries/agriculture
+- /newsroom, /newsroom/heavy-duty-filter-launch
+- /resources, /resources/heavy-duty-catalog
+- /warranty
+
+**Admin/System Pages (2 total) - Keep Static:**
+- /login, /test-colors
+
+**CMS Pages (6+ total) - Already Migrated:**
+- / (home), /about-us, /heavy-duty (main), /contact-us, /industries (main)
+- Dynamic pages: /(site)/[...slug], /(site)/[slug]
+
+**Migration Priority:**
+1. High Priority: /catalog, /filters/[code] (product pages)
+2. Medium Priority: /heavy-duty/* subpages, /automotive
+3. Low Priority: /newsroom, /resources, /warranty, /industries/agriculture
+
+## CMS Migration Plan
+
+### Phase 1: Product Pages (High Priority)
+- [ ] /catalog → Create CMS page with product listing sections
+- [ ] /filters/[code] → Create dynamic CMS page for individual products
+- [ ] Create product data models and admin interfaces
+
+### Phase 2: Heavy Duty Subpages (Medium Priority)
+- [ ] /heavy-duty/air → Migrate to CMS with existing content
+- [ ] /heavy-duty/cabin → Migrate to CMS with existing content
+- [ ] /heavy-duty/fuel → Migrate to CMS with existing content
+- [ ] /heavy-duty/oil → Create new CMS page
+
+### Phase 3: Other Pages (Low Priority)
+- [ ] /automotive → Migrate to CMS
+- [ ] /industries/agriculture → Migrate to CMS
+- [ ] /newsroom → Migrate to CMS with news articles
+- [ ] /newsroom/heavy-duty-filter-launch → Migrate to CMS
+- [ ] /resources → Migrate to CMS
+- [ ] /resources/heavy-duty-catalog → Migrate to CMS
+- [ ] /warranty → Migrate to CMS
+
+### Migration Process for Each Page:
+1. Create CMS page in admin panel
+2. Add sections with existing content
+3. Update routing to use CMS page
+4. Remove static page file
+5. Test and verify functionality
