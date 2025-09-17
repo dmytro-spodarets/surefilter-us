@@ -26,6 +26,20 @@ data "aws_cloudfront_origin_request_policy" "all_viewer" {
   name = "Managed-AllViewer"
 }
 
+resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
+  name    = "surefilter-app-runner-min"
+  comment = "Forward cookies and all query strings; do not forward viewer headers (prevents Host forwarding)"
+  headers_config {
+    header_behavior = "none"
+  }
+  cookies_config {
+    cookie_behavior = "all"
+  }
+  query_strings_config {
+    query_string_behavior = "all"
+  }
+}
+
 data "aws_cloudfront_response_headers_policy" "security_headers" {
   name = "Managed-SecurityHeadersPolicy"
 }
@@ -66,7 +80,7 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    origin_request_policy_id = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
   }
@@ -87,7 +101,7 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
     cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id     = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS"]
     cached_methods               = ["GET", "HEAD"]
   }
@@ -98,7 +112,7 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
     cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id     = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods               = ["GET", "HEAD"]
   }

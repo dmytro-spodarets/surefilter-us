@@ -30,18 +30,27 @@ export default function Footer() {
               <Logo size="lg" />
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              Your trusted partner for premium filtration solutions. Quality, performance, and reliability for the world&#39;s toughest applications.
+            Your trusted partner for superior filtration solutions. Premium quality, performance, and reliability for the world's toughest applications.
             </p>
             
             {/* Контактная информация */}
             <div className="space-y-2 text-sm text-gray-300">
-              <p>123 Industrial Blvd, Suite 100</p>
-              <p>Manufacturing District, CA 90210</p>
+              <p>1470 Civic Dr. STE 309</p>
+              <p>Concord, CA 94520</p>
               <p className="mt-4">
-                <span className="font-medium">Phone:</span> +1 (555) 123-4567
+                <span className="font-medium">Phone:</span> +1 (925) 566-8863/73
               </p>
               <p>
-                <span className="font-medium">Email:</span> info@surefilter.com
+                <span className="font-medium">Fax:</span> +1 (925) 566-8893
+              </p>
+              <p>
+                +1 8448 BE SURE 
+              </p>
+              <p>
+              <span className="font-medium">Phil, our AI Service Agent:</span> +1-651-273-9232
+              </p>
+              <p>
+                <span className="font-medium">Email:</span> order@surefilter.us
               </p>
             </div>
           </div>
