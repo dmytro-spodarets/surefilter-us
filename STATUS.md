@@ -234,11 +234,10 @@ Risks/notes
   - Currently used in admin filter-types page as fallback for links
   - If not used elsewhere, consider removing to simplify schema
   - Update admin page to handle missing `pageSlug` properly instead of falling back to `fullSlug`
-- [ ] **Check `FilterType.name` usage**: Investigate if `name` field in `FilterType` model is still needed
-  - Currently used only as fallback when `pageSlug` is null
-  - Main display now uses `Page.title` for consistency
-  - If not used elsewhere, consider removing to simplify schema
-  - Verify no other parts of the system depend on `FilterType.name`
+- [x] **Simplified `FilterType.name` usage**: Now automatically syncs with `Page.title` for consistency
+  - `FilterType.name` is set to same value as `Page.title` during creation
+  - Still used as fallback when `pageSlug` is not set
+  - Consider removing if `pageSlug` is always set in new records
 
 ### CMS Forms Development
 - [ ] **Create missing CMS forms**: 11 sections currently have no CMS forms (static only)
@@ -270,3 +269,12 @@ Risks/notes
   - Previously only 29 sections were available for selection
   - Now all sections from Prisma schema are available
   - Better organized by categories (Home, Search, Industries, About, Content, Products, Contact, Warranty)
+- [x] **Fixed filter type creation form**: Resolved server-side exception when creating new filter types
+  - Fixed `searchParams` type issue (Next.js 15 requires Promise type)
+  - Replaced JavaScript form handling with server-side action
+  - Form now properly submits and creates both FilterType and Page records
+- [x] **Simplified filter type naming logic**: Unified naming system for better user experience
+  - Form field renamed from "Name" to "Page Title" for clarity
+  - `FilterType.name` now automatically syncs with `Page.title`
+  - Users edit the same title they entered during creation
+  - Eliminates confusion between technical names and display titles
