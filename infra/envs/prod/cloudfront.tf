@@ -69,6 +69,9 @@ data "aws_cloudfront_origin_request_policy" "all_viewer" {
 resource "aws_cloudfront_origin_request_policy" "app_runner_no_host" {
   name    = "surefilter-app-runner-no-host"
   comment = "Forward all headers except Host to App Runner"
+  lifecycle {
+    create_before_destroy = true
+  }
   
   headers_config {
     header_behavior = "whitelist"
@@ -79,7 +82,6 @@ resource "aws_cloudfront_origin_request_policy" "app_runner_no_host" {
         "Accept-Datetime",
         "Accept-Encoding",
         "Accept-Language",
-        "Authorization",
         "CloudFront-Forwarded-Proto",
         "CloudFront-Is-Desktop-Viewer",
         "CloudFront-Is-Mobile-Viewer",
