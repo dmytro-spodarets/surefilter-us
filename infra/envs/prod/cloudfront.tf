@@ -65,6 +65,27 @@ data "aws_cloudfront_origin_request_policy" "all_viewer" {
   name = "Managed-AllViewer"
 }
 
+# Custom origin request policy that includes Host header
+resource "aws_cloudfront_origin_request_policy" "app_runner" {
+  name    = "surefilter-app-runner"
+  comment = "Forward Host header and all viewer headers to App Runner"
+  
+  headers_config {
+    header_behavior = "whitelist"
+    headers {
+      items = ["Host", "CloudFront-Forwarded-Proto", "CloudFront-Viewer-Address", "CloudFront-Viewer-Country"]
+    }
+  }
+  
+  cookies_config {
+    cookie_behavior = "all"
+  }
+  
+  query_strings_config {
+    query_string_behavior = "all"
+  }
+}
+
 resource "aws_cloudfront_distribution" "site" {
   enabled         = true
   is_ipv6_enabled = true
@@ -99,9 +120,19 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    origin_request_policy_id = aws_cloudfront_origin_request_policy.app_runner.id
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
+  }
+
+  ordered_cache_behavior {
+    path_pattern                 = "/"
+    target_origin_id             = "apprunner-origin"
+    viewer_protocol_policy       = "redirect-to-https"
+    cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner.id
+    allowed_methods              = ["GET", "HEAD", "OPTIONS"]
+    cached_methods               = ["GET", "HEAD"]
   }
 
   ordered_cache_behavior {
@@ -129,7 +160,7 @@ resource "aws_cloudfront_distribution" "site" {
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
     cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id     = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods               = ["GET", "HEAD"]
   }
