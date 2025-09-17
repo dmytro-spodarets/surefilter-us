@@ -20,46 +20,7 @@ resource "aws_cloudfront_cache_policy" "static_long" {
   }
 }
 
-resource "aws_cloudfront_cache_policy" "image_optimizer" {
-  name        = "surefilter-image-optimizer"
-  default_ttl = 86400
-  max_ttl     = 604800
-  min_ttl     = 0
-  parameters_in_cache_key_and_forwarded_to_origin {
-    enable_accept_encoding_brotli = true
-    enable_accept_encoding_gzip   = true
-    headers_config {
-      header_behavior = "whitelist"
-      headers {
-        items = ["Accept"]
-      }
-    }
-    cookies_config { cookie_behavior = "none" }
-    query_strings_config {
-      query_string_behavior = "whitelist"
-      query_strings {
-        items = ["url", "w", "q"]
-      }
-    }
-  }
-}
-
-resource "aws_cloudfront_origin_request_policy" "image_optimizer" {
-  name    = "surefilter-image-optimizer"
-  headers_config {
-    header_behavior = "whitelist"
-    headers {
-      items = ["Accept"]
-    }
-  }
-  cookies_config { cookie_behavior = "none" }
-  query_strings_config {
-    query_string_behavior = "whitelist"
-    query_strings {
-      items = ["url", "w", "q"]
-    }
-  }
-}
+// Removed image optimizer specific policies to fully passthrough to App Runner
 
 data "aws_cloudfront_origin_request_policy" "all_viewer" {
   name = "Managed-AllViewer"
@@ -106,11 +67,11 @@ resource "aws_cloudfront_distribution" "site" {
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
-    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security_headers.id
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
   }
 
+  // keep static from S3
   ordered_cache_behavior {
     path_pattern           = "/_next/static/*"
     target_origin_id       = "static-origin"
@@ -120,12 +81,13 @@ resource "aws_cloudfront_distribution" "site" {
     cached_methods         = ["GET", "HEAD"]
   }
 
+  // route image optimizer to App Runner without special policies
   ordered_cache_behavior {
     path_pattern                 = "/_next/image*"
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
-    cache_policy_id              = aws_cloudfront_cache_policy.image_optimizer.id
-    origin_request_policy_id     = aws_cloudfront_origin_request_policy.image_optimizer.id
+    cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id     = data.aws_cloudfront_origin_request_policy.all_viewer.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS"]
     cached_methods               = ["GET", "HEAD"]
   }
@@ -137,7 +99,6 @@ resource "aws_cloudfront_distribution" "site" {
     viewer_protocol_policy       = "redirect-to-https"
     cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id     = data.aws_cloudfront_origin_request_policy.all_viewer.id
-    response_headers_policy_id   = data.aws_cloudfront_response_headers_policy.security_headers.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods               = ["GET", "HEAD"]
   }
@@ -163,39 +124,11 @@ resource "aws_cloudfront_distribution" "site" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 
-  logging_config {
-    bucket          = aws_s3_bucket.cf_logs.bucket_domain_name
-    include_cookies = true
-    prefix          = "cloudfront/"
-  }
+  # logging can be re-enabled later if needed
 }
 
 # CloudFront access logs bucket (standard logs)
-resource "aws_s3_bucket" "cf_logs" {
-  bucket = "surefilter-cf-logs-prod"
-}
-
-resource "aws_s3_bucket_public_access_block" "cf_logs" {
-  bucket                  = aws_s3_bucket.cf_logs.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-# Required for CloudFront standard logs delivery (uses ACLs)
-resource "aws_s3_bucket_ownership_controls" "cf_logs" {
-  bucket = aws_s3_bucket.cf_logs.id
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
-}
-
-resource "aws_s3_bucket_acl" "cf_logs" {
-  bucket = aws_s3_bucket.cf_logs.id
-  acl    = "log-delivery-write"
-  depends_on = [aws_s3_bucket_ownership_controls.cf_logs]
-}
+// removed logs bucket to simplify
 
 resource "aws_route53_record" "alias_a" {
   zone_id = "Z003662317J6SYETHU44S"
