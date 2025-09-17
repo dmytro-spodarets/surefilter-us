@@ -69,12 +69,7 @@ data "aws_cloudfront_response_headers_policy" "security_headers" {
   name = "Managed-SecurityHeadersPolicy"
 }
 
-# Custom origin request policy that excludes Host header
-resource "aws_cloudfront_origin_request_policy" "app_runner_no_host" {
-  count   = 0
-  name    = "surefilter-app-runner-no-host"
-  comment = "(unused)"
-}
+// Removed unused custom origin request policy
 
 resource "aws_cloudfront_distribution" "site" {
   enabled         = true
