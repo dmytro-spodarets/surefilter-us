@@ -23,7 +23,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <span className="text-gray-300">|</span>
                 <Link href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</Link>
                 <span className="text-gray-300">|</span>
-                <span className="text-gray-400">Settings</span>
+                <Link href="/admin/system-health" className="text-gray-700 hover:text-gray-900">System Health</Link>
+                <span className="text-gray-300">|</span>
+                <Link href="/admin/settings" className="text-gray-700 hover:text-gray-900">Settings</Link>
               </nav>
             </div>
             <Link href="/" className="text-sm text-sure-blue-600 hover:underline">← Back to site</Link>

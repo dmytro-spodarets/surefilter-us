@@ -234,3 +234,19 @@ Risks/notes
   - Currently used in admin filter-types page as fallback for links
   - If not used elsewhere, consider removing to simplify schema
   - Update admin page to handle missing `pageSlug` properly instead of falling back to `fullSlug`
+
+### Recent Fixes (2025-01-17)
+- [x] **Fixed pageSlug sync issue**: Added automatic update of `pageSlug` in `FilterType` when page slug is changed
+  - When page slug changes, all related `FilterType` records are updated automatically
+  - When page is deleted, `pageSlug` references are cleared (set to null)
+  - This prevents broken links in admin filter-types page
+- [x] **Fixed API response issue**: Updated filter-types API to include `pageSlug` in GET response
+  - Added `select` clause to explicitly include `pageSlug` field
+  - Added PUT method for updating `pageSlug` in filter-types
+- [x] **Cleaned up duplicate pages**: Removed duplicate page `heavy-duty/oil-filters` that was causing confusion
+  - Kept the correct page `heavy-duty/oil` that matches the `pageSlug` in FilterType
+  - This resolves the issue where admin page was redirecting to non-existent page
+- [x] **Created web-based monitoring**: Added `/admin/system-health` and `/admin/settings` pages
+  - All database monitoring and maintenance tools now available through web interface
+  - No need for CLI scripts or SSH access to production server
+  - One-click health checks and issue fixing

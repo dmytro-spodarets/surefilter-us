@@ -66,6 +66,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
     },
   });
 
+  // Update pageSlug in FilterType if page slug changed
+  if (newSlug && newSlug !== slug) {
+    await prisma.filterType.updateMany({
+      where: { pageSlug: slug },
+      data: { pageSlug: newSlug },
+    });
+  }
+
   try {
     const { revalidateTag } = await import('next/cache');
     revalidateTag(`page:${slug}`);
@@ -142,6 +150,12 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ slug
   const slug = joinSlug(parts);
   if (isProtectedSlug(slug)) return NextResponse.json({ error: 'This page is protected and cannot be deleted' }, { status: 400 });
   try {
+    // Clear pageSlug references before deleting the page
+    await prisma.filterType.updateMany({
+      where: { pageSlug: slug },
+      data: { pageSlug: null },
+    });
+    
     await prisma.page.delete({ where: { slug } });
     try {
       const { revalidateTag } = await import('next/cache');
