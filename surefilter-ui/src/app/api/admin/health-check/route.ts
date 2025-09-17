@@ -10,10 +10,10 @@ export async function GET() {
   try {
     const results = {
       timestamp: new Date().toISOString(),
-      database: { status: 'unknown', error: null },
-      duplicates: { count: 0, items: [] },
-      orphaned: { count: 0, items: [] },
-      criticalPages: { missing: [], status: 'unknown' },
+      database: { status: 'unknown' as string, error: null as string | null },
+      duplicates: { count: 0, items: [] as any[] },
+      orphaned: { count: 0, items: [] as any[] },
+      criticalPages: { missing: [] as string[], status: 'unknown' as string },
       filterTypes: { withoutPageSlug: 0, total: 0 }
     };
 
@@ -61,7 +61,7 @@ export async function GET() {
     });
 
     const pageSlugs = new Set(pages.map(p => p.slug));
-    const orphaned = filterTypes.filter(ft => !pageSlugs.has(ft.pageSlug));
+    const orphaned = filterTypes.filter(ft => ft.pageSlug && !pageSlugs.has(ft.pageSlug));
 
     results.orphaned.count = orphaned.length;
     results.orphaned.items = orphaned.map(ft => ({

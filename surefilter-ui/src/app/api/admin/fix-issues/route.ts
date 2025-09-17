@@ -12,7 +12,7 @@ export async function POST() {
       timestamp: new Date().toISOString(),
       orphanedFixed: 0,
       duplicatesRemoved: 0,
-      errors: []
+      errors: [] as string[]
     };
 
     // 1. Fix orphaned FilterTypes
@@ -26,10 +26,12 @@ export async function POST() {
     });
 
     const pageSlugs = new Set(pages.map(p => p.slug));
-    const orphaned = filterTypes.filter(ft => !pageSlugs.has(ft.pageSlug));
+    const orphaned = filterTypes.filter(ft => ft.pageSlug && !pageSlugs.has(ft.pageSlug));
 
     for (const ft of orphaned) {
       try {
+        if (!ft.pageSlug) continue; // Skip if pageSlug is null
+        
         // Try to find a matching page
         const possibleSlug = ft.pageSlug.replace('-filters', '').replace('-filter', '');
         const matchingPage = pages.find(p => p.slug === possibleSlug);
