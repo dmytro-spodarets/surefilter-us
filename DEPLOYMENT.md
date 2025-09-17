@@ -28,12 +28,11 @@ npm run build
 ```
 
 ### Step 2: Web-based Health Check
-1. **Open browser** and go to: `https://your-domain.com/admin/system-health`
+1. **Open browser** and go to: `https://your-domain.com/admin/settings`
 2. **Login** to admin panel if needed
-3. **Click "Refresh"** to run health check
-4. **Review results** - check for any issues
-
-**Alternative**: Go to `https://your-domain.com/admin/settings` for system overview and quick access to all tools
+3. **Click "System Health" tab** to access health monitoring
+4. **Click "Refresh"** to run health check
+5. **Review results** - check for any issues
 
 ### Step 3: Fix Issues (if any)
 1. **If issues found**, click **"Fix Issues"** button
@@ -50,22 +49,12 @@ npm run build
 
 All monitoring and maintenance tools are now available through the web interface:
 
-### System Health Check
-- **URL**: `/admin/system-health`
-- **Features**:
-  - Database connection status
-  - Duplicate pages detection
-  - Orphaned FilterTypes detection
-  - Critical pages verification
-  - FilterTypes pageSlug status
-  - One-click issue fixing
-
-### System Settings
+### System Settings & Health
 - **URL**: `/admin/settings`
 - **Features**:
-  - System information overview
-  - Quick access to all admin tools
-  - Application settings status
+  - **Overview Tab**: System information, quick actions, application settings
+  - **System Health Tab**: Database monitoring, duplicate detection, issue fixing
+  - One-click health checks and issue fixing
   - Recent changes tracking
 
 ## Rollback Plan
