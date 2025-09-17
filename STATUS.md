@@ -240,6 +240,13 @@ Risks/notes
   - If not used elsewhere, consider removing to simplify schema
   - Verify no other parts of the system depend on `FilterType.name`
 
+### CMS Forms Development
+- [ ] **Create missing CMS forms**: 11 sections currently have no CMS forms (static only)
+  - **High Priority**: `hero_compact`, `page_hero_reverse`, `products`, `news_carousel`
+  - **Medium Priority**: `product_gallery`, `product_specs`
+  - **Low Priority**: `limited_warranty_details`, `magnusson_moss_act`, `warranty_claim_process`, `warranty_contact`, `warranty_promise`
+  - **Status**: 29/40 sections have CMS forms (72.5% complete)
+
 ### Recent Fixes (2025-01-17)
 - [x] **Fixed pageSlug sync issue**: Added automatic update of `pageSlug` in `FilterType` when page slug is changed
   - When page slug changes, all related `FilterType` records are updated automatically
@@ -259,3 +266,7 @@ Risks/notes
   - Now displays `Page.title` instead of `FilterType.name` for consistency
   - Page titles are editable and represent the actual content
   - FilterType names may be outdated and should be investigated for removal
+- [x] **Added missing sections to AddSectionForm**: Updated form to include all 40 section types from schema
+  - Previously only 29 sections were available for selection
+  - Now all sections from Prisma schema are available
+  - Better organized by categories (Home, Search, Industries, About, Content, Products, Contact, Warranty)
