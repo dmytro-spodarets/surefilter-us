@@ -27,7 +27,8 @@ export default function SimpleSearch({
             {description}
           </p>
         </div>
-        <div className="max-w-2xl mx-auto">
+        {/* Форма поиска - TODO: Uncomment when catalog is ready */}
+        {/* <div className="max-w-2xl mx-auto">
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
               type="text"
@@ -42,6 +43,17 @@ export default function SimpleSearch({
               {buttonText}
             </button>
           </div>
+        </div> */}
+
+        {/* Catalog Link - temporary replacement for search */}
+        <div className="max-w-2xl mx-auto text-center">
+          <a
+            href="/catalog"
+            className="inline-flex items-center px-8 py-4 bg-sure-red-500 text-white font-semibold rounded-lg hover:bg-sure-red-700 transition-colors duration-200"
+          >
+            <Icon name="MagnifyingGlassIcon" className="w-5 h-5 mr-2" />
+            Browse Full Catalog
+          </a>
         </div>
       </div>
     </section>

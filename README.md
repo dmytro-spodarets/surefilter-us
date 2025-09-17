@@ -191,6 +191,71 @@ docker compose -f docker/docker-compose.yml down
 - Секреты: SSM параметры `/surefilter/DATABASE_URL`, `/surefilter/NEXTAUTH_SECRET`, `/surefilter/ORIGIN_SECRET`.
 - Статика: `/_next/static/*` и `/images/*` в S3 (`surefilter-static-prod`) за CloudFront, TTL 1 год, immutable.
 
+### CloudFront 404 Issue (2025-09-17) — РЕШЕНО ✅
+
+**Проблема**: Сайт работал по прямому App Runner URL (`https://qiypwsyuxm.us-east-1.awsapprunner.com/`) но возвращал 404 через CloudFront (`https://new.surefilter.us/`).
+
+**Причина**: CloudFront передавал viewer headers (включая `Host`) в App Runner, что конфликтовало с middleware логикой проверки канонического домена.
+
+**Решение**:
+1. **Создана новая origin request policy** `app_runner_min`:
+   - `headers_config.header_behavior = "none"` — НЕ передаёт viewer headers
+   - `cookies_config.cookie_behavior = "all"` — передаёт все cookies
+   - `query_strings_config.query_string_behavior = "all"` — передаёт все query strings
+2. **Обновлён CloudFront distribution** для использования новой policy на всех App Runner behaviors
+3. **Исправлена S3 bucket policy** для корректной работы с Origin Access Identity
+
+**Файлы изменены**:
+- `infra/envs/prod/cloudfront.tf` — добавлена policy `aws_cloudfront_origin_request_policy.app_runner_min`
+- `infra/envs/prod/providers.tf` — временно переключен на local backend для отладки
+
+**Статус**: ✅ Сайт полностью работает через CloudFront
+
+**TODO для будущего**:
+- [ ] Настроить кеширование для статических ресурсов (CSS, JS, изображения)
+- [ ] Включить обратно origin enforcement в middleware (`ENFORCE_ORIGIN = "1"`)
+- [ ] Вернуть state обратно в Scalr после завершения отладки
+- [ ] Добавить CloudFront access logs для мониторинга
+- [ ] Настроить response headers policy для безопасности
+
+### Search Disabled for Phase 1 Release (2025-09-17)
+
+**Цель**: Подготовить сайт к релизу первой фазы без каталога, временно отключив все функции поиска.
+
+**Изменения**:
+1. **Header.tsx** — закомментирована форма поиска в шапке, добавлена кнопка "Browse Catalog"
+2. **Hero.tsx** — закомментирована форма поиска, оставлена ссылка "Browse our complete catalog"
+3. **HeroCms.tsx** — закомментирована форма поиска (используется для `hero_full` секций)
+4. **SearchHero.tsx** — закомментирована форма поиска, добавлена кнопка "Browse Full Catalog"
+5. **CompactSearchHero.tsx** — закомментирована форма поиска, добавлена кнопка "Browse Full Catalog"
+6. **QuickSearch.tsx** — закомментирована форма поиска, добавлена кнопка "Browse Full Catalog"
+7. **QuickSearchCms.tsx** — закомментирована форма поиска, добавлена кнопка "Browse Full Catalog"
+8. **SimpleSearch.tsx** — закомментирована форма поиска, добавлена кнопка "Browse Full Catalog"
+
+**Как вернуть поиск обратно**:
+1. Найти все TODO комментарии с текстом "Uncomment when catalog is ready"
+2. Раскомментировать закомментированные формы поиска (убрать `/*` и `*/`)
+3. Удалить временные кнопки "Browse Full Catalog" и "Browse Catalog"
+4. Настроить функциональность поиска для работы с каталогом
+5. Протестировать все поисковые формы
+
+**Файлы для изменения**:
+- `src/components/layout/Header.tsx`
+- `src/components/sections/Hero.tsx`
+- `src/components/sections/HeroCms.tsx`
+- `src/components/sections/SearchHero.tsx`
+- `src/components/sections/CompactSearchHero.tsx`
+- `src/components/sections/QuickSearch.tsx`
+- `src/components/sections/QuickSearchCms.tsx`
+- `src/components/sections/SimpleSearch.tsx`
+
+**Дополнительно исправлено**:
+- Добавлены недостающие формы редактирования для `search_hero` и `compact_search_hero` секций в админке
+- `src/app/admin/pages/[slug]/sections/SearchHeroForm.tsx` — новая форма
+- `src/app/admin/pages/[slug]/sections/CompactSearchHeroForm.tsx` — новая форма
+- `src/app/admin/sections/[id]/page.tsx` — добавлена обработка новых типов секций
+- Обновлен `.gitignore` — добавлены все Terraform/OpenTofu локальные файлы
+
 ### CI/CD (ручной запуск)
 - Сборка образа и выгрузка статики: GitHub Actions → “CI - Build and Push to ECR”
   - inputs: `version` (обяз.), `static_bucket` (по умолчанию `surefilter-static-prod`), `invalidate` (true/false)

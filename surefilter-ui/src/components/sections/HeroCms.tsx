@@ -73,8 +73,8 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
             </p>
           ) : null}
 
-          {/* Search */}
-          <form onSubmit={(e) => e.preventDefault()} className="mb-6">
+          {/* Search - TODO: Uncomment when catalog is ready */}
+          {/* <form onSubmit={(e) => e.preventDefault()} className="mb-6">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <input
@@ -90,7 +90,7 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
                 Search
               </button>
             </div>
-          </form>
+          </form> */}
 
           <div className="text-center sm:text-left">
             <a

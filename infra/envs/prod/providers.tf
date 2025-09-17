@@ -1,10 +1,6 @@
 terraform {
-  backend "remote" {
-    hostname     = "surefilter.scalr.io"
-    organization = "env-v0ov5hse3tb6q91df"
-    workspaces {
-      name = "SureFilter"
-    }
+  backend "local" {
+    path = "terraform.tfstate"
   }
 
   required_version = ">= 1.10.6"
@@ -21,7 +17,8 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region  = var.aws_region
+  profile = "surefilter-local"
 }
 
 

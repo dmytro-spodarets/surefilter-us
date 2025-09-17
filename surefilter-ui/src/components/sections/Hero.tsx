@@ -69,8 +69,8 @@ export default function Hero() {
             Sure Filter® — your guarantee of reliability for the world&apos;s toughest vehicles and equipment.
           </p>
           
-          {/* Поиск */}
-          <form onSubmit={handleSearch} className="mb-6">
+          {/* Поиск - TODO: Uncomment when catalog is ready */}
+          {/* <form onSubmit={handleSearch} className="mb-6">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <Input
@@ -89,7 +89,7 @@ export default function Hero() {
                 <span className="hidden sm:inline">Search</span>
               </button>
             </div>
-          </form>
+          </form> */}
           
           {/* Ссылка на каталог */}
           <div className="text-center sm:text-left">

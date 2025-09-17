@@ -102,8 +102,8 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           ))}
         </nav>
 
-        {/* Search Form */}
-        <form
+        {/* Search Form - TODO: Uncomment when catalog is ready */}
+        {/* <form
           onSubmit={handleSearch}
           className="hidden md:flex items-center ml-8"
         >
@@ -132,7 +132,16 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
               <Icon name="MagnifyingGlassIcon" size="md" color="current" />
             </button>
           </div>
-        </form>
+        </form> */}
+
+        {/* Catalog Link - temporary replacement for search */}
+        <a
+          href="/catalog"
+          className="hidden md:flex items-center ml-8 px-4 py-2 bg-sure-red-500 text-white font-medium rounded-lg hover:bg-sure-red-700 transition-colors duration-200"
+        >
+          <Icon name="MagnifyingGlassIcon" size="sm" color="white" className="mr-2" />
+          Browse Catalog
+        </a>
 
         {/* Mobile Menu Button */}
         <button

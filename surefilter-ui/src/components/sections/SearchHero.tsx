@@ -89,8 +89,8 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           </p>
         )}
         
-        {/* Форма поиска */}
-        <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+        {/* Форма поиска - TODO: Uncomment when catalog is ready */}
+        {/* <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <Input
@@ -109,7 +109,18 @@ const SearchHero: React.FC<SearchHeroProps> = ({
               <span className="hidden sm:inline">Search</span>
             </button>
           </div>
-        </form>
+        </form> */}
+
+        {/* Catalog Link - temporary replacement for search */}
+        <div className="max-w-2xl mx-auto text-center">
+          <a
+            href="/catalog"
+            className="inline-flex items-center px-8 py-4 bg-sure-red-500 text-white font-semibold rounded-lg hover:bg-sure-red-700 transition-colors duration-200"
+          >
+            <Icon name="MagnifyingGlassIcon" size="sm" color="white" className="mr-2" />
+            Browse Full Catalog
+          </a>
+        </div>
       </div>
     </section>
   );

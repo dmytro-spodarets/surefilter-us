@@ -63,8 +63,8 @@ const CompactSearchHero: React.FC<CompactSearchHeroProps> = ({
           </p>
         )}
         
-        {/* Форма поиска - компактная */}
-        <form onSubmit={handleSearch} className="max-w-xl mx-auto">
+        {/* Форма поиска - компактная - TODO: Uncomment when catalog is ready */}
+        {/* <form onSubmit={handleSearch} className="max-w-xl mx-auto">
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1">
               <Input
@@ -83,7 +83,18 @@ const CompactSearchHero: React.FC<CompactSearchHeroProps> = ({
               <span className="hidden sm:inline">Search</span>
             </button>
           </div>
-        </form>
+        </form> */}
+
+        {/* Catalog Link - temporary replacement for search */}
+        <div className="max-w-xl mx-auto text-center">
+          <a
+            href="/catalog"
+            className="inline-flex items-center px-6 py-3 bg-sure-red-500 text-white font-semibold rounded-md hover:bg-sure-red-700 transition-colors duration-200 text-sm"
+          >
+            <Icon name="MagnifyingGlassIcon" size="sm" color="white" className="mr-2" />
+            Browse Full Catalog
+          </a>
+        </div>
       </div>
     </section>
   );

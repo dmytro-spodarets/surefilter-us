@@ -31,7 +31,8 @@ export default function QuickSearchCms({
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">{title}</h2>
           <p className="text-lg text-gray-300">{description}</p>
         </div>
-        <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+        {/* Форма поиска - TODO: Uncomment when catalog is ready */}
+        {/* <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
@@ -47,7 +48,18 @@ export default function QuickSearchCms({
               Search
             </button>
           </div>
-        </form>
+        </form> */}
+
+        {/* Catalog Link - temporary replacement for search */}
+        <div className="max-w-2xl mx-auto text-center">
+          <a
+            href="/catalog"
+            className="inline-flex items-center px-8 py-4 bg-sure-red-500 text-white font-semibold rounded-lg hover:bg-sure-red-700 transition-colors duration-200"
+          >
+            <Icon name="MagnifyingGlassIcon" size="md" color="white" className="mr-2" />
+            Browse Full Catalog
+          </a>
+        </div>
         <div className="text-center mt-6">
           <p className="text-gray-300">
             Didn&apos;t find your part?{' '}

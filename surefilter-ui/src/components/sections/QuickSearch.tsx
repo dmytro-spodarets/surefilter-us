@@ -26,8 +26,8 @@ export default function QuickSearch() {
           </p>
         </div>
 
-        {/* Форма поиска */}
-        <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+        {/* Форма поиска - TODO: Uncomment when catalog is ready */}
+        {/* <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
@@ -46,7 +46,18 @@ export default function QuickSearch() {
               Search
             </button>
           </div>
-        </form>
+        </form> */}
+
+        {/* Catalog Link - temporary replacement for search */}
+        <div className="max-w-2xl mx-auto text-center">
+          <a
+            href="/catalog"
+            className="inline-flex items-center px-8 py-4 bg-sure-red-500 text-white font-semibold rounded-lg hover:bg-sure-red-700 transition-colors duration-200"
+          >
+            <Icon name="MagnifyingGlassIcon" size="md" color="white" className="mr-2" />
+            Browse Full Catalog
+          </a>
+        </div>
 
         {/* Подсказка */}
         <div className="text-center mt-6">

@@ -39,3 +39,64 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Terraform/OpenTofu local files
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+.terraform/
+.terraform.lock.hcl
+.terraformrc
+terraform.rc
+.terraform.tfstate.lock.info
+
+# Infrastructure specific files
+infra/envs/*/terraform.tfstate*
+infra/envs/*/.terraform/
+infra/envs/*/.terraform.lock.hcl
+infra/envs/*/terraform.tfplan*
+infra/envs/*/crash.log
+infra/envs/*/crash.*.log
+
+# Terraform/OpenTofu variable files
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Terraform/OpenTofu crash files
+crash.log
+crash.*.log
+
+# Terraform/OpenTofu override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform/OpenTofu CLI configuration files
+.terraformrc
+terraform.rc
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

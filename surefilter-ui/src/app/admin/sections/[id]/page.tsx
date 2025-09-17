@@ -12,6 +12,8 @@ import IndustriesForm from '@/app/admin/pages/[slug]/sections/IndustriesForm';
 import AboutNewsForm from '@/app/admin/pages/[slug]/sections/AboutNewsForm';
 import PageHeroForm from '@/app/admin/pages/[slug]/sections/PageHeroForm';
 import SingleImageHeroForm from '@/app/admin/pages/[slug]/sections/SingleImageHeroForm';
+import SearchHeroForm from '@/app/admin/pages/[slug]/sections/SearchHeroForm';
+import CompactSearchHeroForm from '@/app/admin/pages/[slug]/sections/CompactSearchHeroForm';
 import AboutWithStatsForm from '@/app/admin/pages/[slug]/sections/AboutWithStatsForm';
 import ContentWithImagesForm from '@/app/admin/pages/[slug]/sections/ContentWithImagesForm';
 import QualityAssuranceForm from '@/app/admin/pages/[slug]/sections/QualityAssuranceForm';
@@ -82,6 +84,12 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         )}
         {section.type === 'single_image_hero' && (
           <SingleImageHeroForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'search_hero' && (
+          <SearchHeroForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'compact_search_hero' && (
+          <CompactSearchHeroForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'about_with_stats' && (
           <AboutWithStatsForm sectionId={section.id} initialData={section.data as any} />
