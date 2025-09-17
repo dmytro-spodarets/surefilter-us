@@ -100,7 +100,7 @@ resource "aws_cloudfront_distribution" "site" {
     viewer_protocol_policy = "redirect-to-https"
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer.id
-    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
   }
 
@@ -120,6 +120,17 @@ resource "aws_cloudfront_distribution" "site" {
     cache_policy_id              = aws_cloudfront_cache_policy.image_optimizer.id
     origin_request_policy_id     = aws_cloudfront_origin_request_policy.image_optimizer.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS"]
+    cached_methods               = ["GET", "HEAD"]
+  }
+
+  # Ensure API/auth gets all headers/cookies and methods forwarded, no cache
+  ordered_cache_behavior {
+    path_pattern                 = "/api/*"
+    target_origin_id             = "apprunner-origin"
+    viewer_protocol_policy       = "redirect-to-https"
+    cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id     = data.aws_cloudfront_origin_request_policy.all_viewer.id
+    allowed_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods               = ["GET", "HEAD"]
   }
 
