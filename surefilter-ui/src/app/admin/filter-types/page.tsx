@@ -57,7 +57,9 @@ export default async function FilterTypesPage() {
     <section className="border border-gray-200 rounded-lg p-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-medium text-gray-900">{title}</h2>
-        <Link href={`/admin/filter-types/new?category=${title === 'Heavy Duty' ? 'HEAVY_DUTY' : 'AUTOMOTIVE'}`} className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg">New type</Link>
+        <div className="flex items-center gap-2">
+          <Link href={`/admin/filter-types/new?category=${title === 'Heavy Duty' ? 'HEAVY_DUTY' : 'AUTOMOTIVE'}`} className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg">New type</Link>
+        </div>
       </div>
       <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
         {(items || []).map((it) => (

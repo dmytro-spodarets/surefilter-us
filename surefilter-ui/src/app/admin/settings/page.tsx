@@ -87,6 +87,27 @@ export default function SettingsPage() {
     }
   };
 
+  const cleanupOrphanedFilterTypes = async () => {
+    if (!confirm('Delete all filter types with no linked pages? This cannot be undone.')) return;
+    setFixing(true);
+    try {
+      const response = await fetch('/api/admin/filter-types/cleanup', { method: 'POST' });
+      const result = await response.json();
+      if (result.ok) {
+        alert(`Successfully cleaned up orphaned filter types: ${result.message}`);
+        // Refresh health data after cleanup
+        await fetchHealthData();
+      } else {
+        alert(`Failed to cleanup: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error cleaning up orphaned filter types:', error);
+      alert('Failed to cleanup orphaned filter types');
+    } finally {
+      setFixing(false);
+    }
+  };
+
   useEffect(() => {
     fetchSystemInfo();
     if (activeTab === 'health') {
@@ -304,6 +325,14 @@ export default function SettingsPage() {
                   variant="primary"
                 >
                   {fixing ? 'Fixing...' : 'Fix Issues'}
+                </Button>
+                <Button
+                  onClick={cleanupOrphanedFilterTypes}
+                  disabled={fixing}
+                  variant="outline"
+                  className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100"
+                >
+                  {fixing ? 'Cleaning...' : 'Cleanup Orphaned Filter Types'}
                 </Button>
               </div>
             </div>

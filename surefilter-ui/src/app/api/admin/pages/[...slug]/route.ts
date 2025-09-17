@@ -149,21 +149,66 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ slug
   const { slug: parts } = await params;
   const slug = joinSlug(parts);
   if (isProtectedSlug(slug)) return NextResponse.json({ error: 'This page is protected and cannot be deleted' }, { status: 400 });
+  
   try {
-    // Clear pageSlug references before deleting the page
+    // First, check if page exists
+    const page = await prisma.page.findUnique({ where: { slug } });
+    if (!page) {
+      return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+    }
+
+    // Clear pageSlug references in FilterType before deleting the page
     await prisma.filterType.updateMany({
       where: { pageSlug: slug },
       data: { pageSlug: null },
     });
-    
+
+    // Delete the page (PageSection will be deleted automatically due to cascade)
     await prisma.page.delete({ where: { slug } });
+
+    // Also delete any orphaned sections that were only used by this page
+    // This is a cleanup step in case there are sections that were only used by this page
+    const orphanedSections = await prisma.section.findMany({
+      where: {
+        pages: {
+          none: {}
+        }
+      }
+    });
+
+    if (orphanedSections.length > 0) {
+      await prisma.section.deleteMany({
+        where: {
+          id: {
+            in: orphanedSections.map(s => s.id)
+          }
+        }
+      });
+    }
+
+    // Cleanup orphaned FilterTypes (those with pageSlug: null)
+    // This happens automatically after page deletion
+    const orphanedFilterTypes = await prisma.filterType.findMany({
+      where: { pageSlug: null },
+      select: { id: true, name: true, category: true }
+    });
+
+    if (orphanedFilterTypes.length > 0) {
+      await prisma.filterType.deleteMany({
+        where: { pageSlug: null }
+      });
+      console.log(`Cleaned up ${orphanedFilterTypes.length} orphaned filter types after page deletion`);
+    }
+
     try {
       const { revalidateTag } = await import('next/cache');
       revalidateTag(`page:${slug}`);
     } catch {}
+    
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: 'Failed to delete page' }, { status: 500 });
+  } catch (e: any) {
+    console.error('Delete page error:', e);
+    return NextResponse.json({ error: 'Failed to delete page', detail: e?.message }, { status: 500 });
   }
 }
 
