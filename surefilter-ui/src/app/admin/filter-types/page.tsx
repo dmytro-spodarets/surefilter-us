@@ -12,9 +12,46 @@ export default async function FilterTypesPage() {
   if (!session) redirect('/login?callbackUrl=/admin/filter-types');
 
   const [hd, auto] = await Promise.all([
-    prisma.filterType.findMany({ where: { category: 'HEAVY_DUTY' }, orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }] }),
-    prisma.filterType.findMany({ where: { category: 'AUTOMOTIVE' }, orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }] }),
+    prisma.filterType.findMany({ 
+      where: { category: 'HEAVY_DUTY' }, 
+      orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        pageSlug: true,
+        fullSlug: true,
+        category: true,
+        position: true,
+        parentId: true
+      }
+    }),
+    prisma.filterType.findMany({ 
+      where: { category: 'AUTOMOTIVE' }, 
+      orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        pageSlug: true,
+        fullSlug: true,
+        category: true,
+        position: true,
+        parentId: true
+      }
+    }),
   ]);
+
+  // Get page titles for all filter types that have pageSlug
+  const pageSlugs = [...hd, ...auto]
+    .filter(ft => ft.pageSlug)
+    .map(ft => ft.pageSlug!)
+    .filter(Boolean);
+  
+  const pages = await prisma.page.findMany({
+    where: { slug: { in: pageSlugs } },
+    select: { slug: true, title: true }
+  });
+  
+  const pageTitleMap = new Map(pages.map(p => [p.slug, p.title]));
 
   const Section = ({ title, items }: { title: string; items: any[] }) => (
     <section className="border border-gray-200 rounded-lg p-5">
@@ -26,7 +63,9 @@ export default async function FilterTypesPage() {
         {(items || []).map((it) => (
           <li key={it.id} className="px-4 py-3 flex items-center justify-between gap-4">
             <div>
-              <div className="font-medium text-gray-900">{it.name}</div>
+              <div className="font-medium text-gray-900">
+                {it.pageSlug ? (pageTitleMap.get(it.pageSlug) || it.name) : it.name}
+              </div>
               <div className="text-sm text-gray-600">/{it.pageSlug || 'No page linked'}</div>
             </div>
             <div className="flex items-center gap-3 text-sm">

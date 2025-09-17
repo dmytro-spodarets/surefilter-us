@@ -234,6 +234,11 @@ Risks/notes
   - Currently used in admin filter-types page as fallback for links
   - If not used elsewhere, consider removing to simplify schema
   - Update admin page to handle missing `pageSlug` properly instead of falling back to `fullSlug`
+- [ ] **Check `FilterType.name` usage**: Investigate if `name` field in `FilterType` model is still needed
+  - Currently used only as fallback when `pageSlug` is null
+  - Main display now uses `Page.title` for consistency
+  - If not used elsewhere, consider removing to simplify schema
+  - Verify no other parts of the system depend on `FilterType.name`
 
 ### Recent Fixes (2025-01-17)
 - [x] **Fixed pageSlug sync issue**: Added automatic update of `pageSlug` in `FilterType` when page slug is changed
@@ -250,3 +255,7 @@ Risks/notes
   - All database monitoring and maintenance tools now available through web interface
   - No need for CLI scripts or SSH access to production server
   - One-click health checks and issue fixing
+- [x] **Fixed filter types display issue**: Updated `/admin/filter-types` to show correct page titles
+  - Now displays `Page.title` instead of `FilterType.name` for consistency
+  - Page titles are editable and represent the actual content
+  - FilterType names may be outdated and should be investigated for removal
