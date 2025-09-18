@@ -16,18 +16,23 @@ const nextConfig: NextConfig = {
   
   // Server Actions: разрешённые origin'ы для проксированных запросов (CloudFront → App Runner)
   // Читает список доменов из переменной окружения NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS
-  // (через запятую без пробелов), например: "new.surefilter.us,qiypwsyuxm.us-east-1.awsapprunner.com".
-  // Это устраняет ошибку несовпадения `x-forwarded-host` и `origin` для Server Actions за CDN/прокси.
+  // (через запятую без пробелов), например: "https://new.surefilter.us,https://qiypwsyuxm.us-east-1.awsapprunner.com".
+  // Для надёжности добавляем дефолт, включающий и hostname, и https-URL.
   serverActions: {
-    allowedOrigins: (process.env.NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS || '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean).length
-      ? (process.env.NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS as string)
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : ['new.surefilter.us', 'qiypwsyuxm.us-east-1.awsapprunner.com'],
+    allowedOrigins: (() => {
+      const fromEnv = (process.env.NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (fromEnv.length) return fromEnv;
+      // Fallback: и хосты, и полные https-оригины
+      return [
+        'new.surefilter.us',
+        'qiypwsyuxm.us-east-1.awsapprunner.com',
+        'https://new.surefilter.us',
+        'https://qiypwsyuxm.us-east-1.awsapprunner.com',
+      ];
+    })(),
   },
   
   // Оптимизация изображений

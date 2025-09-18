@@ -36,13 +36,41 @@ interface FixResults {
   errors: string[];
 }
 
+interface DebugData {
+  request: { url: string; method: string };
+  headers: {
+    host: string | null;
+    'x-forwarded-host': string | null;
+    'x-original-forwarded-host': string | null;
+    origin: string | null;
+    referer: string | null;
+    'x-forwarded-proto': string | null;
+    'x-forwarded-port': string | null;
+    'x-mw-normalized': string | null;
+  };
+  server: {
+    NODE_ENV: string | null;
+    NEXT_PUBLIC_SITE_URL: string | null;
+    NEXTAUTH_URL: string | null;
+    ENFORCE_ORIGIN: string | null;
+    NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS: string | null;
+  };
+  derived: {
+    effectiveAllowedOrigins: string[];
+    originMismatch: boolean | null;
+  };
+  timestamp: string;
+}
+
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'health'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'health' | 'debug'>('overview');
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [healthData, setHealthData] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(false);
   const [fixing, setFixing] = useState(false);
   const [fixResults, setFixResults] = useState<FixResults | null>(null);
+  const [debugData, setDebugData] = useState<DebugData | null>(null);
+  const [debugLoading, setDebugLoading] = useState(false);
 
   const fetchSystemInfo = async () => {
     setLoading(true);
@@ -67,6 +95,19 @@ export default function SettingsPage() {
       console.error('Failed to fetch health data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDebugData = async () => {
+    setDebugLoading(true);
+    try {
+      const res = await fetch('/api/admin/debug', { cache: 'no-store' });
+      const data = await res.json();
+      setDebugData(data);
+    } catch (e) {
+      console.error('Failed to fetch debug info:', e);
+    } finally {
+      setDebugLoading(false);
     }
   };
 
@@ -112,6 +153,9 @@ export default function SettingsPage() {
     fetchSystemInfo();
     if (activeTab === 'health') {
       fetchHealthData();
+    }
+    if (activeTab === 'debug') {
+      fetchDebugData();
     }
   }, [activeTab]);
 
@@ -160,6 +204,12 @@ export default function SettingsPage() {
               variant={activeTab === 'health' ? 'primary' : 'outline'}
             >
               System Health
+            </Button>
+            <Button
+              onClick={() => setActiveTab('debug')}
+              variant={activeTab === 'debug' ? 'primary' : 'outline'}
+            >
+              Debug
             </Button>
           </div>
         </div>
@@ -303,6 +353,65 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'debug' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">Server Actions / Proxy Debug</h2>
+              <div className="flex gap-3">
+                <Button onClick={fetchDebugData} disabled={debugLoading} variant="outline">
+                  {debugLoading ? 'Refreshing...' : 'Refresh'}
+                </Button>
+              </div>
+            </div>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Headers</h3>
+              {debugData ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex justify-between"><span className="text-gray-600">Host</span><span className="font-mono">{debugData.headers.host || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">x-forwarded-host</span><span className="font-mono">{debugData.headers['x-forwarded-host'] || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">x-original-forwarded-host</span><span className="font-mono">{debugData.headers['x-original-forwarded-host'] || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">x-mw-normalized</span><span className="font-mono">{debugData.headers['x-mw-normalized'] || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Origin</span><span className="font-mono">{debugData.headers.origin || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Referer</span><span className="font-mono">{debugData.headers.referer || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">x-forwarded-proto</span><span className="font-mono">{debugData.headers['x-forwarded-proto'] || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">x-forwarded-port</span><span className="font-mono">{debugData.headers['x-forwarded-port'] || '—'}</span></div>
+                </div>
+              ) : (
+                <div className="text-gray-500">{debugLoading ? 'Loading…' : 'No data yet.'}</div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Server Environment</h3>
+              {debugData ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-gray-600">NODE_ENV</span><span className="font-mono">{debugData.server.NODE_ENV || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">NEXT_PUBLIC_SITE_URL</span><span className="font-mono">{debugData.server.NEXT_PUBLIC_SITE_URL || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">NEXTAUTH_URL</span><span className="font-mono">{debugData.server.NEXTAUTH_URL || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">ENFORCE_ORIGIN</span><span className="font-mono">{debugData.server.ENFORCE_ORIGIN || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS</span><span className="font-mono break-all">{debugData.server.NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS || '—'}</span></div>
+                </div>
+              ) : (
+                <div className="text-gray-500">{debugLoading ? 'Loading…' : 'No data yet.'}</div>
+              )}
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Derived</h3>
+              {debugData ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-gray-600">Effective Allowed Origins</span><span className="font-mono break-all">{debugData.derived.effectiveAllowedOrigins.join(', ')}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Origin Mismatch?</span><span className={debugData.derived.originMismatch ? 'text-red-600' : 'text-green-600'}>{String(debugData.derived.originMismatch)}</span></div>
+                  <div className="text-xs text-gray-500">Timestamp: {new Date(debugData.timestamp).toLocaleString()}</div>
+                </div>
+              ) : (
+                <div className="text-gray-500">{debugLoading ? 'Loading…' : 'No data yet.'}</div>
+              )}
             </Card>
           </div>
         )}
