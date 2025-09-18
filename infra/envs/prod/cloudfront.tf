@@ -46,6 +46,23 @@ data "aws_cloudfront_response_headers_policy" "security_headers" {
 
 // Removed unused custom origin request policy
 
+# CloudFront Function: normalize x-forwarded-host to viewer Host to satisfy Next.js Server Actions origin checks
+resource "aws_cloudfront_function" "set_x_forwarded_host" {
+  name    = "surefilter-set-x-forwarded-host"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code    = <<EOT
+function handler(event) {
+  var request = event.request;
+  var hostHeader = request.headers.host && request.headers.host.value;
+  if (hostHeader) {
+    request.headers['x-forwarded-host'] = { value: hostHeader };
+  }
+  return request;
+}
+EOT
+}
+
 resource "aws_cloudfront_distribution" "site" {
   enabled         = true
   is_ipv6_enabled = true
@@ -83,6 +100,12 @@ resource "aws_cloudfront_distribution" "site" {
     origin_request_policy_id = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
+
+    # Ensure x-forwarded-host equals viewer Host for Server Actions validation
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.set_x_forwarded_host.arn
+    }
   }
 
   // keep static from S3
