@@ -40,17 +40,16 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Normalize x-forwarded-host to the viewer Host so Next.js Server Actions origin checks pass behind CDN/proxy
+  // Preserve CloudFront-provided x-forwarded-host (viewer Host) for Server Actions origin validation.
+  // Only set it from Host when missing (e.g., local dev), do NOT overwrite a valid CF value.
   const xfh = requestHeaders.get('x-forwarded-host');
-  if (host && xfh !== host) {
-    // Preserve original for debugging
-    if (xfh) {
-      requestHeaders.set('x-original-forwarded-host', xfh);
-    }
+  if (!xfh && host) {
     requestHeaders.set('x-forwarded-host', host);
-    requestHeaders.set('x-mw-normalized', '1');
+    requestHeaders.set('x-mw-normalized', 'set-from-host');
+  } else if (xfh) {
+    requestHeaders.set('x-mw-normalized', 'pass');
   } else {
-    requestHeaders.set('x-mw-normalized', '0');
+    requestHeaders.set('x-mw-normalized', 'none');
   }
 
   return NextResponse.next({ request: { headers: requestHeaders } });
@@ -59,5 +58,3 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/:path*'],
 };
-
-

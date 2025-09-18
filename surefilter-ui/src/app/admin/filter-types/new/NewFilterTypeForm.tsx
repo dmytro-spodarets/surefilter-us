@@ -5,10 +5,10 @@ import { submitCreateFilterType, type CreateFilterTypeState } from './actions';
 import { useFormStatus } from 'react-dom';
 import { useMemo, useState } from 'react';
 
-function SubmitButton() {
+function SubmitButton({ disabledExtra = false }: { disabledExtra?: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg" disabled={pending}>
+    <button type="submit" className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg" disabled={pending || disabledExtra}>
       {pending ? 'Creating…' : 'Create'}
     </button>
   );
@@ -50,7 +50,6 @@ export default function NewFilterTypeForm({ defaultCategory }: { defaultCategory
           onBlur={() => setTouched(true)}
           placeholder="air"
           required
-          pattern="^[a-z0-9-]+$"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
           aria-invalid={touched && !isValid}
         />
@@ -69,7 +68,7 @@ export default function NewFilterTypeForm({ defaultCategory }: { defaultCategory
         <textarea name="description" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={3} />
       </div>
       <div className="flex justify-end">
-        <SubmitButton />
+        <SubmitButton disabledExtra={touched && !isValid} />
       </div>
     </form>
   );
