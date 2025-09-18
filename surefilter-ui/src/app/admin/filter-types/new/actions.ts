@@ -9,7 +9,7 @@ function buildFullSlug(category: 'HEAVY_DUTY' | 'AUTOMOTIVE', parentFull?: strin
   return `${root}/${slug}`;
 }
 
-export async function createFilterType(formData: FormData) {
+export async function createFilterType(formData: FormData): Promise<{ error?: string } | void> {
   const category = formData.get('category') as 'HEAVY_DUTY' | 'AUTOMOTIVE';
   const parentId = formData.get('parentId') as string;
   const slug = formData.get('slug') as string;
@@ -17,11 +17,11 @@ export async function createFilterType(formData: FormData) {
   const description = formData.get('description') as string;
 
   if (!category || !slug || !pageTitle) {
-    throw new Error('category, slug, pageTitle required');
+    return { error: 'category, slug, pageTitle required' };
   }
 
   if (!/^[a-z0-9-]+$/.test(slug)) {
-    throw new Error('Invalid slug');
+    return { error: 'Invalid slug (allowed: a-z, 0-9, -)' };
   }
 
   const parent = parentId ? await prisma.filterType.findUnique({ where: { id: parentId } }) : null;
@@ -55,8 +55,24 @@ export async function createFilterType(formData: FormData) {
       },
     });
   } catch (e: any) {
-    throw new Error(`Failed to create: ${e?.message}`);
+    // Handle common Prisma unique constraint error P2002 for page.slug or filterType uniqueness
+    const msg = e?.code === 'P2002'
+      ? 'Duplicate detected (page slug or filter type already exists)'
+      : (e?.message || 'Unknown error');
+    return { error: `Failed to create: ${msg}` };
   }
 
   redirect('/admin/filter-types');
 }
+
+export type CreateFilterTypeState = { error?: string };
+
+// Wrapper for useActionState in client components
+export async function submitCreateFilterType(
+  prevState: CreateFilterTypeState,
+  formData: FormData
+): Promise<CreateFilterTypeState> {
+  const res = await createFilterType(formData);
+  return res ?? {};
+}
+

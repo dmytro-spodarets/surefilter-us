@@ -34,7 +34,9 @@ resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
     # This avoids forwarding the viewer Host header (which previously caused issues),
     # but still lets Next.js Server Actions validate matching Origin/x-forwarded-host.
     header_behavior = "whitelist"
-    headers         = ["x-forwarded-host"]
+    headers {
+      items = ["x-forwarded-host"]
+    }
   }
   cookies_config {
     cookie_behavior = "all"
