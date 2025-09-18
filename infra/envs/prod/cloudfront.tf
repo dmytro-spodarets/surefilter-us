@@ -36,7 +36,14 @@ resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
     headers {
       items = [
         "X-Forwarded-Host",
-        "Origin"
+        "Origin",
+        # Next.js Server Actions / RSC related headers
+        "Next-Action",
+        "Next-Router-State-Tree",
+        "Next-URL",
+        "RSC",
+        # Ensure content type reaches origin for multipart/form-data
+        "Content-Type"
       ]
     }
   }

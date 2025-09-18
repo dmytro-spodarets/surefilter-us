@@ -5,10 +5,10 @@ import NewFilterTypeForm from './NewFilterTypeForm';
 
 export const metadata = { robots: { index: false, follow: false } };
 
-export default async function NewFilterType({ searchParams }: { searchParams: Promise<{ category?: 'HEAVY_DUTY' | 'AUTOMOTIVE' }> }) {
+export default async function NewFilterType({ searchParams }: { searchParams?: { category?: 'HEAVY_DUTY' | 'AUTOMOTIVE' } }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login?callbackUrl=/admin/filter-types/new');
-  const { category = 'HEAVY_DUTY' } = await searchParams;
+  const category = searchParams?.category === 'AUTOMOTIVE' ? 'AUTOMOTIVE' : 'HEAVY_DUTY';
 
   return (
     <main className="min-h-screen px-6 py-10">
