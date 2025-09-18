@@ -14,6 +14,22 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   
+  // Server Actions: разрешённые origin'ы для проксированных запросов (CloudFront → App Runner)
+  // Читает список доменов из переменной окружения NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS
+  // (через запятую без пробелов), например: "new.surefilter.us,qiypwsyuxm.us-east-1.awsapprunner.com".
+  // Это устраняет ошибку несовпадения `x-forwarded-host` и `origin` для Server Actions за CDN/прокси.
+  serverActions: {
+    allowedOrigins: (process.env.NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean).length
+      ? (process.env.NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS as string)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : ['new.surefilter.us', 'qiypwsyuxm.us-east-1.awsapprunner.com'],
+  },
+  
   // Оптимизация изображений
   images: {
     remotePatterns: [

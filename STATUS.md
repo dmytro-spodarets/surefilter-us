@@ -278,3 +278,19 @@ Risks/notes
   - `FilterType.name` now automatically syncs with `Page.title`
   - Users edit the same title they entered during creation
   - Eliminates confusion between technical names and display titles
+- [x] **Added automatic cleanup of orphaned FilterTypes**: System now automatically maintains data integrity
+  - When deleting pages, orphaned FilterTypes (with `pageSlug: null`) are automatically removed
+  - Added manual cleanup button in `/admin/settings` for emergency cases
+  - Prevents accumulation of "No page linked" entries in admin interface
+- [x] **Improved page deletion process**: Enhanced deletion logic for better data consistency
+  - Added proper error handling and logging in page deletion API
+  - Automatic cleanup of orphaned sections after page deletion
+  - Better error messages and debugging information
+- [x] **Fixed Server Actions configuration**: Resolved CloudFront compatibility issues
+  - Added `serverActions.allowedOrigins` configuration in `next.config.ts`
+  - Added `NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS` environment variable
+  - Supports both canonical domain (`new.surefilter.us`) and App Runner domain
+- [x] **Reverted problematic changes**: Cleaned up debugging code and experimental features
+  - Removed excessive logging and debugging code
+  - Reverted to stable form handling approach
+  - Maintained clean git history
