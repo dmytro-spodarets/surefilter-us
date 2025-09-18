@@ -42,12 +42,15 @@ interface DebugData {
     host: string | null;
     'x-forwarded-host': string | null;
     'x-original-forwarded-host': string | null;
+    'x-cf-fn'?: string | null;
     origin: string | null;
     referer: string | null;
     'x-forwarded-proto': string | null;
     'x-forwarded-port': string | null;
     'x-mw-normalized': string | null;
   };
+  allSafeHeaders?: Record<string, string | boolean | null>;
+  cookies?: { names: string[]; count: number };
   server: {
     NODE_ENV: string | null;
     NEXT_PUBLIC_SITE_URL: string | null;
@@ -58,6 +61,8 @@ interface DebugData {
   derived: {
     effectiveAllowedOrigins: string[];
     originMismatch: boolean | null;
+    isServerActionLike?: boolean;
+    viaCloudFront?: boolean | null;
   };
   timestamp: string;
 }
@@ -71,6 +76,8 @@ export default function SettingsPage() {
   const [fixResults, setFixResults] = useState<FixResults | null>(null);
   const [debugData, setDebugData] = useState<DebugData | null>(null);
   const [debugLoading, setDebugLoading] = useState(false);
+  const [debugDataPost, setDebugDataPost] = useState<DebugData | null>(null);
+  const [debugLoadingPost, setDebugLoadingPost] = useState(false);
 
   const fetchSystemInfo = async () => {
     setLoading(true);
@@ -108,6 +115,19 @@ export default function SettingsPage() {
       console.error('Failed to fetch debug info:', e);
     } finally {
       setDebugLoading(false);
+    }
+  };
+
+  const fetchDebugDataPost = async () => {
+    setDebugLoadingPost(true);
+    try {
+      const res = await fetch('/api/admin/debug', { method: 'POST', cache: 'no-store' });
+      const data = await res.json();
+      setDebugDataPost(data);
+    } catch (e) {
+      console.error('Failed to POST debug info:', e);
+    } finally {
+      setDebugLoadingPost(false);
     }
   };
 
@@ -365,6 +385,9 @@ export default function SettingsPage() {
                 <Button onClick={fetchDebugData} disabled={debugLoading} variant="outline">
                   {debugLoading ? 'Refreshing...' : 'Refresh'}
                 </Button>
+                <Button onClick={fetchDebugDataPost} disabled={debugLoadingPost} variant="outline">
+                  {debugLoadingPost ? 'POST…' : 'POST snapshot'}
+                </Button>
               </div>
             </div>
 
@@ -375,6 +398,7 @@ export default function SettingsPage() {
                   <div className="flex justify-between"><span className="text-gray-600">Host</span><span className="font-mono">{debugData.headers.host || '—'}</span></div>
                   <div className="flex justify-between"><span className="text-gray-600">x-forwarded-host</span><span className="font-mono">{debugData.headers['x-forwarded-host'] || '—'}</span></div>
                   <div className="flex justify-between"><span className="text-gray-600">x-original-forwarded-host</span><span className="font-mono">{debugData.headers['x-original-forwarded-host'] || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">x-cf-fn</span><span className="font-mono">{debugData.headers['x-cf-fn'] || '—'}</span></div>
                   <div className="flex justify-between"><span className="text-gray-600">x-mw-normalized</span><span className="font-mono">{debugData.headers['x-mw-normalized'] || '—'}</span></div>
                   <div className="flex justify-between"><span className="text-gray-600">Origin</span><span className="font-mono">{debugData.headers.origin || '—'}</span></div>
                   <div className="flex justify-between"><span className="text-gray-600">Referer</span><span className="font-mono">{debugData.headers.referer || '—'}</span></div>
@@ -383,6 +407,40 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <div className="text-gray-500">{debugLoading ? 'Loading…' : 'No data yet.'}</div>
+              )}
+            </Card>
+
+            {/* Safe Headers (raw) */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Safe Headers (GET)</h3>
+              {debugData?.allSafeHeaders ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                  {Object.entries(debugData.allSafeHeaders).map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-3">
+                      <span className="text-gray-600 break-all">{k}</span>
+                      <span className="font-mono break-all">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 text-sm">No data</div>
+              )}
+            </Card>
+
+            {/* Cookies */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Cookies</h3>
+              {debugData?.cookies ? (
+                <div className="text-sm">
+                  <div className="mb-2 text-gray-600">Count: {debugData.cookies.count}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {debugData.cookies.names.map((name) => (
+                      <span key={name} className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs">{name}</span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500">No cookies</div>
               )}
             </Card>
 
@@ -407,10 +465,37 @@ export default function SettingsPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-gray-600">Effective Allowed Origins</span><span className="font-mono break-all">{debugData.derived.effectiveAllowedOrigins.join(', ')}</span></div>
                   <div className="flex justify-between"><span className="text-gray-600">Origin Mismatch?</span><span className={debugData.derived.originMismatch ? 'text-red-600' : 'text-green-600'}>{String(debugData.derived.originMismatch)}</span></div>
+                  {'isServerActionLike' in debugData.derived && (
+                    <div className="flex justify-between"><span className="text-gray-600">Looks like Server Action?</span><span className="font-mono">{String(debugData.derived.isServerActionLike)}</span></div>
+                  )}
+                  {'viaCloudFront' in debugData.derived && (
+                    <div className="flex justify-between"><span className="text-gray-600">Via CloudFront?</span><span className="font-mono">{String(debugData.derived.viaCloudFront)}</span></div>
+                  )}
                   <div className="text-xs text-gray-500">Timestamp: {new Date(debugData.timestamp).toLocaleString()}</div>
                 </div>
               ) : (
                 <div className="text-gray-500">{debugLoading ? 'Loading…' : 'No data yet.'}</div>
+              )}
+            </Card>
+
+            {/* POST Snapshot */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">POST Snapshot (simulate Server Action)</h3>
+              {debugDataPost ? (
+                <div className="space-y-3 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="flex justify-between"><span className="text-gray-600">Host</span><span className="font-mono">{debugDataPost.headers.host || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">x-forwarded-host</span><span className="font-mono">{debugDataPost.headers['x-forwarded-host'] || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">Origin</span><span className="font-mono">{debugDataPost.headers.origin || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">Content-Type</span><span className="font-mono">{debugDataPost.allSafeHeaders?.['content-type'] as string || '—'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">next-action</span><span className="font-mono">{String(debugDataPost.allSafeHeaders?.['next-action'] ?? '—')}</span></div>
+                  </div>
+                  <div className="flex justify-between"><span className="text-gray-600">Looks like Server Action?</span><span className="font-mono">{String(debugDataPost.derived.isServerActionLike)}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-600">Via CloudFront?</span><span className="font-mono">{String(debugDataPost.derived.viaCloudFront)}</span></div>
+                  <div className="text-xs text-gray-500">Timestamp: {new Date(debugDataPost.timestamp).toLocaleString()}</div>
+                </div>
+              ) : (
+                <div className="text-gray-500">{debugLoadingPost ? 'Posting…' : 'Press “POST snapshot” to capture a POST request context.'}</div>
               )}
             </Card>
           </div>

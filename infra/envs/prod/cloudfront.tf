@@ -30,12 +30,14 @@ resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
   name    = "surefilter-app-runner-min"
   comment = "Forward cookies and all query strings; do not forward viewer headers (prevents Host forwarding)"
   headers_config {
-    # Forward ONLY the x-forwarded-host header (set by our CloudFront Function) to origin.
-    # This avoids forwarding the viewer Host header (which previously caused issues),
-    # but still lets Next.js Server Actions validate matching Origin/x-forwarded-host.
+    # Forward x-forwarded-host (from CF Function) and browser Origin to origin.
+    # This avoids forwarding viewer Host, но позволяет Next.js корректно сверять Origin/x-forwarded-host.
     header_behavior = "whitelist"
     headers {
-      items = ["x-forwarded-host"]
+      items = [
+        "X-Forwarded-Host",
+        "Origin"
+      ]
     }
   }
   cookies_config {

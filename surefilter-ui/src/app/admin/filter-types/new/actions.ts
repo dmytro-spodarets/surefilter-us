@@ -9,30 +9,40 @@ function buildFullSlug(category: 'HEAVY_DUTY' | 'AUTOMOTIVE', parentFull?: strin
   return `${root}/${slug}`;
 }
 
-export async function createFilterType(formData: FormData): Promise<{ error?: string } | void> {
+export type CreateFilterTypeState = { error?: string };
+
+function normalizeSlug(input: string) {
+  const s = (input || '').toLowerCase().trim()
+    .replace(/\s+/g, '-')            // spaces -> dash
+    .replace(/[^a-z0-9-]/g, '-')      // remove invalid to dash
+    .replace(/-+/g, '-')              // collapse dashes
+    .replace(/^-+|-+$/g, '');         // trim dashes
+  return s;
+}
+
+// Single Server Action used by the client form (no chaining)
+export async function submitCreateFilterType(
+  prevState: CreateFilterTypeState,
+  formData: FormData
+): Promise<CreateFilterTypeState> {
   const category = formData.get('category') as 'HEAVY_DUTY' | 'AUTOMOTIVE';
-  const parentId = formData.get('parentId') as string;
-  const slug = formData.get('slug') as string;
-  const pageTitle = formData.get('pageTitle') as string;
-  const description = formData.get('description') as string;
+  const parentId = (formData.get('parentId') as string) || undefined;
+  const rawSlug = (formData.get('slug') as string) || '';
+  const pageTitle = ((formData.get('pageTitle') as string) || '').trim();
+  const description = (formData.get('description') as string) || undefined;
 
-  if (!category || !slug || !pageTitle) {
-    return { error: 'category, slug, pageTitle required' };
-  }
-
-  if (!/^[a-z0-9-]+$/.test(slug)) {
-    return { error: 'Invalid slug (allowed: a-z, 0-9, -)' };
-  }
+  if (!category || !rawSlug || !pageTitle) return { error: 'category, slug, pageTitle required' };
+  const normalized = normalizeSlug(rawSlug);
+  if (!normalized) return { error: 'Invalid slug: after normalization it becomes empty. Use letters, numbers, and dashes.' };
+  if (normalized !== rawSlug) return { error: `Invalid slug. Suggested: "${normalized}"` };
+  if (!/^[a-z0-9-]+$/.test(normalized)) return { error: 'Invalid slug (allowed: a-z, 0-9, -)' };
 
   const parent = parentId ? await prisma.filterType.findUnique({ where: { id: parentId } }) : null;
-  const fullSlug = buildFullSlug(category, parent?.fullSlug, slug);
-  
-  // Generate page slug from fullSlug
+  const fullSlug = buildFullSlug(category, parent?.fullSlug, normalized);
   const pageSlug = fullSlug;
 
   try {
-    // Create page first
-    const page = await prisma.page.create({
+    await prisma.page.create({
       data: {
         slug: pageSlug,
         title: pageTitle,
@@ -41,21 +51,18 @@ export async function createFilterType(formData: FormData): Promise<{ error?: st
         type: 'CUSTOM',
       },
     });
-
-    // Create filter type with pageSlug
     await prisma.filterType.create({
       data: {
         category,
         parentId: parentId || null,
-        slug,
-        name: pageTitle, // Use pageTitle as name for consistency
+        slug: normalized,
+        name: pageTitle,
         description: description || null,
         fullSlug,
-        pageSlug: pageSlug,
+        pageSlug,
       },
     });
   } catch (e: any) {
-    // Handle common Prisma unique constraint error P2002 for page.slug or filterType uniqueness
     const msg = e?.code === 'P2002'
       ? 'Duplicate detected (page slug or filter type already exists)'
       : (e?.message || 'Unknown error');
@@ -63,16 +70,5 @@ export async function createFilterType(formData: FormData): Promise<{ error?: st
   }
 
   redirect('/admin/filter-types');
-}
-
-export type CreateFilterTypeState = { error?: string };
-
-// Wrapper for useActionState in client components
-export async function submitCreateFilterType(
-  prevState: CreateFilterTypeState,
-  formData: FormData
-): Promise<CreateFilterTypeState> {
-  const res = await createFilterType(formData);
-  return res ?? {};
 }
 
