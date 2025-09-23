@@ -33,7 +33,7 @@ const CompactSearchHero: React.FC<CompactSearchHeroProps> = ({
 
   return (
     <section className={cn(
-      'relative h-[30vh] min-h-[250px] max-h-[350px] flex items-center justify-center mt-24 overflow-hidden',
+      'relative h-[35vh] min-h-[300px] max-h-[400px] flex items-center justify-center mt-24 overflow-hidden',
       className
     )}>
       {/* Фоновая картинка */}
@@ -42,11 +42,13 @@ const CompactSearchHero: React.FC<CompactSearchHeroProps> = ({
           src={backgroundImage}
           alt="Hero background"
           fill
-          className="object-cover"
           priority
+          quality={85}
+          sizes="100vw"
+          className="object-cover"
         />
         {/* Темный оверлей для читаемости текста */}
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-black/75" />
       </div>
       
       {/* Контент по центру */}

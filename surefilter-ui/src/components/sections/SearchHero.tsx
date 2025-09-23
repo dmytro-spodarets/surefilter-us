@@ -35,8 +35,8 @@ const SearchHero: React.FC<SearchHeroProps> = ({
 
   // Height classes based on size
   const heightClasses = {
-    standard: 'h-[60vh] min-h-[400px] lg:min-h-[500px] max-h-[600px] lg:max-h-[700px]',
-    compact: 'h-[35vh] min-h-[300px] max-h-[450px]'
+    standard: 'h-[70vh] min-h-[450px] lg:min-h-[550px] max-h-[650px] lg:max-h-[750px]',
+    compact: 'h-[40vh] min-h-[350px] max-h-[500px]'
   };
 
   // Text sizes based on size
@@ -62,11 +62,13 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           src={backgroundImage}
           alt="Hero background"
           fill
-          className="object-cover"
           priority
+          quality={85}
+          sizes="100vw"
+          className="object-cover"
         />
         {/* Темный оверлей для читаемости текста */}
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/65" />
       </div>
       
       {/* Контент по центру */}

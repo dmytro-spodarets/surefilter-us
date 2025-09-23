@@ -16,7 +16,7 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
   const headingHighlight = titleHighlight || '';
 
   return (
-    <section className="relative h-screen flex items-center overflow-hidden bg-white pt-24">
+    <section className="relative h-screen flex items-center overflow-hidden bg-white">
       {/* Desktop diagonal image */}
       <div className="absolute top-24 bottom-0 right-0 z-0 hidden md:block w-[65vw] md:w-[60vw] lg:w-[55vw] max-w-[1400px]">
         <div className="relative h-full w-full">
@@ -32,14 +32,14 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
               priority
               quality={85}
               sizes="(min-width:1536px) 40vw, (min-width:1280px) 45vw, (min-width:768px) 50vw, 100vw"
-              className="object-cover object-right-bottom"
+              className="object-cover object-right-bottom brightness-75"
             />
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-16 sm:pb-32">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-24 pb-16 sm:pb-32">
         {/* Mobile image */}
         <div className="md:hidden mb-8">
           <Image
