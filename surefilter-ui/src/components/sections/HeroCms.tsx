@@ -18,19 +18,21 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
   return (
     <section className="relative h-screen flex items-center overflow-hidden bg-white pt-24">
       {/* Desktop diagonal image */}
-      <div className="absolute top-24 bottom-0 left-0 right-0 z-0 hidden md:block">
-        <div
-          className="absolute inset-0 flex justify-end items-stretch bg-white"
-          style={{ clipPath: 'polygon(45% 0, 100% 0, 100% 100%, 60% 100%)' }}
-        >
-          <div className="flex justify-end items-center h-full">
+      <div className="absolute top-24 bottom-0 right-0 z-0 hidden md:block w-[65vw] md:w-[60vw] lg:w-[55vw] max-w-[1400px]">
+        <div className="relative h-full w-full">
+          {/* Clip only the right panel area so the left edge is diagonal inside the panel */}
+          <div
+            className="absolute inset-0 bg-white"
+            style={{ clipPath: 'polygon(0% 0, 100% 0, 100% 100%, 25% 100%)' }}
+          >
             <Image
               src={imageSrc}
               alt={title || 'Hero image'}
-              width={400}
-              height={600}
-              className="h-full w-auto object-contain"
+              fill
               priority
+              quality={85}
+              sizes="(min-width:1536px) 40vw, (min-width:1280px) 45vw, (min-width:768px) 50vw, 100vw"
+              className="object-cover object-right-bottom"
             />
           </div>
         </div>
@@ -43,8 +45,10 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
           <Image
             src={imageSrc}
             alt={title || 'Hero image'}
-            width={400}
-            height={300}
+            width={1200}
+            height={900}
+            quality={85}
+            sizes="100vw"
             className="w-full h-auto object-contain"
             priority
           />
