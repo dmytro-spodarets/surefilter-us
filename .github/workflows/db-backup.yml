@@ -1,0 +1,173 @@
+name: DB - Manual Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_name:
+        description: "Backup name (optional, will use timestamp if empty)"
+        required: false
+        default: ""
+      retention_days:
+        description: "Retention period in days (default: 90)"
+        required: false
+        default: "90"
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  SSM_DB_PARAM: /surefilter/DATABASE_URL
+  BACKUP_BUCKET: surefilter-db-backups-prod
+  
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Read DATABASE_URL from SSM
+        id: ssm
+        run: |
+          DB_URL=$(aws ssm get-parameter --with-decryption --name "$SSM_DB_PARAM" --query 'Parameter.Value' --output text)
+          if [ -z "$DB_URL" ]; then echo "DATABASE_URL not found in SSM" && exit 1; fi
+          # Strip Prisma-specific query params for libpq tools
+          DB_URL_PG="${DB_URL%%\?*}"
+          echo "db_url_pg=$DB_URL_PG" >> $GITHUB_OUTPUT
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+
+      - name: Generate backup metadata
+        id: metadata
+        run: |
+          TIMESTAMP=$(date -u '+%Y%m%d_%H%M%S')
+          BACKUP_NAME="${{ github.event.inputs.backup_name }}"
+          
+          if [ -n "$BACKUP_NAME" ]; then
+            # Use custom name with timestamp
+            FILENAME="surefilter_${BACKUP_NAME}_${TIMESTAMP}.sql.gz"
+          else
+            # Use default naming
+            FILENAME="surefilter_manual_${TIMESTAMP}.sql.gz"
+          fi
+          
+          S3_KEY="backups/manual/${FILENAME}"
+          
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "backup_type=manual" >> $GITHUB_OUTPUT
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+          echo "s3_key=$S3_KEY" >> $GITHUB_OUTPUT
+
+      - name: Create database backup
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url_pg }}
+        run: |
+          set -e
+          echo "Creating backup: ${{ steps.metadata.outputs.filename }}"
+          
+          # Create backup with compression
+          pg_dump "$DATABASE_URL" \
+            --no-owner \
+            --no-privileges \
+            --verbose \
+            --format=custom \
+            --compress=9 \
+            --file="${{ steps.metadata.outputs.filename }}"
+          
+          # Verify backup file exists and has content
+          if [ ! -f "${{ steps.metadata.outputs.filename }}" ]; then
+            echo "Backup file not created" && exit 1
+          fi
+          
+          BACKUP_SIZE=$(stat -f%z "${{ steps.metadata.outputs.filename }}" 2>/dev/null || stat -c%s "${{ steps.metadata.outputs.filename }}")
+          if [ "$BACKUP_SIZE" -lt 1000 ]; then
+            echo "Backup file too small (${BACKUP_SIZE} bytes)" && exit 1
+          fi
+          
+          echo "Backup created successfully: ${BACKUP_SIZE} bytes"
+
+      - name: Upload backup to S3
+        run: |
+          set -e
+          
+          # Upload backup file
+          aws s3 cp "${{ steps.metadata.outputs.filename }}" \
+            "s3://$BACKUP_BUCKET/${{ steps.metadata.outputs.s3_key }}" \
+            --server-side-encryption AES256 \
+            --metadata "backup-type=${{ steps.metadata.outputs.backup_type }},timestamp=${{ steps.metadata.outputs.timestamp }},source=github-actions"
+          
+          # Create metadata file
+          cat > backup_metadata.json << EOF
+          {
+            "timestamp": "${{ steps.metadata.outputs.timestamp }}",
+            "backup_type": "${{ steps.metadata.outputs.backup_type }}",
+            "filename": "${{ steps.metadata.outputs.filename }}",
+            "s3_key": "${{ steps.metadata.outputs.s3_key }}",
+            "size_bytes": $(stat -f%z "${{ steps.metadata.outputs.filename }}" 2>/dev/null || stat -c%s "${{ steps.metadata.outputs.filename }}"),
+            "created_by": "github-actions",
+            "workflow_run": "${{ github.run_id }}",
+            "commit_sha": "${{ github.sha }}"
+          }
+          EOF
+          
+          # Upload metadata
+          aws s3 cp backup_metadata.json \
+            "s3://$BACKUP_BUCKET/metadata/${{ steps.metadata.outputs.timestamp }}.json" \
+            --server-side-encryption AES256
+
+      - name: Cleanup old manual backups
+        run: |
+          set -e
+          
+          RETENTION_DAYS="${{ github.event.inputs.retention_days || '90' }}"
+          CUTOFF_DATE=$(date -u -d "${RETENTION_DAYS} days ago" '+%Y%m%d_%H%M%S' 2>/dev/null || date -u -v-${RETENTION_DAYS}d '+%Y%m%d_%H%M%S')
+          
+          echo "Cleaning up manual backups older than ${RETENTION_DAYS} days (before ${CUTOFF_DATE})"
+          
+          # List and delete old manual backups
+          aws s3 ls "s3://$BACKUP_BUCKET/backups/manual/" --recursive | while read -r line; do
+            BACKUP_DATE=$(echo "$line" | awk '{print $4}' | grep -o '[0-9]\{8\}_[0-9]\{6\}' || true)
+            if [ -n "$BACKUP_DATE" ] && [ "$BACKUP_DATE" \< "$CUTOFF_DATE" ]; then
+              BACKUP_PATH=$(echo "$line" | awk '{print $4}')
+              echo "Deleting old manual backup: $BACKUP_PATH"
+              aws s3 rm "s3://$BACKUP_BUCKET/$BACKUP_PATH"
+            fi
+          done
+
+      - name: Verify backup integrity
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url_pg }}
+        run: |
+          set -e
+          echo "Verifying backup integrity..."
+          
+          # Test that backup can be read by pg_restore
+          pg_restore --list "${{ steps.metadata.outputs.filename }}" > /dev/null
+          
+          echo "Backup verification successful"
+
+      - name: Cleanup local files
+        run: |
+          rm -f "${{ steps.metadata.outputs.filename }}" backup_metadata.json
+
+      - name: Report backup status
+        run: |
+          echo "✅ Manual backup completed successfully"
+          echo "📅 Timestamp: ${{ steps.metadata.outputs.timestamp }}"
+          echo "📦 S3 location: s3://$BACKUP_BUCKET/${{ steps.metadata.outputs.s3_key }}"
+          echo "🔄 Workflow run: ${{ github.run_id }}"
+          echo ""
+          echo "To restore this backup, use:"
+          echo "GitHub Actions → 'DB - Restore from S3 Backup'"
+          echo "Backup file: ${{ steps.metadata.outputs.s3_key }}"

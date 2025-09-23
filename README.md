@@ -39,9 +39,14 @@
 ### SEO
 - Базовые метаданные и `metadataBase` задаются в `app/layout.tsx` через переменную окружения `NEXT_PUBLIC_SITE_URL`.
 
-### Изображения
+### Изображения и файлы
 - `next/image`, `object-cover`, `fill`, приоритет на первых экранах.
 - Обработка ошибок изображений через `onError` (см. `Industries.tsx`, `ProductGallery.tsx`), есть градиентные фоллбеки.
+- **Файл-менеджер**: полная система управления медиафайлами через `/admin/files`
+  - S3/MinIO интеграция с CDN (CloudFront)
+  - Папки с вложенностью, drag & drop загрузка
+  - Превью изображений, видео, PDF в модальных окнах
+  - Копирование CDN ссылок для вставки в контент
 
 ### Структура проекта (расширенно)
 ```
@@ -337,16 +342,7 @@ docker compose -f docker/docker-compose.yml down
   - шаги: build image → push ECR → extract `/app/.next/static` и `/app/public` → upload в S3 → (опц.) invalidate CF
 - База данных: “DB - Prisma Migrate Deploy”, “DB - Restore from Repo Dump”
 
-### Products & Specs updates (2025-09-04)
-- Админка спецификаций продуктов:
-  - Новый раздел `/admin/spec-parameters` — список, создание и редактирование параметров (название, единица измерения, категория, позиция, активность).
-- Редактор спецификаций в формах продуктов:
-  - Компонент `src/app/admin/products/ProductForm.tsx` поддерживает редактирование `specValues` — набор записей `{ parameterId, value, unitOverride?, position? }`.
-  - На странице нового продукта и редактирования продукта доступен блок «Specifications» с добавлением/удалением строк и выбором параметров.
-- API:
-  - `POST /api/admin/products` и `PUT /api/admin/products/[id]` принимают поле `specValues` и сохраняют его транзакционно.
-  - `GET /api/admin/products` и `GET /api/admin/products/[id]` возвращают `specValues` с вложенными `parameter` и сортировкой по `position`.
-  - CRUD для `/api/admin/spec-parameters`.
+### Админ-панель и CMS
 - База данных и Prisma:
   - Модели `SpecParameter` и `ProductSpecValue` добавлены в схему Prisma; связи с `Product` настроены.
   - Схема синхронизирована (`prisma db push`), клиент сгенерирован в `src/generated/prisma`.

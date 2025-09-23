@@ -1,0 +1,189 @@
+name: DB - Restore from S3 Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_file:
+        description: "S3 backup file path (e.g., backups/daily/surefilter_daily_20250923_020000.sql.gz)"
+        required: true
+      drop_schema:
+        description: "Drop and recreate public schema before restore"
+        required: false
+        default: "false"
+        type: boolean
+      target_environment:
+        description: "Target environment"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  BACKUP_BUCKET: surefilter-db-backups-prod
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.target_environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set environment variables
+        id: env
+        run: |
+          if [ "${{ github.event.inputs.target_environment }}" = "production" ]; then
+            echo "ssm_db_param=/surefilter/DATABASE_URL" >> $GITHUB_OUTPUT
+          else
+            echo "ssm_db_param=/surefilter/staging/DATABASE_URL" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Read DATABASE_URL from SSM
+        id: ssm
+        run: |
+          DB_URL=$(aws ssm get-parameter --with-decryption --name "${{ steps.env.outputs.ssm_db_param }}" --query 'Parameter.Value' --output text)
+          if [ -z "$DB_URL" ]; then echo "DATABASE_URL not found in SSM" && exit 1; fi
+          # Strip Prisma-specific query params for libpq tools
+          DB_URL_PG="${DB_URL%%\?*}"
+          echo "db_url_pg=$DB_URL_PG" >> $GITHUB_OUTPUT
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+
+      - name: Download backup from S3
+        run: |
+          set -e
+          BACKUP_FILE="${{ github.event.inputs.backup_file }}"
+          LOCAL_FILE=$(basename "$BACKUP_FILE")
+          
+          echo "Downloading backup: s3://$BACKUP_BUCKET/$BACKUP_FILE"
+          aws s3 cp "s3://$BACKUP_BUCKET/$BACKUP_FILE" "$LOCAL_FILE"
+          
+          # Verify file exists and has content
+          if [ ! -f "$LOCAL_FILE" ]; then
+            echo "Backup file not downloaded" && exit 1
+          fi
+          
+          BACKUP_SIZE=$(stat -f%z "$LOCAL_FILE" 2>/dev/null || stat -c%s "$LOCAL_FILE")
+          if [ "$BACKUP_SIZE" -lt 1000 ]; then
+            echo "Downloaded backup file too small (${BACKUP_SIZE} bytes)" && exit 1
+          fi
+          
+          echo "backup_file=$LOCAL_FILE" >> $GITHUB_ENV
+          echo "Downloaded backup successfully: ${BACKUP_SIZE} bytes"
+
+      - name: Verify backup integrity
+        run: |
+          set -e
+          echo "Verifying backup integrity..."
+          
+          # Test that backup can be read by pg_restore
+          pg_restore --list "$backup_file" > restore_plan.txt
+          
+          # Check if restore plan has content
+          if [ ! -s restore_plan.txt ]; then
+            echo "Backup file appears to be corrupted or empty" && exit 1
+          fi
+          
+          echo "Backup verification successful"
+          echo "Backup contains $(wc -l < restore_plan.txt) objects"
+
+      - name: Create pre-restore backup
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url_pg }}
+        run: |
+          set -e
+          echo "Creating pre-restore backup..."
+          
+          TIMESTAMP=$(date -u '+%Y%m%d_%H%M%S')
+          PRE_RESTORE_FILE="pre_restore_${TIMESTAMP}.sql.gz"
+          
+          pg_dump "$DATABASE_URL" \
+            --no-owner \
+            --no-privileges \
+            --verbose \
+            --format=custom \
+            --compress=9 \
+            --file="$PRE_RESTORE_FILE"
+          
+          # Upload pre-restore backup to S3
+          aws s3 cp "$PRE_RESTORE_FILE" \
+            "s3://$BACKUP_BUCKET/pre-restore/$PRE_RESTORE_FILE" \
+            --server-side-encryption AES256 \
+            --metadata "restore-timestamp=$TIMESTAMP,original-backup=${{ github.event.inputs.backup_file }},workflow-run=${{ github.run_id }}"
+          
+          echo "Pre-restore backup saved: s3://$BACKUP_BUCKET/pre-restore/$PRE_RESTORE_FILE"
+
+      - name: Optionally drop schema
+        if: ${{ github.event.inputs.drop_schema == 'true' }}
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url_pg }}
+        run: |
+          echo "⚠️ Dropping and recreating public schema..."
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+
+      - name: Restore database
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url_pg }}
+        run: |
+          set -e
+          echo "Restoring database from backup..."
+          
+          pg_restore \
+            --no-owner \
+            --no-privileges \
+            --clean \
+            --if-exists \
+            --verbose \
+            --single-transaction \
+            -d "$DATABASE_URL" \
+            "$backup_file"
+          
+          echo "Database restore completed successfully"
+
+      - name: Verify restore
+        env:
+          DATABASE_URL: ${{ steps.ssm.outputs.db_url_pg }}
+        run: |
+          set -e
+          echo "Verifying database restore..."
+          
+          # Basic connectivity test
+          psql "$DATABASE_URL" -c "SELECT version();"
+          
+          # Check if main tables exist (adjust based on your schema)
+          TABLES=$(psql "$DATABASE_URL" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+          echo "Found $TABLES tables in public schema"
+          
+          if [ "$TABLES" -lt 5 ]; then
+            echo "⚠️ Warning: Only $TABLES tables found, restore may be incomplete"
+          else
+            echo "✅ Database restore verification successful"
+          fi
+
+      - name: Cleanup local files
+        run: |
+          rm -f "$backup_file" restore_plan.txt pre_restore_*.sql.gz
+
+      - name: Report restore status
+        run: |
+          echo "✅ Database restore completed successfully"
+          echo "📁 Restored from: ${{ github.event.inputs.backup_file }}"
+          echo "🎯 Target environment: ${{ github.event.inputs.target_environment }}"
+          echo "🔄 Workflow run: ${{ github.run_id }}"
+          echo "⚠️ Pre-restore backup saved to S3 for rollback if needed"

@@ -219,3 +219,26 @@ model ProductSpecValue {
   @@unique([productId, parameterId])
   @@index([productId, position])
 }
+
+// Media assets for file manager
+model MediaAsset {
+  id          String   @id @default(cuid())
+  filename    String
+  s3Path      String   @unique // "images/hero/construction.jpg"
+  cdnUrl      String   // Full CDN URL
+  mimeType    String
+  fileSize    Int
+  width       Int?     // For images
+  height      Int?     // For images
+  altText     String?  // For SEO
+  tags        String[] @default([])
+  folder      String?  // "images/hero", "videos/products", etc.
+  isPublic    Boolean  @default(true)
+  uploadedBy  String?  // User ID who uploaded
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([folder])
+  @@index([mimeType])
+  @@index([createdAt])
+}

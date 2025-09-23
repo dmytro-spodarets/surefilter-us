@@ -1,13 +1,13 @@
-import Link from 'next/link';
+'use client';
 
-export const metadata = {
-  robots: { index: false, follow: false },
-};
+import Link from 'next/link';
+import { SessionProvider } from 'next-auth/react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <SessionProvider>
         <header className="border-b border-gray-200 bg-white">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -23,6 +23,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <span className="text-gray-300">|</span>
                 <Link href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</Link>
                 <span className="text-gray-300">|</span>
+                <Link href="/admin/files" className="text-gray-700 hover:text-gray-900">Files</Link>
+                <span className="text-gray-300">|</span>
                 <Link href="/admin/settings" className="text-gray-700 hover:text-gray-900">Settings</Link>
               </nav>
             </div>
@@ -30,6 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
         <main>{children}</main>
+        </SessionProvider>
       </body>
     </html>
   );
