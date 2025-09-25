@@ -183,6 +183,12 @@ resource "aws_iam_user_policy_attachment" "github_actions_backup" {
   policy_arn = aws_iam_policy.github_actions_backup.arn
 }
 
+# Also attach backup policy to existing github-cli user (if it exists)
+resource "aws_iam_user_policy_attachment" "github_cli_backup" {
+  user       = "github-cli"
+  policy_arn = aws_iam_policy.github_actions_backup.arn
+}
+
 # CloudWatch alarm for backup failures
 resource "aws_cloudwatch_log_group" "backup_logs" {
   name              = "/aws/github-actions/db-backups"
