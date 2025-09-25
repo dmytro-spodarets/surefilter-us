@@ -9,7 +9,7 @@ resource "aws_apprunner_service" "surefilter" {
     }
 
     image_repository {
-      image_identifier      = "${aws_ecr_repository.surefilter.repository_url}:v0.0.26"
+      image_identifier      = "${aws_ecr_repository.surefilter.repository_url}:v0.0.27"
       image_repository_type = "ECR"
       image_configuration {
         port = "3000"
@@ -23,6 +23,8 @@ resource "aws_apprunner_service" "surefilter" {
           # Allow Next.js Server Actions behind CloudFront/App Runner (comma-separated hostnames)
           # Keep in sync with surefilter-ui/next.config.ts serverActions.allowedOrigins
           NEXT_SERVER_ACTIONS_ALLOWED_ORIGINS = "new.surefilter.us,https://new.surefilter.us,qiypwsyuxm.us-east-1.awsapprunner.com,https://qiypwsyuxm.us-east-1.awsapprunner.com"
+          # CDN URL for file manager assets
+          NEXT_PUBLIC_CDN_URL  = "https://new.surefilter.us"
         }
         runtime_environment_secrets = {
           DATABASE_URL    = aws_ssm_parameter.database_url.arn

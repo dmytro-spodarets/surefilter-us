@@ -26,7 +26,7 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.NODE_ENV === 'development' 
   ? 'surefilter-static' 
-  : 'surefilter-static-prod';
+  : 'surefilter-files-prod';
 
 export interface S3File {
   key: string;
