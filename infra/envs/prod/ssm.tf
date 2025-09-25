@@ -30,4 +30,3 @@ resource "aws_ssm_parameter" "origin_secret" {
   value = random_password.origin_secret.result
 }
 
-

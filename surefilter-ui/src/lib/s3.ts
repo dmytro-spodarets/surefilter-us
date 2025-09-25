@@ -2,19 +2,26 @@ import { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, 
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // S3 client configuration
+console.log('S3 Client Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  AWS_REGION: process.env.AWS_REGION,
+  isDevelopment: process.env.NODE_ENV === 'development'
+});
+
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
-  credentials: process.env.NODE_ENV === 'development' ? {
-    // MinIO credentials for local development
-    accessKeyId: process.env.MINIO_ROOT_USER || 'admin',
-    secretAccessKey: process.env.MINIO_ROOT_PASSWORD || 'password123',
+  ...(process.env.NODE_ENV === 'development' ? {
+    // MinIO configuration for local development
+    credentials: {
+      accessKeyId: process.env.MINIO_ROOT_USER || 'admin',
+      secretAccessKey: process.env.MINIO_ROOT_PASSWORD || 'password123',
+    },
+    endpoint: 'http://localhost:9000',
+    forcePathStyle: true, // Required for MinIO
   } : {
-    // AWS credentials for production
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-  endpoint: process.env.NODE_ENV === 'development' ? 'http://localhost:9000' : undefined,
-  forcePathStyle: process.env.NODE_ENV === 'development', // Required for MinIO
+    // Production: AWS SDK automatically uses IAM role credentials
+    // No explicit credentials needed - App Runner provides them via instance role
+  }),
 });
 
 const BUCKET_NAME = process.env.NODE_ENV === 'development' 
