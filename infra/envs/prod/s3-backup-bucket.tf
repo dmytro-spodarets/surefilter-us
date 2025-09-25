@@ -1,10 +1,41 @@
+# Variables specific to backup bucket
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "production"
+}
+
+variable "backup_bucket_name" {
+  description = "Name of the S3 bucket for database backups"
+  type        = string
+  default     = "surefilter-db-backups-prod"
+}
+
+variable "database_url_parameter" {
+  description = "SSM parameter name for production database URL"
+  type        = string
+  default     = "/surefilter/DATABASE_URL"
+}
+
+variable "staging_database_url_parameter" {
+  description = "SSM parameter name for staging database URL"
+  type        = string
+  default     = "/surefilter/staging/DATABASE_URL"
+}
+
+variable "github_actions_user_name" {
+  description = "IAM user name for GitHub Actions"
+  type        = string
+  default     = "surefilter-github-actions"
+}
+
 # S3 bucket for database backups
 resource "aws_s3_bucket" "db_backups" {
-  bucket = "surefilter-db-backups-prod"
+  bucket = var.backup_bucket_name
   
   tags = {
     Name        = "SureFilter DB Backups"
-    Environment = "production"
+    Environment = var.environment
     Purpose     = "database-backups"
   }
 }
@@ -42,7 +73,6 @@ resource "aws_s3_bucket_public_access_block" "db_backups" {
 # Lifecycle configuration for automatic cleanup
 resource "aws_s3_bucket_lifecycle_configuration" "db_backups" {
   bucket = aws_s3_bucket.db_backups.id
-
 
   rule {
     id     = "manual_backups_cleanup"
@@ -87,6 +117,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "db_backups" {
     id     = "multipart_upload_cleanup"
     status = "Enabled"
 
+    filter {}
+
     abort_incomplete_multipart_upload {
       days_after_initiation = 1
     }
@@ -120,17 +152,34 @@ resource "aws_iam_policy" "github_actions_backup" {
           "ssm:GetParameter"
         ]
         Resource = [
-          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/surefilter/DATABASE_URL",
-          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/surefilter/staging/DATABASE_URL"
+          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter${var.database_url_parameter}",
+          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter${var.staging_database_url_parameter}"
         ]
       }
     ]
   })
 }
 
-# Attach backup policy to existing GitHub Actions user
+# Create GitHub Actions IAM user if it doesn't exist
+resource "aws_iam_user" "github_actions" {
+  name = var.github_actions_user_name
+  path = "/"
+
+  tags = {
+    Name        = "SureFilter GitHub Actions"
+    Environment = var.environment
+    Purpose     = "ci-cd-automation"
+  }
+}
+
+# Create access key for GitHub Actions user
+resource "aws_iam_access_key" "github_actions" {
+  user = aws_iam_user.github_actions.name
+}
+
+# Attach backup policy to GitHub Actions user
 resource "aws_iam_user_policy_attachment" "github_actions_backup" {
-  user       = "surefilter-github-actions"  # Assuming this user already exists
+  user       = aws_iam_user.github_actions.name
   policy_arn = aws_iam_policy.github_actions_backup.arn
 }
 
@@ -140,7 +189,7 @@ resource "aws_cloudwatch_log_group" "backup_logs" {
   retention_in_days = 30
 
   tags = {
-    Environment = "production"
+    Environment = var.environment
     Purpose     = "backup-monitoring"
   }
 }
@@ -150,7 +199,7 @@ resource "aws_sns_topic" "backup_notifications" {
   name = "surefilter-backup-notifications"
 
   tags = {
-    Environment = "production"
+    Environment = var.environment
     Purpose     = "backup-alerts"
   }
 }
@@ -166,6 +215,17 @@ output "backup_bucket_arn" {
   value       = aws_s3_bucket.db_backups.arn
 }
 
+# Output GitHub Actions credentials (sensitive)
+output "github_actions_access_key_id" {
+  description = "Access Key ID for GitHub Actions user"
+  value       = aws_iam_access_key.github_actions.id
+}
+
+output "github_actions_secret_access_key" {
+  description = "Secret Access Key for GitHub Actions user"
+  value       = aws_iam_access_key.github_actions.secret
+  sensitive   = true
+}
+
 # Data sources
-data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
