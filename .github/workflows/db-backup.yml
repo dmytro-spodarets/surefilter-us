@@ -122,8 +122,7 @@ jobs:
           
           # Upload metadata
           aws s3 cp backup_metadata.json \
-            "s3://$BACKUP_BUCKET/metadata/${{ steps.metadata.outputs.timestamp }}.json" \
-            --server-side-encryption "AES256"
+            "s3://$BACKUP_BUCKET/metadata/${{ steps.metadata.outputs.timestamp }}.json"
 
       - name: Cleanup old manual backups
         run: |
