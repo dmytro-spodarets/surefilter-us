@@ -1,0 +1,2 @@
+-- This migration was applied directly to production database
+-- Adding placeholder to sync local migration history
