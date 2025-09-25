@@ -104,7 +104,6 @@ jobs:
           # Upload backup file
           aws s3 cp "${{ steps.metadata.outputs.filename }}" \
             "s3://$BACKUP_BUCKET/${{ steps.metadata.outputs.s3_key }}" \
-            --server-side-encryption "AES256" \
             --metadata "backup-type=${{ steps.metadata.outputs.backup_type }},timestamp=${{ steps.metadata.outputs.timestamp }},source=github-actions"
           
           # Create metadata file
