@@ -40,9 +40,11 @@ export function getOptimizedImageUrl(
  * @returns True if it's an S3 asset path
  */
 export function isAssetPath(path: string): boolean {
-  return path.startsWith('images/') || 
-         path.startsWith('videos/') || 
-         path.startsWith('documents/');
+  // Remove leading slash for checking
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return cleanPath.startsWith('images/') || 
+         cleanPath.startsWith('videos/') || 
+         cleanPath.startsWith('documents/');
 }
 
 /**

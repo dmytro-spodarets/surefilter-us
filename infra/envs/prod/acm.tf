@@ -45,7 +45,7 @@ resource "aws_route53_record" "assets_acm_validation" {
       type   = dvo.resource_record_type
     }
   }
-  zone_id = "Z003662317J6SYETHU44S"
+  zone_id = "Z082426231T6TCGJMQI1G"  # assets.surefilter.us zone
   name    = each.value.name
   type    = each.value.type
   ttl     = 60
@@ -55,6 +55,12 @@ resource "aws_route53_record" "assets_acm_validation" {
 resource "aws_acm_certificate_validation" "assets" {
   certificate_arn         = aws_acm_certificate.assets.arn
   validation_record_fqdns = [for r in aws_route53_record.assets_acm_validation : r.fqdn]
+
+  timeouts {
+    create = "10m"
+  }
+
+  depends_on = [aws_route53_record.assets_acm_validation]
 }
 
 output "acm_certificate_arn" {

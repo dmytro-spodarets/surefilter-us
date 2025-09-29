@@ -1,4 +1,4 @@
-# CloudFront distribution for assets.surefilter.us
+# CloudFront distribution for assets.surefilter.us  
 # Dedicated subdomain for static files uploaded via File Manager
 
 resource "aws_cloudfront_distribution" "assets" {
@@ -72,6 +72,8 @@ resource "aws_cloudfront_distribution" "assets" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 
+  depends_on = [aws_acm_certificate_validation.assets]
+
   tags = {
     Name        = "SureFilter Assets CDN"
     Environment = "production"
@@ -81,7 +83,7 @@ resource "aws_cloudfront_distribution" "assets" {
 
 # Route53 record for assets subdomain
 resource "aws_route53_record" "assets" {
-  zone_id = "Z003662317J6SYETHU44S"  # surefilter.us zone
+  zone_id = "Z082426231T6TCGJMQI1G"  # assets.surefilter.us zone
   name    = "assets.surefilter.us"
   type    = "A"
 

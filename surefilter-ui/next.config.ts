@@ -26,10 +26,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'surefilter-static-prod.s3.amazonaws.com',
       },
-      // CloudFront CDN
+      // CloudFront CDN - main site
       {
         protocol: 'https',
         hostname: 'new.surefilter.us',
+      },
+      // CloudFront CDN - assets subdomain
+      {
+        protocol: 'https',
+        hostname: 'assets.surefilter.us',
       },
       // Local MinIO for development
       {
