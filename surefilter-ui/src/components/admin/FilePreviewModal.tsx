@@ -7,7 +7,7 @@ import {
   ArrowDownTrayIcon,
   EyeIcon
 } from '@heroicons/react/24/outline';
-import ManagedImage from '@/components/ui/ManagedImage';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface FileItem {
   key: string;
