@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { getAssetUrl, isAssetPath } from '@/lib/assets';
 
 interface ManagedImageProps {
   src: string;          // S3 path: "images/hero/construction.jpg" or full URL
@@ -25,55 +26,30 @@ export function ManagedImage({
 }: ManagedImageProps) {
   const [hasError, setHasError] = useState(false);
 
-  // Determine the full URL based on environment and src format
-  const getImageUrl = (src: string): string => {
-    // If already a full URL, return as-is
-    if (src.startsWith('http://') || src.startsWith('https://')) {
-      return src;
-    }
-
-    // For development with MinIO
-    if (process.env.NODE_ENV === 'development') {
-      return `http://localhost:9000/surefilter-static/${src}`;
-    }
-
-    // For production, use CDN
-    const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL || 'https://new.surefilter.us';
-    return `${cdnUrl}/${src}`;
-  };
+  // Convert S3 path to full URL using our utility
+  const imageUrl = isAssetPath(src) ? getAssetUrl(src) : src;
 
   const handleError = () => {
     setHasError(true);
     onError?.();
   };
 
-  // Fallback for broken images
+  // Fallback image if error occurs
   if (hasError) {
     return (
-      <div 
-        className={`bg-gray-200 flex items-center justify-center text-gray-500 text-sm ${props.className || ''}`}
-        style={{ 
-          width: props.width, 
-          height: props.height,
-          ...(props.fill && { position: 'absolute', inset: 0 })
-        }}
-      >
-        Image not found
+      <div className={`bg-gray-200 flex items-center justify-center ${props.className || ''}`}>
+        <span className="text-gray-500 text-sm">Image not found</span>
       </div>
     );
   }
 
-  const imageUrl = getImageUrl(src);
-
   return (
     <Image
+      {...props}
       src={imageUrl}
       alt={alt}
       quality={quality}
       onError={handleError}
-      {...props}
     />
   );
 }
-
-export default ManagedImage;

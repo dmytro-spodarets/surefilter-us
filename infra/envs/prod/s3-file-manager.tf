@@ -47,6 +47,7 @@ resource "aws_s3_bucket_cors_configuration" "file_manager" {
     allowed_methods = ["GET", "POST", "PUT", "DELETE", "HEAD"]
     allowed_origins = [
       "https://new.surefilter.us",
+      "https://assets.surefilter.us",
       "http://localhost:3000"
     ]
     expose_headers  = ["ETag"]
@@ -111,4 +112,24 @@ resource "aws_iam_policy" "apprunner_file_manager_s3_policy" {
 resource "aws_iam_role_policy_attachment" "apprunner_file_manager_s3_policy" {
   role       = aws_iam_role.apprunner_service_role.name
   policy_arn = aws_iam_policy.apprunner_file_manager_s3_policy.arn
+}
+
+# Bucket policy to allow CloudFront access to file manager bucket
+resource "aws_s3_bucket_policy" "file_manager_cloudfront" {
+  bucket = aws_s3_bucket.file_manager.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowCloudFrontAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.file_manager.arn}/*"
+      }
+    ]
+  })
 }

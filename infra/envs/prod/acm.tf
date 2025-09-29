@@ -1,5 +1,6 @@
 resource "aws_acm_certificate" "site" {
   domain_name       = "new.surefilter.us"
+  subject_alternative_names = ["assets.surefilter.us"]
   validation_method = "DNS"
 }
 

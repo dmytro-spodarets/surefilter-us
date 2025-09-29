@@ -108,6 +108,7 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
+
   default_cache_behavior {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
@@ -161,14 +162,6 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
-  ordered_cache_behavior {
-    path_pattern           = "/images/*"
-    target_origin_id       = "static-origin"
-    viewer_protocol_policy = "redirect-to-https"
-    cache_policy_id        = aws_cloudfront_cache_policy.static_long.id
-    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
-    cached_methods         = ["GET", "HEAD"]
-  }
 
   restrictions {
     geo_restriction {
