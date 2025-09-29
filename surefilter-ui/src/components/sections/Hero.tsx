@@ -1,6 +1,6 @@
 "use client";
 
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { useState } from 'react';
 import Icon from '@/components/ui/Icon';
 import Input from '@/components/ui/Input';
@@ -25,7 +25,7 @@ export default function Hero() {
           }}
         >
           <div className="flex justify-end items-center h-full">
-            <Image
+            <ManagedImage
               src="/images/image-4.jpg"
               alt="Heavy Duty Machinery"
               width={400}
@@ -41,7 +41,7 @@ export default function Hero() {
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-16 sm:pb-32">
         {/* Мобильная картинка */}
         <div className="md:hidden mb-8">
-          <Image
+          <ManagedImage
             src="/images/image-4.jpg"
             alt="Heavy Duty Machinery"
             width={400}

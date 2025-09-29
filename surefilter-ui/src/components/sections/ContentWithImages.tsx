@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface ContentWithImagesProps {
   content: string[];
@@ -46,7 +46,7 @@ export default function ContentWithImages({
                 {images.find(img => img.position === index + 1) && (
                   <div className="my-12">
                     <div className="relative h-64 sm:h-80 lg:h-96 rounded-xl overflow-hidden shadow-lg">
-                      <Image
+                      <ManagedImage
                         src={images.find(img => img.position === index + 1)!.src}
                         alt={images.find(img => img.position === index + 1)!.alt}
                         fill

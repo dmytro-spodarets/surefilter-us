@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';
 
 interface FullScreenHeroProps {
@@ -22,7 +22,7 @@ const FullScreenHero: React.FC<FullScreenHeroProps> = ({
     )}>
       {/* Фоновая картинка */}
       <div className="absolute inset-0 z-0">
-        <Image
+        <ManagedImage
           src={backgroundImage}
           alt="Hero background"
           fill

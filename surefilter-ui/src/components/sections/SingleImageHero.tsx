@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';
 
 interface SingleImageHeroProps {
@@ -44,7 +44,7 @@ const SingleImageHero: React.FC<SingleImageHeroProps> = ({
           {/* Правая часть - одна большая картинка */}
           <div className="relative w-full flex justify-center lg:justify-end">
             <div className="aspect-[3/4] w-full max-w-sm lg:max-w-md max-h-[350px] lg:max-h-[450px] rounded-2xl overflow-hidden shadow-2xl">
-              <Image
+              <ManagedImage
                 src={image}
                 alt={imageAlt}
                 fill

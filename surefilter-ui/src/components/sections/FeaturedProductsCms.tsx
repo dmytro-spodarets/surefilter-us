@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Link from 'next/link';
 
 interface Item {
@@ -26,13 +26,12 @@ export default function FeaturedProductsCms({ title, description, fallbackHref =
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
           {items.map((product, idx) => (
             <Link
-              key={idx}
               href={targetHref(product)}
               className="block bg-white rounded-lg border border-gray-100 overflow-hidden hover:border-sure-blue-200 transition-all duration-200 group"
             >
               <div className="relative h-40 bg-gray-100">
                 {product.image && (
-                  <Image
+                  <ManagedImage
                     src={product.image}
                     alt={product.name}
                     fill

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';
 
 interface CompactHeroProps {
@@ -24,15 +24,15 @@ const CompactHero: React.FC<CompactHeroProps> = ({
     )}>
       {/* Фоновая картинка */}
       <div className="absolute inset-0 z-0">
-        <Image
+        <ManagedImage
           src={backgroundImage}
-          alt="Hero background"
+          alt="Hero Background"
           fill
           className="object-cover"
           priority
         />
         {/* Темный оверлей для читаемости текста */}
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
       
       {/* Контент по центру */}
@@ -44,7 +44,7 @@ const CompactHero: React.FC<CompactHeroProps> = ({
         
         {/* Описание - уменьшенное */}
         {description && (
-          <p className="text-sm sm:text-base leading-relaxed drop-shadow-md opacity-90">
+          <p className="text-sm sm:text-base lg:text-lg text-gray-100 leading-relaxed drop-shadow-md">
             {description}
           </p>
         )}

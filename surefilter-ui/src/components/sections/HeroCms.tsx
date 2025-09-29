@@ -1,5 +1,5 @@
 "use client";
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface HeroCmsProps {
   badge?: string;
@@ -25,7 +25,7 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
             className="absolute inset-0 bg-white"
             style={{ clipPath: 'polygon(0% 0, 100% 0, 100% 100%, 25% 100%)' }}
           >
-            <Image
+            <ManagedImage
               src={imageSrc}
               alt={title || 'Hero image'}
               fill
@@ -42,7 +42,7 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-24 pb-16 sm:pb-32">
         {/* Mobile image */}
         <div className="md:hidden mb-8">
-          <Image
+          <ManagedImage
             src={imageSrc}
             alt={title || 'Hero image'}
             width={1200}

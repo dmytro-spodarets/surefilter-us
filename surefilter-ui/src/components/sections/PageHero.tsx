@@ -1,6 +1,6 @@
 "use client";
 
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';
 
 interface PageHeroProps {
@@ -56,7 +56,7 @@ const PageHero: React.FC<PageHeroProps> = ({
                   img.offset && 'lg:-translate-y-[30px]'
                 )}
               >
-                <Image
+                <ManagedImage
                   src={img.src}
                   alt={img.alt}
                   width={136}

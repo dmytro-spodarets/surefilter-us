@@ -1,6 +1,6 @@
 "use client";
 
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Link from 'next/link';
 
 interface Product {
@@ -95,7 +95,7 @@ export default function FeaturedProducts() {
             >
               {/* Изображение */}
               <div className="relative h-40 bg-gray-100">
-                <Image
+                <ManagedImage
                   src={product.image}
                   alt={product.name}
                   fill

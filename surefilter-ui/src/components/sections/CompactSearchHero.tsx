@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';
 import Input from '@/components/ui/Input';
 import Icon from '@/components/ui/Icon';
@@ -38,9 +38,9 @@ const CompactSearchHero: React.FC<CompactSearchHeroProps> = ({
     )}>
       {/* Фоновая картинка */}
       <div className="absolute inset-0 z-0">
-        <Image
+        <ManagedImage
           src={backgroundImage}
-          alt="Hero background"
+          alt="Hero Background"
           fill
           priority
           quality={85}
