@@ -40,11 +40,32 @@ export function getOptimizedImageUrl(
  * @returns True if it's an S3 asset path
  */
 export function isAssetPath(path: string): boolean {
+  // If it's an external URL, it's not an S3 asset path
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return false;
+  }
+  
   // Remove leading slash for checking
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-  return cleanPath.startsWith('images/') || 
-         cleanPath.startsWith('videos/') || 
-         cleanPath.startsWith('documents/');
+  
+  // If path doesn't contain a slash, it's not a valid asset path
+  if (!cleanPath.includes('/')) {
+    return false;
+  }
+  
+  // Check if it's a media file by extension
+  const mediaExtensions = [
+    // Images
+    'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'ico',
+    // Videos
+    'mp4', 'webm', 'mov', 'avi',
+    // Documents
+    'pdf', 'doc', 'docx', 'xls', 'xlsx'
+  ];
+  const ext = getFileExtension(cleanPath);
+  
+  // Any folder structure with media files is treated as an asset
+  return mediaExtensions.includes(ext);
 }
 
 /**
