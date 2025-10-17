@@ -15,6 +15,7 @@ export type SectionType =
   | 'industries_list'
   | 'listing_card_meta'
   | 'filter_types_grid'
+  | 'filter_types_image_grid'
   | 'popular_filters'
   | 'about_with_stats'
   | 'about_news'

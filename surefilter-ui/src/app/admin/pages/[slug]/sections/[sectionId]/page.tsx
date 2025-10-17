@@ -29,6 +29,7 @@ import ContactOptionsForm from '@/app/admin/pages/[slug]/sections/ContactOptions
 import IndustriesListForm from '@/app/admin/pages/[slug]/sections/IndustriesListForm';
 import RelatedFiltersForm from '@/app/admin/pages/[slug]/sections/RelatedFiltersForm';
 import FilterTypesGridForm from '@/app/admin/pages/[slug]/sections/FilterTypesGridForm';
+import FilterTypesImageGridForm from '@/app/admin/pages/[slug]/sections/FilterTypesImageGridForm';
 import IndustryMetaForm from '@/app/admin/pages/[slug]/sections/IndustryMetaForm';
 import SimpleSearchForm from '../../sections/SimpleSearchForm';
 import PopularFiltersForm from '../../sections/PopularFiltersForm';
@@ -131,6 +132,9 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         )}
         {section.type === 'filter_types_grid' && (
           <FilterTypesGridForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'filter_types_image_grid' && (
+          <FilterTypesImageGridForm sectionId={section.id} initialData={section.data as any} />
         )}
 
         <div className="mt-6">

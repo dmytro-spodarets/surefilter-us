@@ -226,15 +226,15 @@ export default function FileGrid({
 
             {/* File Preview */}
             <div 
-              className="aspect-square flex items-center justify-center mb-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors"
+              className="aspect-square flex items-center justify-center mb-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden p-3"
               onClick={() => onPreviewFile(file)}
             >
               {isImage(mimeType) && file.metadata?.cdnUrl ? (
                 <ManagedImage
-                  src={file.key}
+                  src={file.metadata.cdnUrl}
                   alt={file.metadata?.altText || filename}
                   fill
-                  className="object-cover rounded"
+                  className="object-contain rounded p-2"
                   sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
                 />
               ) : (

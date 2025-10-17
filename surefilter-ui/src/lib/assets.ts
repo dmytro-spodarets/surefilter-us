@@ -3,7 +3,19 @@
  * Best practices for September 2025
  */
 
-const CDN_BASE_URL = process.env.NEXT_PUBLIC_CDN_URL || 'https://assets.surefilter.us';
+// Get CDN URL based on environment
+function getCdnBaseUrl(): string {
+  // In development, use MinIO
+  if (process.env.NODE_ENV === 'development') {
+    const bucketName = 'surefilter-static';
+    return `http://localhost:9000/${bucketName}`;
+  }
+  
+  // In production, use CloudFront CDN
+  return process.env.NEXT_PUBLIC_CDN_URL || 'https://new.surefilter.us';
+}
+
+const CDN_BASE_URL = getCdnBaseUrl();
 
 /**
  * Convert S3 path to full CDN URL
@@ -11,6 +23,11 @@ const CDN_BASE_URL = process.env.NEXT_PUBLIC_CDN_URL || 'https://assets.surefilt
  * @returns Full CDN URL
  */
 export function getAssetUrl(s3Path: string): string {
+  // If it's already a full URL, return as is
+  if (s3Path.startsWith('http://') || s3Path.startsWith('https://')) {
+    return s3Path;
+  }
+  
   // Remove leading slash if present
   const cleanPath = s3Path.startsWith('/') ? s3Path.slice(1) : s3Path;
   return `${CDN_BASE_URL}/${cleanPath}`;

@@ -28,7 +28,8 @@ const OPTIONS = [
   { value: 'listing_card_meta', label: 'Listing Card Meta (for list cards)' },
   { value: 'popular_filters', label: 'Industry: Popular Filters' },
   { value: 'related_filters', label: 'Industry: Related Filter Types' },
-  { value: 'filter_types_grid', label: 'Heavy Duty: Filter Types Grid' },
+  { value: 'filter_types_grid', label: 'Heavy Duty: Filter Types Grid (Icons)' },
+  { value: 'filter_types_image_grid', label: 'Heavy Duty: Filter Types Grid (Images)' },
 
   // About & Company
   { value: 'about_with_stats', label: 'About: With Stats' },

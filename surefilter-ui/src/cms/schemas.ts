@@ -289,6 +289,19 @@ export const FilterTypesGridSchema = z.object({
 });
 export type FilterTypesGridInput = z.infer<typeof FilterTypesGridSchema>;
 
+// Filter Types Image Grid
+export const FilterTypesImageGridItemSchema = z.object({ 
+  name: z.string(), 
+  image: z.string().optional().default(''), 
+  href: z.string().optional().default('#') 
+});
+export const FilterTypesImageGridSchema = z.object({
+  title: z.string().optional().default('Filter Types'),
+  description: z.string().optional().default('Choose the right filter type for your equipment'),
+  items: z.array(FilterTypesImageGridItemSchema).default([]),
+});
+export type FilterTypesImageGridInput = z.infer<typeof FilterTypesImageGridSchema>;
+
 
 export const ContactOptionsSchema = z.object({
   items: z.array(ContactOptionItemSchema).default([]),

@@ -29,6 +29,7 @@ import ContactOptions from '@/components/sections/ContactOptions';
 import type { CmsSection } from './types';
 import { HeroFullSchema } from './schemas';
 import FilterTypesGrid from '@/components/sections/FilterTypesGrid';
+import FilterTypesImageGrid from '@/components/sections/FilterTypesImageGrid';
 
 export function renderSection(section: CmsSection) {
   switch ((section as any).type) {
@@ -50,6 +51,10 @@ export function renderSection(section: CmsSection) {
     case 'filter_types_grid': {
       const d = section.data as any;
       return <FilterTypesGrid title={d?.title} description={d?.description} filterTypes={Array.isArray(d?.items) ? d.items : []} />;
+    }
+    case 'filter_types_image_grid': {
+      const d = section.data as any;
+      return <FilterTypesImageGrid title={d?.title} description={d?.description} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'featured_products': {
       // Dynamic featured products from DB

@@ -30,6 +30,7 @@ import {
   ListingCardMetaSchema,
   PopularFiltersSchema,
   FilterTypesGridSchema,
+  FilterTypesImageGridSchema,
 } from '@/cms/schemas';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -141,6 +142,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'filter_types_grid') {
     const parsed = FilterTypesGridSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'filter_types_image_grid') {
+    const parsed = FilterTypesImageGridSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'listing_card_meta') {
