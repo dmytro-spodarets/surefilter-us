@@ -298,6 +298,8 @@ export const FilterTypesImageGridItemSchema = z.object({
 export const FilterTypesImageGridSchema = z.object({
   title: z.string().optional().default('Filter Types'),
   description: z.string().optional().default('Choose the right filter type for your equipment'),
+  columns: z.number().min(2).max(8).optional().default(4),
+  variant: z.enum(['card', 'simple']).optional().default('card'),
   items: z.array(FilterTypesImageGridItemSchema).default([]),
 });
 export type FilterTypesImageGridInput = z.infer<typeof FilterTypesImageGridSchema>;

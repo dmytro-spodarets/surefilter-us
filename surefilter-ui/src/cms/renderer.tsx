@@ -54,7 +54,7 @@ export function renderSection(section: CmsSection) {
     }
     case 'filter_types_image_grid': {
       const d = section.data as any;
-      return <FilterTypesImageGrid title={d?.title} description={d?.description} items={Array.isArray(d?.items) ? d.items : []} />;
+      return <FilterTypesImageGrid title={d?.title} description={d?.description} columns={d?.columns} variant={d?.variant} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'featured_products': {
       // Dynamic featured products from DB
