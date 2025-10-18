@@ -13,6 +13,9 @@ export const metadata = {
   description: 'Heavy-duty filters for tractors, harvesters, and farm equipment. Reliable filtration solutions for agricultural machinery operating in dusty field conditions.',
 };
 
+// Force dynamic rendering since IndustriesCms uses database queries
+export const dynamic = 'force-dynamic';
+
 export default function AgriculturePage() {
   const aboutFeatures = [
     { icon: 'CheckIcon', text: 'Engineered for extreme dust and field conditions' },
