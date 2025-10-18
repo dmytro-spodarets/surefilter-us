@@ -6,7 +6,7 @@ import ContentWithImages from '@/components/sections/ContentWithImages';
 import PopularFilters from '@/components/sections/PopularFilters';
 import SimpleSearch from '@/components/sections/SimpleSearch';
 import RelatedFilters from '@/components/sections/RelatedFilters';
-import Industries from '@/components/sections/Industries';
+import IndustriesCms from '@/components/sections/IndustriesCms';
 
 export const metadata = {
   title: 'Agriculture Filtration Solutions | Sure Filter',
@@ -254,7 +254,7 @@ export default function AgriculturePage() {
         className="bg-gray-50"
       />
 
-      <Industries className="bg-white" />
+      <IndustriesCms title="Other Industries We Serve" description="Comprehensive filtration solutions for every heavy-duty application" />
 
       <Footer />
     </main>

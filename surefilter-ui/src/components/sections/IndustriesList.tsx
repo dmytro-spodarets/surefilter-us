@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
+import { getAssetUrl } from '@/lib/assets';
 
 export default async function IndustriesList({ title = 'Our Industries', description = 'Specialized filtration solutions tailored to the unique challenges of each industry' }: { title?: string; description?: string }) {
   const industryPages = await prisma.page.findMany({
@@ -37,7 +38,7 @@ export default async function IndustriesList({ title = 'Our Industries', descrip
             >
               <div className="relative h-64 bg-gray-100 overflow-hidden">
                 {industry.image ? (
-                  <Image src={industry.image} alt={industry.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={getAssetUrl(industry.image)} alt={industry.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6">

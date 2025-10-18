@@ -1,5 +1,8 @@
+import { getAssetUrl } from '@/lib/assets';
+
 export default function ContactHero({ title, description, image }: { title: string; description?: string; image?: string }) {
-  const img = image || 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=1000&q=80';
+  const defaultImage = 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=1000&q=80';
+  const img = image ? getAssetUrl(image) : defaultImage;
   return (
     <section className="relative h-[60vh] min-h-[500px] max-h-[700px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">

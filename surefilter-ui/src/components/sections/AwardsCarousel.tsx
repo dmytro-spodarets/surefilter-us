@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/ui/Icon';
+import { getAssetUrl } from '@/lib/assets';
 
 interface AwardItem { title: string; subtitle: string; year: string; image?: string; description?: string }
 
@@ -25,7 +26,7 @@ export default function AwardsCarousel({ title, subtitle, items = [] as AwardIte
                   <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-3xl mx-auto">
                     <div className="relative h-80 overflow-hidden">
                       {award.image ? (
-                        <img src={award.image} alt={award.title} className="w-full h-full object-cover" />
+                        <img src={getAssetUrl(award.image)} alt={award.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-r from-sure-blue-600 to-sure-red-500" />
                       )}

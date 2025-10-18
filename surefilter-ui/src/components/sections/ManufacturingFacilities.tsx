@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/Icon';
+import { getAssetUrl } from '@/lib/assets';
 
 interface FacilityItem {
   title: string;
@@ -24,7 +25,7 @@ export default function ManufacturingFacilities({ title, description, items = []
             <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
               <div className="h-48 overflow-hidden">
                 {facility.image ? (
-                  <img src={facility.image} alt={facility.title} className="w-full h-full object-cover" />
+                  <img src={getAssetUrl(facility.image)} alt={facility.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gray-100" />
                 )}

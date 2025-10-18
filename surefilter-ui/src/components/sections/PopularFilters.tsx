@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Icon from '@/components/ui/Icon';
+import { getAssetUrl } from '@/lib/assets';
 
 interface Filter {
   name: string;
@@ -48,7 +49,7 @@ export default function PopularFilters({
               <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 hover:-translate-y-1">
                 <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
                   <img
-                    src={filter.image}
+                    src={getAssetUrl(filter.image)}
                     alt={filter.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
