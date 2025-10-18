@@ -22,6 +22,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preload critical assets for faster LCP */}
+        <link
+          rel="preload"
+          href="/images/sf-logo.png"
+          as="image"
+          type="image/png"
+        />
+      </head>
       <body>
         {children}
       </body>

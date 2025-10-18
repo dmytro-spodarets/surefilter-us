@@ -33,7 +33,13 @@ export default async function IndustriesCms({ title, description }: { title?: st
             <Link key={it.href} href={it.href || '#'} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-sure-blue-200">
               <div className="relative h-48 bg-gray-100 overflow-hidden">
                 {it.image && (
-                  <Image src={getAssetUrl(it.image)} alt={it.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <Image 
+                    src={getAssetUrl(it.image)} 
+                    alt={it.name} 
+                    fill 
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300" 
+                  />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               </div>

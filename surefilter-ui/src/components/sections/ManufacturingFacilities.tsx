@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/Icon';
+import Image from 'next/image';
 import { getAssetUrl } from '@/lib/assets';
 
 interface FacilityItem {
@@ -23,9 +24,15 @@ export default function ManufacturingFacilities({ title, description, items = []
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {items.map((facility, idx) => (
             <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-              <div className="h-48 overflow-hidden">
+              <div className="h-48 overflow-hidden relative">
                 {facility.image ? (
-                  <img src={getAssetUrl(facility.image)} alt={facility.title} className="w-full h-full object-cover" />
+                  <Image 
+                    src={getAssetUrl(facility.image)} 
+                    alt={facility.title} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover" 
+                  />
                 ) : (
                   <div className="w-full h-full bg-gray-100" />
                 )}

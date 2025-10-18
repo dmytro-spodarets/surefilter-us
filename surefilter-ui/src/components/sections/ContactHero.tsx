@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getAssetUrl } from '@/lib/assets';
 
 export default function ContactHero({ title, description, image }: { title: string; description?: string; image?: string }) {
@@ -14,8 +15,15 @@ export default function ContactHero({ title, description, image }: { title: stri
             ) : null}
           </div>
           <div className="relative w-full flex justify-center lg:justify-end">
-            <div className="aspect-[4/3] w-full max-w-lg lg:max-w-xl rounded-2xl overflow-hidden shadow-xl">
-              <img src={img} alt="Outer space view showing global connectivity and limitless reach" className="w-full h-full object-cover" />
+            <div className="aspect-[4/3] w-full max-w-lg lg:max-w-xl rounded-2xl overflow-hidden shadow-xl relative">
+              <Image 
+                src={img} 
+                alt="Outer space view showing global connectivity and limitless reach" 
+                fill 
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover" 
+                priority
+              />
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import imageCompression from 'browser-image-compression';
 
 interface FileUploaderProps {
   currentFolder: string;
@@ -26,6 +27,7 @@ export default function FileUploader({
 }: FileUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+  const [compressing, setCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -55,8 +57,52 @@ export default function FileUploader({
     }
   };
 
-  const handleFiles = (files: File[]) => {
-    const newUploadFiles: UploadFile[] = files.map(file => ({
+  // Compress image if it's an image file
+  const compressImageIfNeeded = async (file: File): Promise<File> => {
+    // Check if it's an image
+    if (!file.type.startsWith('image/')) {
+      return file;
+    }
+
+    // Skip SVG files (they're already optimized)
+    if (file.type === 'image/svg+xml') {
+      return file;
+    }
+
+    try {
+      const options = {
+        maxSizeMB: 1,          // Max 1MB
+        maxWidthOrHeight: 2048, // Max dimension 2048px
+        useWebWorker: true,
+        fileType: file.type,
+      };
+
+      const compressedFile = await imageCompression(file, options);
+      
+      // Only use compressed if it's smaller
+      if (compressedFile.size < file.size) {
+        console.log(`Compressed ${file.name}: ${formatFileSize(file.size)} → ${formatFileSize(compressedFile.size)}`);
+        return compressedFile;
+      }
+      
+      return file;
+    } catch (error) {
+      console.error('Compression failed, using original:', error);
+      return file;
+    }
+  };
+
+  const handleFiles = async (files: File[]) => {
+    setCompressing(true);
+    
+    // Compress images before creating upload files
+    const processedFiles = await Promise.all(
+      files.map(async (file) => await compressImageIfNeeded(file))
+    );
+
+    setCompressing(false);
+
+    const newUploadFiles: UploadFile[] = processedFiles.map(file => ({
       file,
       progress: 0,
       status: 'pending',
@@ -160,6 +206,9 @@ export default function FileUploader({
             <p className="text-sm text-gray-500 mt-1">
               Supports images, videos, and PDF files (max 50MB each)
             </p>
+            <p className="text-xs text-green-600 mt-1">
+              ✨ Images are automatically optimized before upload
+            </p>
             {currentFolder && (
               <p className="text-xs text-blue-600 mt-1">
                 Uploading to: {currentFolder}
@@ -168,6 +217,16 @@ export default function FileUploader({
           </div>
         </div>
       </div>
+
+      {/* Compressing indicator */}
+      {compressing && (
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span className="text-sm text-blue-700 font-medium">Optimizing images...</span>
+          </div>
+        </div>
+      )}
 
       {/* Upload Progress */}
       {uploadFiles.length > 0 && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Icon from '@/components/ui/Icon';
 import { getAssetUrl } from '@/lib/assets';
 
@@ -26,7 +27,13 @@ export default function AwardsCarousel({ title, subtitle, items = [] as AwardIte
                   <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-3xl mx-auto">
                     <div className="relative h-80 overflow-hidden">
                       {award.image ? (
-                        <img src={getAssetUrl(award.image)} alt={award.title} className="w-full h-full object-cover" />
+                        <Image 
+                          src={getAssetUrl(award.image)} 
+                          alt={award.title} 
+                          fill 
+                          sizes="(max-width: 768px) 100vw, 768px"
+                          className="object-cover" 
+                        />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-r from-sure-blue-600 to-sure-red-500" />
                       )}

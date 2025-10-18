@@ -38,7 +38,13 @@ export default async function IndustriesList({ title = 'Our Industries', descrip
             >
               <div className="relative h-64 bg-gray-100 overflow-hidden">
                 {industry.image ? (
-                  <Image src={getAssetUrl(industry.image)} alt={industry.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image 
+                    src={getAssetUrl(industry.image)} 
+                    alt={industry.title} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
                 ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6">
