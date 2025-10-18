@@ -26,6 +26,7 @@ export default function FeaturedProductsCms({ title, description, fallbackHref =
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
           {items.map((product, idx) => (
             <Link
+              key={idx}
               href={targetHref(product)}
               className="block bg-white rounded-lg border border-gray-100 overflow-hidden hover:border-sure-blue-200 transition-all duration-200 group"
             >
@@ -38,15 +39,17 @@ export default function FeaturedProductsCms({ title, description, fallbackHref =
                     className="object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 )}
-              </div>
-              <div className="p-4">
+                
+                {/* Category badge - top right corner */}
                 {product.category && (
-                  <div className="mb-2">
-                    <span className="inline-block px-2 py-1 bg-sure-blue-100 text-sure-blue-600 text-xs font-medium rounded-full">
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className="inline-block px-3 py-1 bg-sure-blue-600 text-white text-xs font-semibold rounded-full shadow-lg">
                       {product.category}
                     </span>
                   </div>
                 )}
+              </div>
+              <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-sure-blue-600 transition-colors">
                   {product.name}
                 </h3>

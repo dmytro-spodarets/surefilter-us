@@ -51,9 +51,9 @@ export default function WhyChoose({
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="flex flex-wrap justify-center gap-8">
           {items.map((item, index) => (
-            <div key={index} className="group text-center p-8 bg-white rounded-xl border border-gray-100 hover:border-sure-blue-200 transition-all duration-300 hover:-translate-y-2 relative overflow-hidden">
+            <div key={index} className="group text-center p-8 bg-white rounded-xl border border-gray-100 hover:border-sure-blue-200 transition-all duration-300 hover:-translate-y-2 relative overflow-hidden w-full md:w-[calc(33.333%-1.33rem)] md:max-w-[350px]">
               {/* Subtle gradient background on hover */}
               <div className="absolute inset-0 bg-gradient-to-br from-sure-blue-50/0 to-sure-red-50/0 group-hover:from-sure-blue-50/30 group-hover:to-sure-red-50/30 transition-all duration-300"></div>
               
