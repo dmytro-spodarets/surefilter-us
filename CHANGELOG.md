@@ -13,6 +13,13 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-10-20 — Оптимизация изображений: shimmer placeholders, priority loading для hero, оптимизированные sizes для всех Image компонентов, автоматическое сжатие при загрузке (1MB max, 2048px), preload логотипа
+- 2025-10-20 — Замена всех `<img>` на Next.js Image компонент: PopularFilters, ManufacturingFacilities, AwardsCarousel, ContactHero (WebP/AVIF, lazy loading, responsive)
+- 2025-10-20 — Новый CMS компонент FilterTypesImageGrid с изображениями вместо иконок: 16:9 формат, прижатие к низу, hover подчеркивание, настраиваемые колонки (2-8) и варианты стиля (card/simple)
+- 2025-10-20 — Улучшения CMS компонентов: WhyChooseCms (flexbox центрирование последней строки), FeaturedProductsCms (категория поверх изображения)
+- 2025-10-20 — Очистка кодовой базы: удалены 6 дублирующихся компонентов (Hero, AboutNews, QuickSearch, FeaturedProducts, WhyChoose, Industries), оставлены только CMS версии
+- 2025-10-20 — Исправления изображений: добавлен getAssetUrl для правильных путей к CDN во всех CMS компонентах (IndustriesCms, IndustriesList, PopularFilters и др.)
+- 2025-10-20 — Исправление сборки: страница /industries/agriculture переведена на dynamic rendering из-за использования БД запросов
 - 2025-09-23 — Полная система управления файлами: S3/MinIO интеграция, папки с вложенностью, превью изображений/видео/PDF, копирование CDN ссылок для контента
 - 2025-09-10 — Прод: домен `new.surefilter.us` через CloudFront+ACM+Route53, канонический домен (middleware) и защита origin заголовком; статика вынесена в S3+CloudFront
 - 2025-09-10 — CI: сборка и публикация образа с input `version`; извлечение статики из образа и выгрузка в S3; опциональная инвалидация CloudFront

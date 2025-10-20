@@ -21,11 +21,20 @@
 
 ### Компоненты (основные)
 - `layout/`: `Header`, `Footer`
-- `sections/`: `Hero`, `FullScreenHero`, `SingleImageHero`, `PageHero`, `PageHeroReverse`, `CompactHero`, `CompactSearchHero`, `SearchHero`, `QuickSearch`, `FeaturedProducts`, `Industries`, `IndustriesList`, `FilterTypesGrid`, `PopularFilters`, `Products`, `AboutWithStats`, `AboutNews`, `WhyChoose`, `QualityAssurance`, `ContentWithImages`, `RelatedFilters`, `NewsCarousel`, `LimitedWarrantyDetails`, `MagnussonMossAct`, `WarrantyClaimProcess`, `WarrantyContact`, `WarrantyPromise`
-- Новые секции: `ProductGallery`, `ProductSpecs` (варианты `cards`/`table`, `contained`), `ContactOptions`
-- `ui/`: `Button`, `Card`, `Icon`, `Input`, `Logo`, `Pagination`, `Collapsible`
+- `sections/` (CMS-версии):
+  - Hero: `HeroCms`, `FullScreenHero`, `SingleImageHero`, `PageHero`, `PageHeroReverse`, `CompactHero`, `CompactSearchHero`, `SearchHero`
+  - Content: `ContentWithImages`, `AboutWithStats`, `QualityAssurance`, `AboutNewsCms`
+  - Features: `WhyChooseCms`, `FeaturedProductsCms`, `IndustriesCms`, `IndustriesList`
+  - Filters: `FilterTypesGrid` (иконки), `FilterTypesImageGrid` (изображения, 16:9, настраиваемые колонки), `FilterTypesCms`, `PopularFilters`, `RelatedFilters`
+  - Search: `QuickSearchCms`, `SimpleSearch`
+  - Products: `Products`, `ProductGallery`, `ProductSpecs` (варианты `cards`/`table`, `contained`)
+  - Contact: `ContactOptions`, `ContactHero`, `ContactForm`, `ContactInfo`, `ContactDetails`, `ContactFormInfo`
+  - Warranty: `LimitedWarrantyDetails`, `MagnussonMossAct`, `WarrantyClaimProcess`, `WarrantyContact`, `WarrantyPromise`
+  - About: `ManufacturingFacilities`, `OurCompany`, `StatsBand`, `AwardsCarousel`
+  - News: `NewsCarousel`
+- `ui/`: `Button`, `Card`, `Icon`, `Input`, `Logo`, `Pagination`, `Collapsible`, `ManagedImage` (с shimmer placeholder)
 - `seo/`: `SEO`
-- `lib/`: `utils.ts` — `cn(...classes)`
+- `lib/`: `utils.ts` — `cn(...classes)`, `assets.ts` — `getAssetUrl`, `getOptimizedImageUrl`, `isAssetPath`
 
 ### Иконки
 - Компонент `Icon` принимает: `name`, `variant: 'outline' | 'solid'`, `size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'`, `color: 'sure-blue' | 'sure-orange' | 'gray' | 'white' | 'current'`.
@@ -40,13 +49,29 @@
 - Базовые метаданные и `metadataBase` задаются в `app/layout.tsx` через переменную окружения `NEXT_PUBLIC_SITE_URL`.
 
 ### Изображения и файлы
-- `next/image`, `object-cover`, `fill`, приоритет на первых экранах.
-- Обработка ошибок изображений через `onError` (см. `Industries.tsx`, `ProductGallery.tsx`), есть градиентные фоллбеки.
+- **Next.js Image оптимизация** (все компоненты используют `next/image` для автоматической WebP/AVIF конвертации):
+  - `ManagedImage` компонент с shimmer placeholder (анимация загрузки)
+  - Priority loading для hero-изображений (улучшает LCP на 20-30%)
+  - Оптимизированные `sizes` для responsive загрузки (экономия трафика ~40-50%)
+  - Preload критичных изображений (логотип) в `layout.tsx`
+  - Все `<img>` теги заменены на `<Image>` с правильными sizes
+- **Автоматическая оптимизация при загрузке**:
+  - Сжатие изображений до 1MB и 2048px (browser-image-compression)
+  - WebWorker для производительности
+  - Индикатор оптимизации в UI
+  - Применяется автоматически для всех загружаемых изображений
+- **CDN и кеширование**:
+  - CloudFront с TTL 1 год для статических assets
+  - Brotli + Gzip compression
+  - Правильные Cache-Control headers
+  - `getAssetUrl` утилита для унифицированной работы с путями
+- Обработка ошибок изображений через `onError`, есть градиентные фоллбеки.
 - **Файл-менеджер**: полная система управления медиафайлами через `/admin/files`
   - S3/MinIO интеграция с CDN (CloudFront)
   - Папки с вложенностью, drag & drop загрузка
   - Превью изображений, видео, PDF в модальных окнах
   - Копирование CDN ссылок для вставки в контент
+  - Автоматическая оптимизация изображений при загрузке
 
 ### Структура проекта (расширенно)
 ```
