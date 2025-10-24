@@ -256,6 +256,24 @@ enum ArticleStatus {
   ARCHIVED
 }
 
+model NewsCategory {
+  id          String        @id @default(cuid())
+  name        String        @unique // "Product Launch", "Trade Show", "Company News"
+  slug        String        @unique // "product-launch", "trade-show"
+  description String?
+  color       String?       // Hex color for UI (#FF5733)
+  icon        String?       // Icon name or emoji
+  position    Int           @default(0) // For sorting
+  isActive    Boolean       @default(true)
+  
+  articles    NewsArticle[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([position])
+}
+
 model NewsArticle {
   id             String        @id @default(cuid())
   slug           String        @unique
@@ -264,14 +282,15 @@ model NewsArticle {
   // General fields
   title          String
   excerpt        String        // Short description (150-250 chars)
-  content        String        @db.Text // Full content (HTML or Markdown)
+  content        String        @db.Text // Full content (HTML from TinyMCE)
   
   // Images
   featuredImage    String?
   featuredImageAlt String?
   
   // Metadata
-  category       String?       // "Product Launch", "Trade Show", "Business", etc.
+  categoryId     String?
+  category       NewsCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags           String[]      @default([])
   author         String?
   
@@ -305,6 +324,6 @@ model NewsArticle {
   @@index([type, status, publishedAt(sort: Desc)])
   @@index([type, eventStartDate(sort: Asc)])
   @@index([type, isFeatured, eventStartDate(sort: Asc)])
-  @@index([category])
+  @@index([categoryId])
   @@index([status])
 }

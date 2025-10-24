@@ -98,7 +98,7 @@ export function renderSection(section: CmsSection) {
           aboutCtaLabel={d?.aboutCtaLabel}
           aboutCtaHref={d?.aboutCtaHref}
           newsTitle={d?.newsTitle}
-          newsItems={Array.isArray(d?.newsItems) ? d.newsItems : []}
+          newsCount={d?.newsCount}
           newsCtaLabel={d?.newsCtaLabel}
           newsCtaHref={d?.newsCtaHref}
         />

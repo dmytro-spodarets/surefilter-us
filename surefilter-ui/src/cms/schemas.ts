@@ -84,8 +84,8 @@ export const IndustriesListSchema = z.object({
 export type IndustriesListInput = z.infer<typeof IndustriesListSchema>;
 
 // AboutNews
+// Note: newsItems are now loaded automatically from the database (latest N published articles)
 export const AboutNewsStatSchema = z.object({ number: z.string(), label: z.string() });
-export const AboutNewsItemSchema = z.object({ title: z.string(), date: z.string(), category: z.string(), href: z.string().optional().default('') });
 
 export const AboutNewsSchema = z.object({
   aboutTitle: z.string().optional().default('Who We Are'),
@@ -94,9 +94,9 @@ export const AboutNewsSchema = z.object({
   aboutCtaLabel: z.string().optional().default('Learn More About Us'),
   aboutCtaHref: z.string().optional().default('#'),
   newsTitle: z.string().optional().default('News & Updates'),
-  newsItems: z.array(AboutNewsItemSchema).default([]),
+  newsCount: z.number().min(3).max(5).optional().default(5), // Number of news items to display (3, 4, or 5)
   newsCtaLabel: z.string().optional().default('See All News'),
-  newsCtaHref: z.string().optional().default('#'),
+  newsCtaHref: z.string().optional().default('/newsroom'),
 });
 
 export type AboutNewsInput = z.infer<typeof AboutNewsSchema>;

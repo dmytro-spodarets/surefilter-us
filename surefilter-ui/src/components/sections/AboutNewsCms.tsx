@@ -1,13 +1,56 @@
-export default function AboutNewsCms({
+import { prisma } from '@/lib/prisma';
+
+async function getLatestNews(count: number = 5) {
+  try {
+    const articles = await prisma.newsArticle.findMany({
+      where: {
+        status: 'PUBLISHED',
+        publishedAt: {
+          lte: new Date()
+        }
+      },
+      include: {
+        category: {
+          select: {
+            name: true,
+            icon: true,
+            color: true
+          }
+        }
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      },
+      take: count
+    });
+
+    return articles.map(article => ({
+      title: article.title,
+      excerpt: article.excerpt,
+      date: new Date(article.publishedAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }),
+      category: article.category?.name || 'News',
+      href: `/newsroom/${article.slug}`
+    }));
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return [];
+  }
+}
+
+export default async function AboutNewsCms({
   aboutTitle,
   aboutParagraphs = [],
   stats = [] as { number: string; label: string }[],
   aboutCtaLabel = 'Learn More About Us',
   aboutCtaHref = '#',
   newsTitle,
-  newsItems = [] as { title: string; date: string; category: string; href?: string }[],
+  newsCount = 5,
   newsCtaLabel = 'See All News',
-  newsCtaHref = '#',
+  newsCtaHref = '/newsroom',
 }: {
   aboutTitle?: string;
   aboutParagraphs?: string[];
@@ -15,10 +58,11 @@ export default function AboutNewsCms({
   aboutCtaLabel?: string;
   aboutCtaHref?: string;
   newsTitle?: string;
-  newsItems?: { title: string; date: string; category: string; href?: string }[];
+  newsCount?: number;
   newsCtaLabel?: string;
   newsCtaHref?: string;
 }) {
+  const newsItems = await getLatestNews(newsCount);
   return (
     <section className="py-16 sm:py-24 bg-gradient-to-br from-gray-50 via-blue-50 to-sure-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
@@ -49,21 +93,58 @@ export default function AboutNewsCms({
 
           <div className="flex flex-col bg-white rounded-xl p-8 shadow-sm">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">{newsTitle}</h2>
-            <div className="space-y-6 mb-8">
-              {newsItems.map((n, i) => (
-                <div key={i} className="border-b border-gray-200 pb-4 last:border-b-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
+            <div className="space-y-4 mb-8">
+              {newsItems.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="mb-2">No news articles yet</p>
+                  <a href="/admin/news" className="text-sure-blue-600 hover:underline text-sm">
+                    Create your first article
+                  </a>
+                </div>
+              ) : (
+                newsItems.map((n, i) => (
+                  <a 
+                    key={i} 
+                    href={n.href}
+                    className="group block p-4 -mx-4 rounded-lg hover:bg-gray-50 transition-all duration-200"
+                  >
+                    {/* Мета информация */}
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {n.category}
+                      </span>
+                      <span className="text-gray-300">•</span>
+                      <span className="text-xs text-gray-500">{n.date}</span>
+                    </div>
+                    
+                    {/* Заголовок */}
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-sure-blue-600 transition-colors leading-snug">
                       {n.title}
                     </h3>
-                    <span className="text-sm text-gray-500 ml-4">{n.date}</span>
-                  </div>
-                  <span className="inline-block px-2 py-1 bg-sure-blue-100 text-sure-blue-600 text-xs font-medium rounded-full">{n.category}</span>
-                </div>
-              ))}
+                    
+                    {/* Описание */}
+                    {n.excerpt && (
+                      <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                        {n.excerpt}
+                      </p>
+                    )}
+                    
+                    {/* Read more появляется при hover */}
+                    <div className="mt-2 flex items-center text-sm font-medium text-sure-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span>Read more</span>
+                      <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </a>
+                ))
+              )}
             </div>
             <div className="mt-auto">
-              <a href={newsCtaHref} className="px-8 py-3 text-sure-blue-600 font-semibold border-2 border-sure-blue-600 rounded-lg hover:bg-sure-blue-50 hover:text-sure-blue-700 transition-all duration-200">
+              <a 
+                href={newsCtaHref} 
+                className="inline-block px-8 py-3 text-sure-blue-600 font-semibold border-2 border-sure-blue-600 rounded-lg hover:bg-sure-blue-50 hover:text-sure-blue-700 transition-all duration-200"
+              >
                 {newsCtaLabel}
               </a>
             </div>

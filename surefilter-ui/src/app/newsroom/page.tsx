@@ -4,144 +4,59 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import CompactHero from '@/components/sections/CompactHero';
 import { CalendarDaysIcon, MapPinIcon, UserGroupIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-const upcomingEvents = [
-  {
-    id: 1,
-    name: 'CONEXPO-CON/AGG 2025',
-    date: '2025-03-10',
-    endDate: '2025-03-14',
-    location: 'Las Vegas, NV',
-    venue: 'Las Vegas Convention Center',
-    description: 'The largest international trade show for the construction, aggregates, and ready-mix concrete industries.',
-    booth: 'Booth #C4521',
-    type: 'Trade Show',
-    attendees: '140,000+'
-  },
-  {
-    id: 2,
-    name: 'SEMA Show 2025',
-    date: '2025-04-15',
-    endDate: '2025-04-18',
-    location: 'Las Vegas, NV',
-    venue: 'Las Vegas Convention Center',
-    description: 'The premier automotive specialty products trade event in the world.',
-    booth: 'Booth #24567',
-    type: 'Automotive',
-    attendees: '70,000+'
-  },
-  {
-    id: 3,
-    name: 'BAUMA 2025',
-    date: '2025-05-20',
-    endDate: '2025-05-26',
-    location: 'Munich, Germany',
-    venue: 'Messe München',
-    description: 'World\'s leading trade fair for construction machinery, building material machines, and mining machines.',
-    booth: 'Hall A4, Booth #401',
-    type: 'Construction',
-    attendees: '600,000+'
-  },
-  {
-    id: 4,
-    name: 'Heavy Duty Expo 2025',
-    date: '2025-06-12',
-    endDate: '2025-06-14',
-    location: 'Dallas, TX',
-    venue: 'Kay Bailey Hutchison Convention Center',
-    description: 'The premier event for heavy-duty truck and equipment professionals.',
-    booth: 'Booth #1245',
-    type: 'Heavy Duty',
-    attendees: '25,000+'
-  }
-];
+interface Category {
+  name: string;
+  color: string | null;
+  icon: string | null;
+}
 
-const pressReleases = [
-  {
-    id: 1,
-    title: 'Sure Filter® Launches Revolutionary Heavy Duty Filtration System',
-    excerpt: 'Our latest innovation in heavy duty filtration technology sets new industry standards for performance and durability.',
-    date: '2024-12-15',
-    category: 'Product Launch',
-    link: '/newsroom/heavy-duty-filter-launch'
-  },
-  {
-    id: 2,
-    title: 'Sure Filter® Expands Global Distribution Network',
-    excerpt: 'Strategic partnerships established in key markets to better serve our international customers.',
-    date: '2024-11-20',
-    category: 'Business',
-    link: '#'
-  },
-  {
-    id: 3,
-    title: 'New Research & Development Center Opening',
-    excerpt: 'State-of-the-art facility to accelerate innovation in filtration technology.',
-    date: '2024-11-15',
-    category: 'Innovation',
-    link: '#'
-  },
-  {
-    id: 4,
-    title: 'Sure Filter® Wins Industry Excellence Award',
-    excerpt: 'Recognition for our commitment to innovation and quality in the filtration industry.',
-    date: '2024-11-05',
-    category: 'Awards',
-    link: '#'
-  },
-  {
-    id: 5,
-    title: 'Sustainable Manufacturing Initiatives Launch',
-    excerpt: 'Our commitment to environmental responsibility and sustainable manufacturing practices.',
-    date: '2024-10-28',
-    category: 'Sustainability',
-    link: '#'
-  },
-  {
-    id: 6,
-    title: 'Partnership with Leading OEM Manufacturer',
-    excerpt: 'Strategic alliance to enhance product quality and market reach.',
-    date: '2024-10-15',
-    category: 'Partnership',
-    link: '#'
-  },
-  {
-    id: 7,
-    title: 'Q3 2024 Financial Results Announced',
-    excerpt: 'Strong performance driven by innovation and market expansion.',
-    date: '2024-10-10',
-    category: 'Financial',
-    link: '#'
-  },
-  {
-    id: 8,
-    title: 'New Automotive Filter Line Introduction',
-    excerpt: 'Advanced filtration solutions for modern automotive applications.',
-    date: '2024-09-25',
-    category: 'Product Launch',
-    link: '#'
-  },
-  {
-    id: 9,
-    title: 'ISO 9001:2015 Certification Renewed',
-    excerpt: 'Continued commitment to quality management excellence.',
-    date: '2024-09-12',
-    category: 'Certification',
-    link: '#'
-  },
-  {
-    id: 10,
-    title: 'Industrial Filtration Solutions Expansion',
-    excerpt: 'Enhanced offerings for industrial and commercial applications.',
-    date: '2024-08-30',
-    category: 'Product Line',
-    link: '#'
-  }
-];
+interface NewsArticle {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  publishedAt: string;
+  eventStartDate: string | null;
+  eventEndDate: string | null;
+  eventUrl: string | null;
+  venue: string | null;
+  location: string | null;
+  booth: string | null;
+  attendees: string | null;
+  eventType: string | null;
+  category: Category | null;
+}
 
 export default function NewsroomPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [upcomingEvents, setUpcomingEvents] = useState<NewsArticle[]>([]);
+  const [pressReleases, setPressReleases] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // Загружаем события
+        const eventsRes = await fetch('/api/news?type=EVENT&featured=true&limit=10');
+        const eventsData = await eventsRes.json();
+        setUpcomingEvents(eventsData.articles || []);
+
+        // Загружаем новости
+        const newsRes = await fetch('/api/news?type=NEWS&limit=10');
+        const newsData = await newsRes.json();
+        setPressReleases(newsData.articles || []);
+      } catch (error) {
+        console.error('Error loading newsroom data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
   const eventsPerSlide = 2;
   const totalSlides = Math.ceil(upcomingEvents.length / eventsPerSlide);
 
@@ -152,6 +67,23 @@ export default function NewsroomPage() {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
+
+  if (loading) {
+    return (
+      <main>
+        <Header />
+        <CompactHero
+          title="Newsroom"
+          description="Stay updated with our upcoming events, exhibitions, and latest press releases."
+          backgroundImage="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        />
+        <div className="py-16 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sure-blue-600 mx-auto"></div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main>
@@ -165,180 +97,218 @@ export default function NewsroomPage() {
       />
 
       {/* Upcoming Events Section with Carousel */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Upcoming Events & Exhibitions</h2>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={prevSlide}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
-                disabled={totalSlides <= 1}
-              >
-                <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
-              </button>
-              <span className="text-sm text-gray-500">
-                {currentSlide + 1} / {totalSlides}
-              </span>
-              <button
-                onClick={nextSlide}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
-                disabled={totalSlides <= 1}
-              >
-                <ChevronRightIcon className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-
-          {/* Events Carousel */}
-          <div className="relative overflow-hidden">
-            <div 
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-                <div key={slideIndex} className="w-full flex-shrink-0">
-                  <div className="grid md:grid-cols-2 gap-8">
-                    {upcomingEvents
-                      .slice(slideIndex * eventsPerSlide, (slideIndex + 1) * eventsPerSlide)
-                      .map((event) => (
-                        <div key={event.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                          <div className="h-48 bg-gradient-to-br from-sure-blue-500 to-sure-blue-600 flex items-center justify-center relative">
-                            <div className="text-center text-white">
-                              <CalendarDaysIcon className="h-12 w-12 mx-auto mb-2" />
-                              <div className="text-sm font-medium">{event.type}</div>
-                            </div>
-                            <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
-                              <div className="text-white text-sm font-medium">{event.attendees}</div>
-                            </div>
-                          </div>
-                          <div className="p-6">
-                            <div className="flex items-center text-sm text-gray-500 mb-3">
-                              <CalendarDaysIcon className="h-4 w-4 mr-1" />
-                              <span>{new Date(event.date).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                              })}</span>
-                              {event.endDate && (
-                                <>
-                                  <span className="mx-2">-</span>
-                                  <span>{new Date(event.endDate).toLocaleDateString('en-US', { 
-                                    month: 'short', 
-                                    day: 'numeric' 
-                                  })}</span>
-                                </>
-                              )}
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-3">
-                              {event.name}
-                            </h3>
-                            <p className="text-gray-600 mb-4 leading-relaxed">
-                              {event.description}
-                            </p>
-                            <div className="space-y-2 mb-4">
-                              <div className="flex items-center text-sm text-gray-600">
-                                <MapPinIcon className="h-4 w-4 mr-2 text-gray-400" />
-                                <span>{event.venue}, {event.location}</span>
-                              </div>
-                              <div className="flex items-center text-sm text-gray-600">
-                                <UserGroupIcon className="h-4 w-4 mr-2 text-gray-400" />
-                                <span>{event.booth}</span>
-                              </div>
-                            </div>
-                            <div className="bg-sure-blue-50 rounded-lg p-3">
-                              <div className="text-sure-blue-800 font-semibold text-sm">
-                                Visit us at {event.booth}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
+      {upcomingEvents.length > 0 && (
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">Upcoming Events & Exhibitions</h2>
+              {totalSlides > 1 && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={prevSlide}
+                    className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
+                  </button>
+                  <span className="text-sm text-gray-500">
+                    {currentSlide + 1} / {totalSlides}
+                  </span>
+                  <button
+                    onClick={nextSlide}
+                    className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    <ChevronRightIcon className="h-5 w-5 text-gray-600" />
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
-          </div>
 
-          {/* Carousel Indicators */}
-          <div className="flex justify-center mt-6 space-x-2">
-            {Array.from({ length: totalSlides }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-colors duration-200 ${
-                  index === currentSlide ? 'bg-sure-blue-500' : 'bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+            {/* Events Carousel */}
+            <div className="relative overflow-hidden">
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+                  <div key={slideIndex} className="w-full flex-shrink-0">
+                    <div className="grid md:grid-cols-2 gap-8 py-2">
+                      {upcomingEvents
+                        .slice(slideIndex * eventsPerSlide, (slideIndex + 1) * eventsPerSlide)
+                        .map((event) => {
+                          const EventCard = (
+                            <>
+                              <div className="h-48 bg-gradient-to-br from-sure-blue-500 to-sure-blue-600 flex items-center justify-center relative">
+                                <div className="text-center text-white">
+                                  <CalendarDaysIcon className="h-12 w-12 mx-auto mb-2" />
+                                  <div className="text-sm font-medium">{event.eventType || 'Event'}</div>
+                                </div>
+                                {event.attendees && (
+                                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
+                                    <div className="text-white text-sm font-medium">{event.attendees}</div>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-6">
+                                <div className="flex items-center text-sm text-gray-500 mb-3">
+                                  <CalendarDaysIcon className="h-4 w-4 mr-1" />
+                                  <span>
+                                    {event.eventStartDate && new Date(event.eventStartDate).toLocaleDateString('en-US', { 
+                                      month: 'short', 
+                                      day: 'numeric', 
+                                      year: 'numeric' 
+                                    })}
+                                  </span>
+                                  {event.eventEndDate && (
+                                    <>
+                                      <span className="mx-2">-</span>
+                                      <span>
+                                        {new Date(event.eventEndDate).toLocaleDateString('en-US', { 
+                                          month: 'short', 
+                                          day: 'numeric' 
+                                        })}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                                  {event.title}
+                                </h3>
+                                <p className="text-gray-600 mb-4 leading-relaxed">
+                                  {event.excerpt}
+                                </p>
+                                <div className="space-y-2 mb-4">
+                                  {(event.venue || event.location) && (
+                                    <div className="flex items-center text-sm text-gray-600">
+                                      <MapPinIcon className="h-4 w-4 mr-2 text-gray-400" />
+                                      <span>{[event.venue, event.location].filter(Boolean).join(', ')}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                {event.booth && (
+                                  <div className="bg-sure-blue-500 rounded-lg p-3">
+                                    <div className="text-white font-semibold text-sm">
+                                      Visit us at {event.booth}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          );
 
-      {/* Press Releases Section */}
+                          // Если есть eventUrl, оборачиваем в ссылку
+                          if (event.eventUrl) {
+                            return (
+                              <a
+                                key={event.id}
+                                href={event.eventUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:bg-gray-50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                              >
+                                {EventCard}
+                              </a>
+                            );
+                          }
+
+                          // Если нет eventUrl, просто div
+                          return (
+                            <div key={event.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                              {EventCard}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Carousel Indicators */}
+            {totalSlides > 1 && (
+              <div className="flex justify-center mt-6 space-x-2">
+                {Array.from({ length: totalSlides }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+                      index === currentSlide ? 'bg-sure-blue-500' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Latest News Section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Press Releases</h2>
-          <div className="space-y-6">
-            {pressReleases.map((release) => (
-              <div key={release.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-3">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sure-blue-100 text-sure-blue-800">
-                        {release.category}
-                      </span>
-                      <span className="ml-3 text-sm text-gray-500">
-                        {new Date(release.date).toLocaleDateString('en-US', { 
-                          month: 'long', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
-                      </span>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Latest News</h2>
+          {pressReleases.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No news available at this time.</p>
+            </div>
+          ) : (
+            <div className="space-y-6 py-2">
+              {pressReleases.map((release) => (
+                <Link 
+                  key={release.id} 
+                  href={`/newsroom/${release.slug}`}
+                  className="group block bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:bg-gray-50 hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-3">
+                        {release.category && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sure-blue-100 text-sure-blue-800">
+                            {release.category.name}
+                          </span>
+                        )}
+                        <span className="ml-3 text-sm text-gray-500">
+                          {new Date(release.publishedAt).toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-sure-blue-600 transition-colors">
+                        {release.title}
+                      </h3>
+                      <p className="text-gray-600 mb-3 leading-relaxed">
+                        {release.excerpt}
+                      </p>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {release.title}
-                    </h3>
-                    <p className="text-gray-600 mb-3 leading-relaxed">
-                      {release.excerpt}
-                    </p>
+                    <div className="text-sure-blue-500 font-semibold group-hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      Read More →
+                    </div>
                   </div>
-                  <a href={release.link} className="text-sure-blue-500 font-semibold hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0">
-                    Read Full Release →
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
           
-          {/* Pagination */}
-          <div className="mt-12 flex items-center justify-center space-x-2">
-            <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
-              <ChevronLeftIcon className="h-4 w-4 mr-1" />
-              Previous
-            </button>
-            
-            <div className="flex space-x-1">
-              <button className="px-3 py-2 text-sm font-medium text-white bg-sure-blue-500 border border-sure-blue-500 rounded-lg">
-                1
+          {/* Pagination - будет работать позже */}
+          {pressReleases.length > 0 && (
+            <div className="mt-12 flex items-center justify-center space-x-2">
+              <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+                <ChevronLeftIcon className="h-4 w-4 mr-1" />
+                Previous
               </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                2
-              </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                3
-              </button>
-              <span className="px-3 py-2 text-sm text-gray-500">...</span>
-              <button className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                12
+              
+              <div className="flex space-x-1">
+                <button className="px-3 py-2 text-sm font-medium text-white bg-sure-blue-500 border border-sure-blue-500 rounded-lg">
+                  1
+                </button>
+              </div>
+              
+              <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+                Next
+                <ChevronRightIcon className="h-4 w-4 ml-1" />
               </button>
             </div>
-            
-            <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
-              Next
-              <ChevronRightIcon className="h-4 w-4 ml-1" />
-            </button>
-          </div>
+          )}
         </div>
       </section>
 

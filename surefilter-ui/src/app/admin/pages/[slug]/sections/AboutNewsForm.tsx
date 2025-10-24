@@ -11,9 +11,9 @@ export default function AboutNewsForm({ sectionId, initialData }: { sectionId: s
     aboutCtaLabel: initialData.aboutCtaLabel || 'Learn More About Us',
     aboutCtaHref: initialData.aboutCtaHref || '#',
     newsTitle: initialData.newsTitle || 'News & Updates',
-    newsItems: Array.isArray(initialData.newsItems) ? initialData.newsItems : [],
+    newsCount: initialData.newsCount || 5,
     newsCtaLabel: initialData.newsCtaLabel || 'See All News',
-    newsCtaHref: initialData.newsCtaHref || '#',
+    newsCtaHref: initialData.newsCtaHref || '/newsroom',
   });
 
   const [saving, setSaving] = useState(false);
@@ -29,10 +29,6 @@ export default function AboutNewsForm({ sectionId, initialData }: { sectionId: s
   const updateStat = (idx: number, key: 'number' | 'label', value: string) => setForm((f) => ({ ...f, stats: f.stats.map((s, i) => (i === idx ? { ...s, [key]: value } : s)) }));
   const removeStat = (idx: number) => setForm((f) => ({ ...f, stats: f.stats.filter((_, i) => i !== idx) }));
 
-  // News helpers
-  const addNews = () => setForm((f) => ({ ...f, newsItems: [...f.newsItems, { title: '', date: '', category: '', href: '' }] }));
-  const updateNews = (idx: number, key: 'title' | 'date' | 'category' | 'href', value: string) => setForm((f) => ({ ...f, newsItems: f.newsItems.map((n, i) => (i === idx ? { ...n, [key]: value } : n)) }));
-  const removeNews = (idx: number) => setForm((f) => ({ ...f, newsItems: f.newsItems.filter((_, i) => i !== idx) }));
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,40 +103,30 @@ export default function AboutNewsForm({ sectionId, initialData }: { sectionId: s
         {/* News column */}
         <div className="grid gap-4">
           <h3 className="font-medium text-gray-900">News (right column)</h3>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-800">
+              📰 Latest published news articles will be automatically displayed here.
+              <br />
+              <a href="/admin/news" className="underline font-medium">Manage news articles</a>
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-700 mb-1">Title</label>
               <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.newsTitle || ''} onChange={(e) => setForm({ ...form, newsTitle: e.target.value })} />
             </div>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm text-gray-700">News items</label>
-              <button type="button" onClick={addNews} className="text-sure-blue-600 hover:underline text-sm">Add news</button>
+            <div>
+              <label className="block text-sm text-gray-700 mb-1">Number of News Items</label>
+              <select 
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                value={form.newsCount || 5}
+                onChange={(e) => setForm({ ...form, newsCount: parseInt(e.target.value) })}
+              >
+                <option value={3}>3 news items</option>
+                <option value={4}>4 news items</option>
+                <option value={5}>5 news items</option>
+              </select>
             </div>
-            {form.newsItems.map((n, idx) => (
-              <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm text-gray-700 mb-1">Title</label>
-                  <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={n.title} onChange={(e) => updateNews(idx, 'title', e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700 mb-1">Date</label>
-                  <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={n.date} onChange={(e) => updateNews(idx, 'date', e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700 mb-1">Category</label>
-                  <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={n.category} onChange={(e) => updateNews(idx, 'category', e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700 mb-1">Href (optional)</label>
-                  <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={n.href || ''} onChange={(e) => updateNews(idx, 'href', e.target.value)} />
-                </div>
-                <div className="text-right md:col-span-2">
-                  <button type="button" onClick={() => removeNews(idx)} className="text-sm text-red-600 hover:underline">Remove</button>
-                </div>
-              </div>
-            ))}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
