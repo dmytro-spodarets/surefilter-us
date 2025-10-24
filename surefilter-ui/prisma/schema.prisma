@@ -243,3 +243,68 @@ model MediaAsset {
   @@index([mimeType])
   @@index([createdAt])
 }
+
+// News & Events system
+enum ArticleType {
+  NEWS
+  EVENT
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model NewsArticle {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  type           ArticleType   @default(NEWS)
+  
+  // General fields
+  title          String
+  excerpt        String        // Short description (150-250 chars)
+  content        String        @db.Text // Full content (HTML or Markdown)
+  
+  // Images
+  featuredImage    String?
+  featuredImageAlt String?
+  
+  // Metadata
+  category       String?       // "Product Launch", "Trade Show", "Business", etc.
+  tags           String[]      @default([])
+  author         String?
+  
+  // Publishing
+  publishedAt    DateTime      // When to show on site
+  status         ArticleStatus @default(DRAFT)
+  
+  // Event-specific fields (only used when type = EVENT)
+  eventStartDate DateTime?     // Event start date
+  eventEndDate   DateTime?     // Event end date (optional)
+  eventUrl       String?       // External event website URL
+  isFeatured     Boolean       @default(false) // Show at top (events only)
+  
+  // Event location
+  venue          String?       // "Las Vegas Convention Center"
+  location       String?       // "Las Vegas, NV"
+  booth          String?       // "Booth #C4521"
+  hall           String?       // "Hall A4"
+  eventType      String?       // "Trade Show", "Conference", "Webinar"
+  attendees      String?       // "140,000+"
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  @@index([type, publishedAt(sort: Desc)])
+  @@index([type, status, publishedAt(sort: Desc)])
+  @@index([type, eventStartDate(sort: Asc)])
+  @@index([type, isFeatured, eventStartDate(sort: Asc)])
+  @@index([category])
+  @@index([status])
+}

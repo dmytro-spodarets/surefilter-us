@@ -1,0 +1,82 @@
+name: DB - Drop Product Tables (Prod)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "DELETE" to confirm deletion of Product tables'
+        required: true
+        type: string
+
+jobs:
+  drop-tables:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'DELETE'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Drop Product tables from production database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "⚠️  WARNING: Dropping Product, SpecParameter, and ProductSpecValue tables from production database"
+          echo "This will delete all product data (currently ~2 products)"
+          echo ""
+          
+          # Extract connection details from DATABASE_URL
+          # Format: postgresql://user:password@host:port/database
+          PGPASSWORD=$(echo $DATABASE_URL | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p')
+          PGHOST=$(echo $DATABASE_URL | sed -n 's/.*@\(.*\):.*/\1/p')
+          PGPORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+          PGDATABASE=$(echo $DATABASE_URL | sed -n 's/.*\/\(.*\)/\1/p' | cut -d'?' -f1)
+          PGUSER=$(echo $DATABASE_URL | sed -n 's/.*:\/\/\(.*\):.*/\1/p')
+          
+          export PGPASSWORD PGHOST PGPORT PGDATABASE PGUSER
+          
+          echo "🔍 Checking current Product table counts..."
+          psql -c "SELECT 'Product' as table_name, COUNT(*) as count FROM \"Product\" 
+                   UNION ALL SELECT 'SpecParameter', COUNT(*) FROM \"SpecParameter\" 
+                   UNION ALL SELECT 'ProductSpecValue', COUNT(*) FROM \"ProductSpecValue\";" || echo "Tables don't exist yet"
+          
+          echo ""
+          echo "🗑️  Dropping tables..."
+          psql -c "DROP TABLE IF EXISTS \"ProductSpecValue\" CASCADE;"
+          psql -c "DROP TABLE IF EXISTS \"Product\" CASCADE;"
+          psql -c "DROP TABLE IF EXISTS \"SpecParameter\" CASCADE;"
+          
+          echo ""
+          echo "✅ Product tables dropped successfully!"
+          echo ""
+          echo "📋 Next steps:"
+          echo "1. Run the 'DB - Prisma Migrate Deploy' workflow to apply the new migration"
+          echo "2. The migration will recreate these tables with proper migration tracking"
+
+      - name: Verify tables are dropped
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          PGPASSWORD=$(echo $DATABASE_URL | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p')
+          PGHOST=$(echo $DATABASE_URL | sed -n 's/.*@\(.*\):.*/\1/p')
+          PGPORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+          PGDATABASE=$(echo $DATABASE_URL | sed -n 's/.*\/\(.*\)/\1/p' | cut -d'?' -f1)
+          PGUSER=$(echo $DATABASE_URL | sed -n 's/.*:\/\/\(.*\):.*/\1/p')
+          
+          export PGPASSWORD PGHOST PGPORT PGDATABASE PGUSER
+          
+          echo "🔍 Verifying tables are dropped..."
+          TABLE_COUNT=$(psql -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('Product', 'SpecParameter', 'ProductSpecValue');")
+          
+          if [ "$TABLE_COUNT" -eq 0 ]; then
+            echo "✅ All Product tables have been dropped successfully"
+          else
+            echo "❌ Some tables still exist"
+            exit 1
+          fi
+
