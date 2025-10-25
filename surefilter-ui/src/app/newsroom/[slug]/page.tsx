@@ -32,47 +32,17 @@ async function getArticleBySlug(slug: string) {
     }
   });
 
-  if (!article) {
-    return null;
-  }
-
-  // Получаем связанные статьи (того же типа или категории)
-  const relatedArticles = await prisma.newsArticle.findMany({
-    where: {
-      status: 'PUBLISHED',
-      id: { not: article.id },
-      OR: [
-        { type: article.type },
-        { categoryId: article.categoryId }
-      ]
-    },
-    include: {
-      category: {
-        select: {
-          name: true,
-          color: true,
-          icon: true
-        }
-      }
-    },
-    orderBy: {
-      publishedAt: 'desc'
-    },
-    take: 2
-  });
-
-  return { article, relatedArticles };
+  return article;
 }
 
 export default async function NewsArticlePage({ params }: NewsPageProps) {
   const { slug } = await params;
-  const data = await getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
 
-  if (!data) {
+  if (!article) {
     notFound();
   }
 
-  const { article, relatedArticles } = data;
   const isEvent = article.type === 'EVENT';
 
   return (
@@ -246,48 +216,6 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
               )}
             </div>
           </article>
-
-          {/* Related Articles */}
-          {relatedArticles.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Related {isEvent ? 'Events' : 'Articles'}
-              </h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                {relatedArticles.map((related) => (
-                  <Link
-                    key={related.id}
-                    href={`/newsroom/${related.slug}`}
-                    className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 block"
-                  >
-                    <div className="flex items-center mb-3 flex-wrap gap-2">
-                      {related.category && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sure-blue-100 text-sure-blue-800">
-                          {related.category.name}
-                        </span>
-                      )}
-                      <span className="text-sm text-gray-500">
-                        {new Date(related.publishedAt).toLocaleDateString('en-US', { 
-                          month: 'long', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-sure-blue-600 transition-colors">
-                      {related.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-2">
-                      {related.excerpt}
-                    </p>
-                    <div className="text-sure-blue-500 font-medium text-sm mt-3 inline-flex items-center">
-                      Read More →
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
