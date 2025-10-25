@@ -149,6 +149,24 @@ export async function generatePresignedUploadUrl(
   }
 }
 
+// Generate presigned URL for secure download
+export async function generatePresignedDownloadUrl(
+  key: string,
+  expiresIn: number = 900 // 15 minutes by default
+): Promise<string> {
+  try {
+    const command = new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+    });
+
+    return await getSignedUrl(s3Client, command, { expiresIn });
+  } catch (error) {
+    console.error('Error generating presigned download URL:', error);
+    throw new Error('Failed to generate download URL');
+  }
+}
+
 // Create folder in S3 (creates a placeholder object for empty folders)
 export async function createS3Folder(folderPath: string): Promise<void> {
   try {

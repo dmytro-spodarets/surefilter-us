@@ -74,6 +74,7 @@ enum SectionType {
   contact_info
   contact_details
   contact_form_info
+  form_embed
 }
 
 model Page {
@@ -326,4 +327,148 @@ model NewsArticle {
   @@index([type, isFeatured, eventStartDate(sort: Asc)])
   @@index([categoryId])
   @@index([status])
+}
+
+// ============================================
+// UNIVERSAL FORMS SYSTEM
+// ============================================
+
+// Universal reusable forms
+model Form {
+  id          String   @id @default(cuid())
+  name        String   // "Resource Download Form", "Contact Sales Form"
+  slug        String   @unique
+  description String?  @db.Text
+  
+  // Field configuration (JSON array)
+  fields      Json     // Array of field definitions
+  
+  // Success configuration
+  successTitle   String? @default("Thank You!")
+  successMessage String? @db.Text @default("Your form has been submitted successfully.")
+  redirectUrl    String? // Optional redirect after success
+  
+  // Webhook integration
+  webhookUrl     String?
+  webhookHeaders Json?   // Custom headers for webhook { "Authorization": "Bearer ..." }
+  
+  // Email notifications (optional)
+  notifyEmail    String? // Email for new submission notifications
+  
+  // Status
+  isActive    Boolean  @default(true)
+  
+  // Relations
+  submissions FormSubmission[]
+  resources   Resource[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([isActive])
+}
+
+// Form submissions (universal leads)
+model FormSubmission {
+  id          String   @id @default(cuid())
+  
+  // Form relation
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  // Submitted data (flexible JSON structure)
+  data        Json     // All form field values
+  
+  // Metadata
+  ipAddress   String?
+  userAgent   String?
+  referer     String?
+  
+  // Webhook status
+  webhookSent     Boolean  @default(false)
+  webhookError    String?  @db.Text
+  webhookResponse Json?    // Response from webhook
+  webhookAttempts Int      @default(0)
+  lastWebhookTry  DateTime?
+  
+  // Email status
+  emailSent   Boolean  @default(false)
+  emailError  String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([formId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([webhookSent])
+}
+
+// ============================================
+// RESOURCES SYSTEM
+// ============================================
+
+// Resource categories
+model ResourceCategory {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?    @db.Text
+  icon        String?    // HeroIcon name (e.g., "DocumentTextIcon")
+  color       String?    // Tailwind color class (e.g., "bg-blue-100 text-blue-700")
+  position    Int        @default(0)
+  isActive    Boolean    @default(true)
+  
+  resources   Resource[]
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@index([position])
+  @@index([isActive])
+}
+
+enum ResourceStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Resources (documents, videos, catalogs)
+model Resource {
+  id               String           @id @default(cuid())
+  title            String
+  slug             String           @unique
+  description      String           @db.Text // Full description
+  shortDescription String?          // For cards/previews
+  
+  // Files
+  thumbnailImage   String?          // Preview image (S3 key)
+  file             String           // Main file (S3 key) - can be PDF, video, etc.
+  fileType         String           // "PDF", "Video", "Document"
+  fileSize         String?          // "15.2 MB"
+  fileMeta         String?          // "124 pages" or "24 min" or "MP4"
+  
+  // Category
+  categoryId       String
+  category         ResourceCategory @relation(fields: [categoryId], references: [id])
+  
+  // FORM INTEGRATION - which form to show for this resource
+  formId           String?
+  form             Form?            @relation(fields: [formId], references: [id], onDelete: SetNull)
+  
+  // Status and publishing
+  status           ResourceStatus   @default(DRAFT)
+  publishedAt      DateTime?
+  
+  // SEO
+  metaTitle        String?
+  metaDescription  String?
+  ogImage          String?
+  
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  
+  @@index([categoryId])
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([formId])
 }
