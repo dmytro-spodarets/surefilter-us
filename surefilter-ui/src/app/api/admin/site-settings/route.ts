@@ -1,0 +1,161 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+
+const UpdateSettingsSchema = z.object({
+  // Newsroom
+  newsroomTitle: z.string().optional(),
+  newsroomDescription: z.string().optional(),
+  newsroomHeroImage: z.string().optional(),
+  newsroomMetaTitle: z.string().optional(),
+  newsroomMetaDesc: z.string().optional(),
+  newsroomOgImage: z.string().optional(),
+  
+  // Resources
+  resourcesTitle: z.string().optional(),
+  resourcesDescription: z.string().optional(),
+  resourcesHeroImage: z.string().optional(),
+  resourcesMetaTitle: z.string().optional(),
+  resourcesMetaDesc: z.string().optional(),
+  resourcesOgImage: z.string().optional(),
+  
+  // Navigation
+  headerNavigation: z.array(z.object({
+    label: z.string(),
+    url: z.string(),
+    order: z.number(),
+    isActive: z.boolean().default(true),
+  })).optional(),
+  
+  // Footer
+  footerContent: z.object({
+    description: z.string().optional(),
+    address: z.array(z.string()).optional(),
+    phone: z.string().optional(),
+    fax: z.string().optional(),
+    phoneTollFree: z.string().optional(),
+    aiAgent: z.string().optional(),
+    email: z.string().optional(),
+    companyLinks: z.array(z.object({
+      name: z.string(),
+      href: z.string(),
+    })).optional(),
+    socialLinks: z.array(z.object({
+      name: z.string(),
+      href: z.string(),
+    })).optional(),
+    appLinks: z.object({
+      appStore: z.string().optional(),
+      googlePlay: z.string().optional(),
+    }).optional(),
+    copyright: z.string().optional(),
+    legalLinks: z.array(z.object({
+      name: z.string(),
+      href: z.string(),
+    })).optional(),
+  }).optional(),
+});
+
+// GET /api/admin/site-settings - Get current settings
+export async function GET(request: NextRequest) {
+  try {
+    let settings = await prisma.siteSettings.findUnique({
+      where: { id: 'site_settings' },
+    });
+
+    // Create default settings if not exists
+    if (!settings) {
+      settings = await prisma.siteSettings.create({
+        data: {
+          id: 'site_settings',
+          newsroomTitle: 'Newsroom',
+          newsroomDescription: 'Latest news and updates from Sure Filter',
+          resourcesTitle: 'Resources',
+          resourcesDescription: 'Download our catalogs, guides, and technical documentation',
+          headerNavigation: [
+            { label: 'Home', url: '/', order: 1, isActive: true },
+            { label: 'Heavy Duty', url: '/heavy-duty', order: 2, isActive: true },
+            { label: 'Automotive', url: '/automotive', order: 3, isActive: true },
+            { label: 'Industries', url: '/industries', order: 4, isActive: true },
+            { label: 'About Us', url: '/about-us', order: 5, isActive: true },
+            { label: 'Contact Us', url: '/contact-us', order: 6, isActive: true },
+          ],
+          footerContent: {
+            description: 'Your trusted partner for superior filtration solutions. Premium quality, performance, and reliability for the world\'s toughest applications.',
+            address: [
+              '1470 Civic Dr. STE 309',
+              'Concord, CA 94520',
+            ],
+            phone: '+1 (925) 566-8863/73',
+            fax: '+1 (925) 566-8893',
+            phoneTollFree: '+1 8448 BE SURE',
+            aiAgent: 'Phil, our AI Service Agent: +1-651-273-9232',
+            email: 'order@surefilter.us',
+            companyLinks: [
+              { name: 'About Us', href: '/about-us' },
+              { name: 'Contact Us', href: '/contact-us' },
+              { name: 'Newsroom', href: '/newsroom' },
+              { name: 'Warranty', href: '/warranty' },
+              { name: 'Resources', href: '/resources' },
+              { name: 'Catalog', href: '/catalog' },
+            ],
+            socialLinks: [
+              { name: 'LinkedIn', href: '#' },
+              { name: 'Facebook', href: '#' },
+            ],
+            appLinks: {
+              appStore: '#',
+              googlePlay: '#',
+            },
+            copyright: '© 2025 Sure Filter®. All rights reserved.',
+            legalLinks: [
+              { name: 'Privacy Policy', href: '/privacy' },
+              { name: 'Terms of Use', href: '/terms' },
+            ],
+          },
+        },
+      });
+    }
+
+    return NextResponse.json(settings);
+  } catch (error) {
+    console.error('Error fetching site settings:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch site settings' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/admin/site-settings - Update settings
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const data = UpdateSettingsSchema.parse(body);
+
+    const settings = await prisma.siteSettings.upsert({
+      where: { id: 'site_settings' },
+      update: data,
+      create: {
+        id: 'site_settings',
+        ...data,
+      },
+    });
+
+    return NextResponse.json(settings);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.issues },
+        { status: 400 }
+      );
+    }
+
+    console.error('Error updating site settings:', error);
+    return NextResponse.json(
+      { error: 'Failed to update site settings' },
+      { status: 500 }
+    );
+  }
+}
+

@@ -32,10 +32,10 @@ export default async function AdminPage() {
           <h2 className="font-medium text-gray-900">Industries</h2>
           <p className="text-sm text-gray-600">Create and manage industry pages.</p>
         </Link>
-        <div className="border border-gray-200 rounded-lg p-4">
+        <Link href="/admin/settings" className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
           <h2 className="font-medium text-gray-900">Settings</h2>
-          <p className="text-sm text-gray-600">Users, roles, preferences.</p>
-        </div>
+          <p className="text-sm text-gray-600">Site settings, pages, navigation, footer.</p>
+        </Link>
       </div>
 
       <div className="mt-8">

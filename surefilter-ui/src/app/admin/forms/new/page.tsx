@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import FormBuilder, { FormData } from '@/components/admin/FormBuilder';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
 
 export default function NewFormPage() {
   const router = useRouter();
@@ -37,6 +38,12 @@ export default function NewFormPage() {
 
   return (
     <div className="p-6">
+      <Breadcrumbs items={[
+        { label: 'Admin', href: '/admin' },
+        { label: 'Forms', href: '/admin/forms' },
+        { label: 'New Form' },
+      ]} />
+
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Create New Form</h1>
         <p className="text-gray-600 mt-1">Build a custom form to collect data from your users</p>

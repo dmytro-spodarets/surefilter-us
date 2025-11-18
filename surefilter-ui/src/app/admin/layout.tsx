@@ -2,40 +2,160 @@
 
 import Link from 'next/link';
 import { SessionProvider } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [formsMenuOpen, setFormsMenuOpen] = useState(false);
+  const [resourcesMenuOpen, setResourcesMenuOpen] = useState(false);
+
+  const isActive = (path: string) => {
+    if (path === '/admin') return pathname === path;
+    return pathname?.startsWith(path);
+  };
+
+  const linkClass = (path: string) =>
+    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+      isActive(path)
+        ? 'bg-sure-blue-100 text-sure-blue-700'
+        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+    }`;
+
   return (
     <html lang="en">
       <body>
         <SessionProvider>
-        <header className="border-b border-gray-200 bg-white">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <Link href="/admin" className="font-semibold text-gray-900">Admin</Link>
-              <nav className="flex items-center gap-4 text-sm">
-                <Link href="/admin/pages" className="text-gray-700 hover:text-gray-900">Pages</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/industries" className="text-gray-700 hover:text-gray-900">Industries</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/filter-types" className="text-gray-700 hover:text-gray-900">Filter Types</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/spec-parameters" className="text-gray-700 hover:text-gray-900">Specs</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/products" className="text-gray-700 hover:text-gray-900">Products</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/news" className="text-gray-700 hover:text-gray-900">News</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/forms" className="text-gray-700 hover:text-gray-900">Forms</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/files" className="text-gray-700 hover:text-gray-900">Files</Link>
-                <span className="text-gray-300">|</span>
-                <Link href="/admin/settings" className="text-gray-700 hover:text-gray-900">Settings</Link>
-              </nav>
+        <header className="border-b border-gray-200 bg-white sticky top-0 z-50 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            {/* Main Navigation */}
+            <div className="flex items-center justify-between h-16">
+              {/* Left: Brand + Nav */}
+              <div className="flex items-center gap-8">
+                <Link href="/admin" className="flex items-center gap-2">
+                  <span className="text-xl font-bold text-sure-blue-600">SF</span>
+                  <span className="text-sm font-semibold text-gray-900">Admin</span>
+                </Link>
+                
+                <nav className="hidden md:flex items-center gap-1">
+                  {/* Content */}
+                  <Link href="/admin/pages" className={linkClass('/admin/pages')}>
+                    Pages
+                  </Link>
+                  <Link href="/admin/news" className={linkClass('/admin/news')}>
+                    News
+                  </Link>
+
+                  {/* Products */}
+                  <Link href="/admin/industries" className={linkClass('/admin/industries')}>
+                    Industries
+                  </Link>
+                  <Link href="/admin/filter-types" className={linkClass('/admin/filter-types')}>
+                    Filter Types
+                  </Link>
+                  <Link href="/admin/products" className={linkClass('/admin/products')}>
+                    Products
+                  </Link>
+
+                  {/* Forms Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setFormsMenuOpen(!formsMenuOpen)}
+                      onBlur={() => setTimeout(() => setFormsMenuOpen(false), 200)}
+                      className={`${linkClass('/admin/forms')} flex items-center gap-1`}
+                    >
+                      Forms
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {formsMenuOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1">
+                        <Link
+                          href="/admin/forms"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          📋 All Forms
+                        </Link>
+                        <Link
+                          href="/admin/forms/new"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          ➕ Create Form
+                        </Link>
+                        <Link
+                          href="/admin/form-submissions"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          📥 All Submissions
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Resources Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setResourcesMenuOpen(!resourcesMenuOpen)}
+                      onBlur={() => setTimeout(() => setResourcesMenuOpen(false), 200)}
+                      className={`${linkClass('/admin/resources')} flex items-center gap-1`}
+                    >
+                      Resources
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {resourcesMenuOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1">
+                        <Link
+                          href="/admin/resources"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          📄 All Resources
+                        </Link>
+                        <Link
+                          href="/admin/resources/new"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          ➕ Add Resource
+                        </Link>
+                        <Link
+                          href="/admin/resource-categories"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          🏷️ Categories
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Media & Settings */}
+                  <Link href="/admin/files" className={linkClass('/admin/files')}>
+                    Files
+                  </Link>
+                  <Link href="/admin/settings" className={linkClass('/admin/settings')}>
+                    Settings
+                  </Link>
+                </nav>
+              </div>
+
+              {/* Right: Actions */}
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/"
+                  target="_blank"
+                  className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  View Site
+                </Link>
+              </div>
             </div>
-            <Link href="/" className="text-sm text-sure-blue-600 hover:underline">← Back to site</Link>
           </div>
         </header>
-        <main>{children}</main>
+        <main className="min-h-screen bg-gray-50">{children}</main>
         </SessionProvider>
       </body>
     </html>

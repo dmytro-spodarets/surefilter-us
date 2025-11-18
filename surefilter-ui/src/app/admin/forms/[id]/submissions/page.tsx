@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
 
 interface Submission {
   id: string;
@@ -57,6 +58,33 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
       alert('Failed to load submissions');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetryWebhook = async (submissionId: string) => {
+    if (!confirm('Retry sending webhook for this submission?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/form-submissions/${submissionId}/retry-webhook`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) throw new Error('Failed to retry webhook');
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('Webhook sent successfully!');
+      } else {
+        alert(`Webhook failed: ${result.error || 'Unknown error'}`);
+      }
+
+      fetchFormAndSubmissions();
+    } catch (error) {
+      console.error('Error retrying webhook:', error);
+      alert('Failed to retry webhook');
     }
   };
 
@@ -126,16 +154,15 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="p-6">
+      <Breadcrumbs items={[
+        { label: 'Admin', href: '/admin' },
+        { label: 'Forms', href: '/admin/forms' },
+        { label: form.name, href: `/admin/forms/${id}/edit` },
+        { label: 'Submissions' },
+      ]} />
+
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-          <Link href="/admin/forms" className="hover:text-gray-900">Forms</Link>
-          <span>/</span>
-          <Link href={`/admin/forms/${id}/edit`} className="hover:text-gray-900">{form.name}</Link>
-          <span>/</span>
-          <span className="text-gray-900">Submissions</span>
-        </div>
-
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Form Submissions</h1>
@@ -225,6 +252,15 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
                     >
                       View
                     </button>
+                    {submission.webhookError && (
+                      <button
+                        onClick={() => handleRetryWebhook(submission.id)}
+                        className="text-orange-600 hover:text-orange-900 mr-3"
+                        title="Retry webhook"
+                      >
+                        🔄 Retry
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(submission.id)}
                       className="text-red-600 hover:text-red-900"

@@ -34,6 +34,7 @@ model User {
 // CMS primitives
 enum SectionType {
   hero_full
+  hero_carousel
   hero_compact
   page_hero
   page_hero_reverse
@@ -333,12 +334,18 @@ model NewsArticle {
 // UNIVERSAL FORMS SYSTEM
 // ============================================
 
+enum FormType {
+  DOWNLOAD  // Form for downloading resources (gated content)
+  CONTACT   // Form for contact/submissions (no download)
+}
+
 // Universal reusable forms
 model Form {
   id          String   @id @default(cuid())
   name        String   // "Resource Download Form", "Contact Sales Form"
   slug        String   @unique
   description String?  @db.Text
+  type        FormType @default(CONTACT) // Type of form
   
   // Field configuration (JSON array)
   fields      Json     // Array of field definitions
@@ -471,4 +478,37 @@ model Resource {
   @@index([categoryId])
   @@index([status, publishedAt(sort: Desc)])
   @@index([formId])
+}
+
+// ============================================
+// SITE SETTINGS
+// ============================================
+
+// Global site settings (single row)
+model SiteSettings {
+  id        String   @id @default("site_settings") // Always same ID
+  
+  // Special Pages Settings
+  newsroomTitle        String? @default("Newsroom")
+  newsroomDescription  String? @db.Text
+  newsroomHeroImage    String?
+  newsroomMetaTitle    String?
+  newsroomMetaDesc     String? @db.Text
+  newsroomOgImage      String?
+  
+  resourcesTitle       String? @default("Resources")
+  resourcesDescription String? @db.Text
+  resourcesHeroImage   String?
+  resourcesMetaTitle   String?
+  resourcesMetaDesc    String? @db.Text
+  resourcesOgImage     String?
+  
+  // Header Navigation (JSON array of menu items)
+  headerNavigation     Json?   // [{ label, url, order, isActive }]
+  
+  // Footer Settings (JSON object)
+  footerContent        Json?   // { description, address[], phone, fax, phoneTollFree, aiAgent, email, companyLinks[], socialLinks[], appLinks{ appStore, googlePlay }, copyright, legalLinks[] }
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendWebhookAsync } from '@/lib/webhook';
 import { z } from 'zod';
 
 // POST /api/forms/submit - Submit form (public)
@@ -108,8 +109,14 @@ export async function POST(request: NextRequest) {
 
     // Send webhook asynchronously (non-blocking)
     if (form.webhookUrl) {
-      sendWebhookAsync(submission.id, form.webhookUrl, form.webhookHeaders as any, fullData)
-        .catch(err => console.error('Webhook failed:', err));
+      sendWebhookAsync(
+        submission.id,
+        {
+          url: form.webhookUrl,
+          headers: form.webhookHeaders as Record<string, string> | undefined,
+        },
+        fullData
+      );
     }
 
     // Send email notification asynchronously (if configured)
@@ -131,77 +138,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Async webhook sender with retry logic
-async function sendWebhookAsync(
-  submissionId: string,
-  webhookUrl: string,
-  headers: Record<string, string> | null,
-  data: any
-) {
-  const maxRetries = 3;
-  let lastError: string | null = null;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...headers,
-        },
-        body: JSON.stringify(data),
-      });
-
-      const responseText = await response.text();
-      let responseJson;
-      try {
-        responseJson = JSON.parse(responseText);
-      } catch {
-        responseJson = { raw: responseText };
-      }
-
-      // Update submission with webhook status
-      await prisma.formSubmission.update({
-        where: { id: submissionId },
-        data: {
-          webhookSent: response.ok,
-          webhookError: response.ok ? null : `HTTP ${response.status}: ${responseText}`,
-          webhookResponse: responseJson,
-          webhookAttempts: attempt,
-          lastWebhookTry: new Date(),
-        },
-      });
-
-      if (response.ok) {
-        console.log(`Webhook sent successfully on attempt ${attempt}`);
-        return; // Success
-      } else {
-        lastError = `HTTP ${response.status}: ${responseText}`;
-        console.error(`Webhook attempt ${attempt} failed:`, lastError);
-      }
-    } catch (error: any) {
-      lastError = error.message;
-      console.error(`Webhook attempt ${attempt} failed:`, error);
-    }
-
-    // Exponential backoff
-    if (attempt < maxRetries) {
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-    }
-  }
-
-  // All retries failed
-  await prisma.formSubmission.update({
-    where: { id: submissionId },
-    data: {
-      webhookSent: false,
-      webhookError: `Failed after ${maxRetries} attempts: ${lastError}`,
-      webhookAttempts: maxRetries,
-      lastWebhookTry: new Date(),
-    },
-  });
 }
 
 // Async email notification sender

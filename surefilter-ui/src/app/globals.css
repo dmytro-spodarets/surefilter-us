@@ -85,3 +85,32 @@ a,
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Safari and Chrome */
 }
+
+/* Swiper Carousel Styles */
+.swiper-pagination {
+  bottom: 32px !important;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.swiper-pagination-bullet {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  opacity: 1 !important;
+}
+
+.swiper-button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Disable autoplay for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .swiper {
+    --swiper-autoplay-delay: 0 !important;
+  }
+}

@@ -78,18 +78,24 @@ Industries (/industries, /industries/agriculture)
 - [ ] /industries/[slug]: detail pages and content
 - Note: Legacy `/industry` removed in favor of `/industries`
 
-Resources (/resources, /resources/heavy-duty-catalog)
-- [ ] /resources: Static page → CMS migration needed
-- [ ] /resources/heavy-duty-catalog: Static page → CMS migration needed
-- [ ] Resource items (entity + CMS)
-- Note: Filtering, gallery/list toggle, pagination done in UI; backend pending
+Resources (/resources, /resources/[slug])
+- [x] /resources: Migrated to CMS with Server Component + Client interactivity
+- [x] /resources/[slug]: Dynamic resource pages with Server Component architecture
+- [x] Resource categories and forms integration
+- [x] Gated downloads with Universal Forms System
+- [x] File manager integration (S3/MinIO)
+- [x] Gallery/list view toggle with filters
+- Note: Complete Resources management system with admin panel
 
-Newsroom (/newsroom, /newsroom/heavy-duty-filter-launch)
-- [ ] /newsroom: Static page → CMS migration needed
-- [ ] /newsroom/heavy-duty-filter-launch: Static page → CMS migration needed
-- [ ] News list (NewsArticle entity)
-- [ ] News detail (CMS)
-- Note: One static detail page exists
+Newsroom (/newsroom, /newsroom/[slug])
+- [x] /newsroom: Migrated to CMS with Server Component + Client interactivity
+- [x] /newsroom/[slug]: Dynamic news/event pages
+- [x] News and Events system (single model with type field)
+- [x] News categories with admin management
+- [x] TinyMCE rich text editor for content
+- [x] Featured events display (carousel)
+- [x] AboutNewsCms component auto-fetches latest news
+- Note: Complete News & Events management system with admin panel
 
 Warranty (/warranty)
 - [ ] /warranty: Static page → CMS migration needed
@@ -116,10 +122,26 @@ Filters and Catalog (/filters/[code], /catalog)
 - [ ] Server filtering/search, Pagination component reuse
 - Note: UI implemented with filters, view toggle, pagination; using mock data
 
-4) Shared content
-- [ ] NavigationItem (Header)
-- [ ] FooterLink groups (Footer)
-- [ ] Global SEO defaults (already in layout; expose in admin)
+4) Shared content & Site Settings
+- [x] Site Settings admin panel (/admin/settings/site)
+- [x] Header Navigation management (title, href, order)
+- [x] Footer Content management (sections, links, contact info)
+- [x] Special Pages metadata (Newsroom, Resources: hero, SEO)
+- [x] Header/Footer components fetch data from CMS
+- [x] Server Components architecture for SEO optimization
+- [x] Separate save buttons for each settings section
+
+4.1) Universal Forms System
+- [x] Form builder with 7 field types (text, email, phone, textarea, select, checkbox, radio)
+- [x] Drag-and-drop field ordering
+- [x] Form types: CONTACT (general) and DOWNLOAD (gated content)
+- [x] Dynamic field validation (required, email, phone patterns)
+- [x] Webhook integration with retry logic (exponential backoff)
+- [x] Admin testing and manual retry of failed webhooks
+- [x] Form submissions tracking with CSV export
+- [x] CMS embedding via DynamicForm component
+- [x] File download gating through forms
+- [x] Admin panel: /admin/forms, /admin/forms/[id]/edit, /admin/forms/[id]/submissions
 
 5) Publishing
 - [ ] Draft/Published flags and visibility

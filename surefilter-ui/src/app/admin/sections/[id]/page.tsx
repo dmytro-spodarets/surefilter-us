@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
 import DeleteSectionButton from '@/app/admin/pages/[slug]/sections/DeleteSectionButton';
 import HomeHeroForm from '@/app/admin/pages/[slug]/sections/HomeHeroForm';
+import HeroCarouselForm from '@/app/admin/pages/[slug]/sections/HeroCarouselForm';
 import FeaturedProductsForm from '@/app/admin/pages/[slug]/sections/FeaturedProductsForm';
 import WhyChooseForm from '@/app/admin/pages/[slug]/sections/WhyChooseForm';
 import QuickSearchForm from '@/app/admin/pages/[slug]/sections/QuickSearchForm';
@@ -34,6 +35,7 @@ import FilterTypesGridForm from '@/app/admin/pages/[slug]/sections/FilterTypesGr
 import FilterTypesImageGridForm from '@/app/admin/pages/[slug]/sections/FilterTypesImageGridForm';
 import PopularFiltersForm from '@/app/admin/pages/[slug]/sections/PopularFiltersForm';
 import SimpleSearchForm from '@/app/admin/pages/[slug]/sections/SimpleSearchForm';
+import FormEmbedForm from '@/app/admin/pages/[slug]/sections/FormEmbedForm';
 import AdminContainer from '@/components/admin/AdminContainer';
 
 export const metadata = {
@@ -67,6 +69,9 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
 
         {section.type === 'hero_full' && (
           <HomeHeroForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'hero_carousel' && (
+          <HeroCarouselForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'featured_products' && (
           <FeaturedProductsForm sectionId={section.id} initialData={section.data as any} />
@@ -154,6 +159,9 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         )}
         {section.type === 'simple_search' && (
           <SimpleSearchForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'form_embed' && (
+          <FormEmbedForm sectionId={section.id} initialData={section.data as any} />
         )}
     </AdminContainer>
   );

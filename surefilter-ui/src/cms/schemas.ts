@@ -12,6 +12,24 @@ export const HeroFullSchema = z.object({
 
 export type HeroFullInput = z.infer<typeof HeroFullSchema>;
 
+// Hero Carousel
+export const HeroSlideSchema = z.object({
+  badge: z.string().optional().default(''),
+  titlePrefix: z.string().optional().default(''),
+  titleHighlight: z.string().optional().default(''),
+  subtitle: z.string().optional().default(''),
+  image: z.string().optional().default(''),
+});
+
+export const HeroCarouselSchema = z.object({
+  slides: z.array(HeroSlideSchema).default([]),
+  autoplayDelay: z.number().int().min(1000).optional().default(3000),
+  showNavigation: z.boolean().optional().default(true),
+  showPagination: z.boolean().optional().default(true),
+});
+
+export type HeroCarouselInput = z.infer<typeof HeroCarouselSchema>;
+
 export const FeaturedProductItemSchema = z.object({
   name: z.string(),
   description: z.string().optional().default(''),
@@ -333,5 +351,13 @@ export type IndustryMetaInput = z.infer<typeof IndustryMetaSchema>;
 // Generic listing meta (same shape as industry_meta)
 export const ListingCardMetaSchema = IndustryMetaSchema;
 export type ListingCardMetaInput = IndustryMetaInput;
+
+// Form Embed - Embed a universal form into any page
+export const FormEmbedSchema = z.object({
+  formId: z.string().min(1, 'Form is required'),
+  title: z.string().optional().default(''),
+  description: z.string().optional().default(''),
+});
+export type FormEmbedInput = z.infer<typeof FormEmbedSchema>;
 
 

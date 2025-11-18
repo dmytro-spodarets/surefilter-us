@@ -13,6 +13,13 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-11-18 — Hero Carousel: исправлена логика loop mode (требуется минимум 3 слайда, автоматическое отключение при 1-2 слайдах), оптимизирован autoplay (3sec вместо 5sec), убрана пауза при наведении мыши, исправлена TypeScript ошибка с loading prop, production build успешен
+- 2025-11-18 — Hero Carousel: добавлен HeroCarouselCms компонент с Swiper.js (slide transitions, autoplay, loop, navigation arrows, pagination dots, keyboard support, touch/swipe на мобильных, accessibility), админ-форма с управлением слайдами (вверх/вниз), настройки autoplay/navigation/pagination, поддержка prefers-reduced-motion
+- 2025-11-18 — Консолидация Header/Footer компонентов: оставлены 2 основных (Header и Footer как Server Components), Header разделён на sub-components (ScrollHeader, HeaderNav, MobileMenu), все публичные страницы конвертированы в Server Components для SEO, удалены дублирующие компоненты
+- 2025-11-18 — Оптимизация архитектуры Resources: страница /resources/[slug] переведена на Server Component с Client sub-component для формы, удалена статичная страница /resources/heavy-duty-catalog (весь функционал через админку), карточки ресурсов полностью кликабельны с hover эффектами
+- 2025-11-01 — Site Settings система: управление Header Navigation и Footer через админку, настройки Special Pages (Newsroom/Resources hero и SEO), отдельные кнопки сохранения для каждой секции, данные автоматически загружаются в Header/Footer компоненты
+- 2025-10-28 — Система News и Events: единая модель с полем type (NEWS/EVENT), категории новостей, TinyMCE редактор для контента, featured events на главной странице, автоматическая загрузка последних новостей в AboutNewsCms, публичная страница /newsroom с каруселью событий и списком новостей
+- 2025-10-26 — Универсальная система форм (Universal Forms System): конструктор форм с 7 типами полей, drag-and-drop, webhook интеграция с retry логикой, экспорт в CSV, встраивание через CMS, система Resources с категориями и gated downloads через формы, улучшенная навигация админки с dropdown меню и breadcrumbs
 - 2025-10-20 — Оптимизация изображений: shimmer placeholders, priority loading для hero, оптимизированные sizes для всех Image компонентов, автоматическое сжатие при загрузке (1MB max, 2048px), preload логотипа
 - 2025-10-20 — Замена всех `<img>` на Next.js Image компонент: PopularFilters, ManufacturingFacilities, AwardsCarousel, ContactHero (WebP/AVIF, lazy loading, responsive)
 - 2025-10-20 — Новый CMS компонент FilterTypesImageGrid с изображениями вместо иконок: 16:9 формат, прижатие к низу, hover подчеркивание, настраиваемые колонки (2-8) и варианты стиля (card/simple)

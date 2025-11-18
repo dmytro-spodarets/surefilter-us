@@ -1,4 +1,5 @@
 import HeroCms from '@/components/sections/HeroCms';
+import HeroCarouselCms from '@/components/sections/HeroCarouselCms';
 import FeaturedProductsCms from '@/components/sections/FeaturedProductsCms';
 import WhyChooseCms from '@/components/sections/WhyChooseCms';
 import QuickSearchCms from '@/components/sections/QuickSearchCms';
@@ -30,6 +31,7 @@ import type { CmsSection } from './types';
 import { HeroFullSchema } from './schemas';
 import FilterTypesGrid from '@/components/sections/FilterTypesGrid';
 import FilterTypesImageGrid from '@/components/sections/FilterTypesImageGrid';
+import FormEmbed from '@/components/forms/FormEmbed';
 
 export function renderSection(section: CmsSection) {
   switch ((section as any).type) {
@@ -45,6 +47,17 @@ export function renderSection(section: CmsSection) {
           titleHighlight={titleHighlight}
           subtitle={subtitle}
           image={image}
+        />
+      );
+    }
+    case 'hero_carousel': {
+      const d = section.data as any;
+      return (
+        <HeroCarouselCms
+          slides={Array.isArray(d?.slides) ? d.slides : []}
+          autoplayDelay={d?.autoplayDelay}
+          showNavigation={d?.showNavigation}
+          showPagination={d?.showPagination}
         />
       );
     }
@@ -193,6 +206,10 @@ export function renderSection(section: CmsSection) {
     case 'popular_filters': {
       const d = section.data as any;
       return <PopularFilters title={d?.title} description={d?.description} filters={Array.isArray(d?.items) ? d.items : []} catalogHref={d?.catalogHref} catalogText={d?.catalogText} columnsPerRow={d?.columnsPerRow} />;
+    }
+    case 'form_embed': {
+      const d = section.data as any;
+      return <FormEmbed formId={d?.formId} title={d?.title} description={d?.description} />;
     }
     default:
       return null;

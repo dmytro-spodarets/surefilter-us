@@ -2,12 +2,6 @@ import { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, 
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // S3 client configuration
-console.log('S3 Client Environment:', {
-  NODE_ENV: process.env.NODE_ENV,
-  AWS_REGION: process.env.AWS_REGION,
-  isDevelopment: process.env.NODE_ENV === 'development'
-});
-
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
   ...(process.env.NODE_ENV === 'development' ? {

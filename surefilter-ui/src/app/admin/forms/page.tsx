@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
 
 interface Form {
   id: string;
@@ -93,6 +94,11 @@ export default function FormsPage() {
 
   return (
     <div className="p-6">
+      <Breadcrumbs items={[
+        { label: 'Admin', href: '/admin' },
+        { label: 'Forms' },
+      ]} />
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">

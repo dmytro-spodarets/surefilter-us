@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import {
   HeroFullSchema,
+  HeroCarouselSchema,
   FeaturedProductsSchema,
   WhyChooseSchema,
   QuickSearchSchema,
@@ -43,6 +44,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (type === 'hero_full') {
     const parsed = HeroFullSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'hero_carousel') {
+    const parsed = HeroCarouselSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'featured_products') {
     const parsed = FeaturedProductsSchema.safeParse(data);

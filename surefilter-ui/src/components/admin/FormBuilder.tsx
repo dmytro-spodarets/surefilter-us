@@ -22,6 +22,7 @@ export interface FormData {
   name: string;
   slug: string;
   description?: string;
+  type: 'DOWNLOAD' | 'CONTACT';
   fields: FormField[];
   successTitle?: string;
   successMessage?: string;
@@ -36,6 +37,7 @@ interface FormBuilderProps {
   initialData?: Partial<FormData>;
   onSave: (data: FormData) => Promise<void>;
   onCancel: () => void;
+  formId?: string; // For testing webhook
 }
 
 const FIELD_TYPES: Array<{ value: FormField['type']; label: string }> = [
@@ -48,11 +50,12 @@ const FIELD_TYPES: Array<{ value: FormField['type']; label: string }> = [
   { value: 'radio', label: 'Radio Buttons' },
 ];
 
-export default function FormBuilder({ initialData, onSave, onCancel }: FormBuilderProps) {
+export default function FormBuilder({ initialData, onSave, onCancel, formId }: FormBuilderProps) {
   const [formData, setFormData] = useState<FormData>({
     name: initialData?.name || '',
     slug: initialData?.slug || '',
     description: initialData?.description || '',
+    type: initialData?.type || 'CONTACT',
     fields: initialData?.fields || [],
     successTitle: initialData?.successTitle || 'Thank You!',
     successMessage: initialData?.successMessage || 'Your form has been submitted successfully.',
@@ -66,6 +69,13 @@ export default function FormBuilder({ initialData, onSave, onCancel }: FormBuild
   const [activeTab, setActiveTab] = useState<'fields' | 'settings' | 'integrations'>('fields');
   const [editingFieldIndex, setEditingFieldIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [webhookTestResult, setWebhookTestResult] = useState<{
+    success: boolean;
+    message: string;
+    statusCode?: number;
+    error?: string;
+  } | null>(null);
 
   // Generate slug from name
   const handleNameChange = (name: string) => {
@@ -122,6 +132,40 @@ export default function FormBuilder({ initialData, onSave, onCancel }: FormBuild
     [newFields[index], newFields[targetIndex]] = [newFields[targetIndex], newFields[index]];
     setFormData({ ...formData, fields: newFields });
     setEditingFieldIndex(targetIndex);
+  };
+
+  // Test webhook
+  const handleTestWebhook = async () => {
+    if (!formId) {
+      alert('Please save the form first before testing the webhook');
+      return;
+    }
+
+    if (!formData.webhookUrl) {
+      alert('Please enter a webhook URL first');
+      return;
+    }
+
+    try {
+      setTestingWebhook(true);
+      setWebhookTestResult(null);
+
+      const response = await fetch(`/api/admin/forms/${formId}/test-webhook`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+      setWebhookTestResult(result);
+    } catch (error: any) {
+      console.error('Error testing webhook:', error);
+      setWebhookTestResult({
+        success: false,
+        message: 'Failed to test webhook',
+        error: error.message,
+      });
+    } finally {
+      setTestingWebhook(false);
+    }
   };
 
   // Handle submit
@@ -181,6 +225,26 @@ export default function FormBuilder({ initialData, onSave, onCancel }: FormBuild
               required
             />
             <p className="text-xs text-gray-500 mt-1">Only lowercase letters, numbers, and hyphens</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Form Type *
+            </label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as 'DOWNLOAD' | 'CONTACT' })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="CONTACT">Contact Form</option>
+              <option value="DOWNLOAD">Download Form (Resource Gating)</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {formData.type === 'DOWNLOAD' 
+                ? 'For gated resources - generates download links after submission'
+                : 'For general submissions - no download link generated'}
+            </p>
           </div>
 
           <div className="md:col-span-2">
@@ -526,6 +590,52 @@ export default function FormBuilder({ initialData, onSave, onCancel }: FormBuild
                     />
                     <p className="text-xs text-gray-500 mt-1">POST request will be sent to this URL with form data</p>
                   </div>
+
+                  {/* Test Webhook Button */}
+                  {formId && formData.webhookUrl && (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={handleTestWebhook}
+                        disabled={testingWebhook}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                      >
+                        {testingWebhook ? 'Testing...' : '🧪 Test Webhook'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Webhook Test Result */}
+                  {webhookTestResult && (
+                    <div className={`p-4 rounded-lg ${
+                      webhookTestResult.success 
+                        ? 'bg-green-50 border border-green-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">
+                          {webhookTestResult.success ? '✅' : '❌'}
+                        </span>
+                        <div className="flex-1">
+                          <p className={`font-medium ${
+                            webhookTestResult.success ? 'text-green-800' : 'text-red-800'
+                          }`}>
+                            {webhookTestResult.message}
+                          </p>
+                          {webhookTestResult.statusCode && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              Status Code: {webhookTestResult.statusCode}
+                            </p>
+                          )}
+                          {webhookTestResult.error && (
+                            <p className="text-sm text-red-600 mt-1">
+                              Error: {webhookTestResult.error}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

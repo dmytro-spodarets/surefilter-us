@@ -5,6 +5,7 @@ import { useState } from 'react';
 const OPTIONS = [
   // Home
   { value: 'hero_full', label: 'Home: Hero Full' },
+  { value: 'hero_carousel', label: 'Home: Hero Carousel (Slider)' },
   { value: 'hero_compact', label: 'Home: Hero Compact' },
   { value: 'featured_products', label: 'Home: Featured Products' },
   { value: 'why_choose', label: 'Home: Why Choose' },
@@ -55,6 +56,9 @@ const OPTIONS = [
   { value: 'contact_info', label: 'Contact: Info' },
   { value: 'contact_details', label: 'Contact: Details' },
   { value: 'contact_form_info', label: 'Contact: Form + Info' },
+
+  // Forms
+  { value: 'form_embed', label: 'Forms: Embed Universal Form' },
 
   // Warranty
   { value: 'limited_warranty_details', label: 'Warranty: Limited Details' },

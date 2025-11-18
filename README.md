@@ -13,28 +13,45 @@
 - Подстраницы:
   - Heavy Duty: `/heavy-duty/air`, `/heavy-duty/cabin`, `/heavy-duty/fuel`, `/heavy-duty/oil`
   - Industries: `/industries/agriculture`
-  - Newsroom: `/newsroom/heavy-duty-filter-launch`
-  - Resources: `/resources/heavy-duty-catalog`
-- Новые страницы:
+  - Newsroom: `/newsroom/[slug]` — динамические страницы новостей и событий из БД
+  - Resources: `/resources/[slug]` — динамические страницы ресурсов с gated downloads через формы
+- Каталог и фильтры:
   - `/filters/[code]` — страница конкретного фильтра (Hero, описание, `Specifications`, галерея, таблица OEM). Сейчас использует мок‑данные (`SFO241`, `SFG84801E`).
   - `/catalog` — каталог с левой панелью фильтров (поиск, тип, индустрия, марка, параметры), переключение `Gallery/List`, пагинация. CTA на главной ведёт сюда.
+- Админ-панель:
+  - `/admin` — главная панель администрирования
+  - `/admin/pages` — управление CMS страницами
+  - `/admin/news` — управление новостями и событиями
+  - `/admin/resources` — управление ресурсами и категориями
+  - `/admin/forms` — конструктор форм и просмотр submissions
+  - `/admin/files` — файл-менеджер (S3/MinIO)
+  - `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages)
 
 ### Компоненты (основные)
-- `layout/`: `Header`, `Footer`
+- `layout/`: 
+  - `Header` (Server Component) с sub-components: `ScrollHeader`, `HeaderNav`, `MobileMenu` (Client)
+  - `Footer` (Server Component)
 - `sections/` (CMS-версии):
-  - Hero: `HeroCms`, `FullScreenHero`, `SingleImageHero`, `PageHero`, `PageHeroReverse`, `CompactHero`, `CompactSearchHero`, `SearchHero`
-  - Content: `ContentWithImages`, `AboutWithStats`, `QualityAssurance`, `AboutNewsCms`
-  - Features: `WhyChooseCms`, `FeaturedProductsCms`, `IndustriesCms`, `IndustriesList`
-  - Filters: `FilterTypesGrid` (иконки), `FilterTypesImageGrid` (изображения, 16:9, настраиваемые колонки), `FilterTypesCms`, `PopularFilters`, `RelatedFilters`
+  - Hero: `HeroCms`, `FullScreenHero`, `SingleImageHero`, `PageHero`, `PageHeroReverse`, `CompactHero`, `CompactSearchHero`, `SearchHero`, `NewsroomHero`, `ResourcesHero`
+  - Content: `ContentWithImages`, `AboutWithStats`, `QualityAssurance`, `AboutNewsCms` (авто-загрузка последних новостей)
+  - Features: `WhyChooseCms` (с центрированием карточек), `FeaturedProductsCms` (категория поверх изображения), `IndustriesCms`, `IndustriesList`
+  - Filters: `FilterTypesGrid` (иконки), `FilterTypesImageGrid` (изображения, 16:9, настраиваемые колонки, два варианта стиля), `FilterTypesCms`, `PopularFilters`, `RelatedFilters`
   - Search: `QuickSearchCms`, `SimpleSearch`
   - Products: `Products`, `ProductGallery`, `ProductSpecs` (варианты `cards`/`table`, `contained`)
   - Contact: `ContactOptions`, `ContactHero`, `ContactForm`, `ContactInfo`, `ContactDetails`, `ContactFormInfo`
   - Warranty: `LimitedWarrantyDetails`, `MagnussonMossAct`, `WarrantyClaimProcess`, `WarrantyContact`, `WarrantyPromise`
   - About: `ManufacturingFacilities`, `OurCompany`, `StatsBand`, `AwardsCarousel`
-  - News: `NewsCarousel`
+  - News: `NewsCarousel`, `NewsroomClient` (события + новости с фильтрацией)
+  - Resources: `ResourcesClient` (список ресурсов с фильтрацией), `ResourceDownloadForm` (форма загрузки)
+- `forms/`: `DynamicForm` (универсальный компонент для рендера форм), `FormBuilder` (drag-and-drop редактор полей)
 - `ui/`: `Button`, `Card`, `Icon`, `Input`, `Logo`, `Pagination`, `Collapsible`, `ManagedImage` (с shimmer placeholder)
+- `admin/`: компоненты админ-панели (AdminNav, Breadcrumbs, форм-редакторы)
 - `seo/`: `SEO`
-- `lib/`: `utils.ts` — `cn(...classes)`, `assets.ts` — `getAssetUrl`, `getOptimizedImageUrl`, `isAssetPath`
+- `lib/`: 
+  - `utils.ts` — `cn(...classes)`
+  - `assets.ts` — `getAssetUrl`, `getOptimizedImageUrl`, `isAssetPath`
+  - `site-settings.ts` — `getHeaderNavigation`, `getFooterContent` (Server-side)
+  - `prisma.ts` — глобальный Prisma client
 
 ### Иконки
 - Компонент `Icon` принимает: `name`, `variant: 'outline' | 'solid'`, `size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'`, `color: 'sure-blue' | 'sure-orange' | 'gray' | 'white' | 'current'`.
@@ -93,19 +110,36 @@ surefilter-ui/
     industries/page.tsx
     industries/agriculture/page.tsx
     newsroom/page.tsx
-    newsroom/heavy-duty-filter-launch/page.tsx
+    newsroom/[slug]/page.tsx
+    newsroom/NewsroomClient.tsx
     resources/page.tsx
-    resources/heavy-duty-catalog/page.tsx
+    resources/[slug]/page.tsx
+    resources/[slug]/ResourceDownloadForm.tsx
+    resources/ResourcesClient.tsx
     warranty/page.tsx
     contact-us/page.tsx
+    admin/
+      pages/[slug]/edit/page.tsx
+      news/page.tsx
+      news/[id]/edit/page.tsx
+      resources/page.tsx
+      forms/page.tsx
+      forms/[id]/edit/page.tsx
+      files/page.tsx
+      settings/site/page.tsx
     test-colors/page.tsx
     filters/[code]/page.tsx        # детальная страница фильтра
     catalog/page.tsx               # каталог с фильтрами и пагинацией
   src/components/layout/
-    Header.tsx
-    Footer.tsx
+    Header/
+      Header.tsx              # Server Component
+      ScrollHeader.tsx        # Client sub-component
+      HeaderNav.tsx           # Client sub-component
+      MobileMenu.tsx          # Client sub-component
+      index.ts
+    Footer.tsx                # Server Component
   src/components/sections/
-    Hero.tsx
+    HeroCms.tsx                    # CMS версия Hero
     FullScreenHero.tsx
     SingleImageHero.tsx
     PageHero.tsx
@@ -113,28 +147,38 @@ surefilter-ui/
     CompactHero.tsx
     CompactSearchHero.tsx
     SearchHero.tsx
-    QuickSearch.tsx
-    FeaturedProducts.tsx
-    Industries.tsx
+    QuickSearchCms.tsx             # CMS версия QuickSearch
+    FeaturedProductsCms.tsx        # CMS версия с категорией на изображении
+    IndustriesCms.tsx              # CMS версия Industries
     IndustriesList.tsx
     FilterTypesGrid.tsx
+    FilterTypesImageGrid.tsx       # Новый компонент с изображениями
+    FilterTypesCms.tsx
     PopularFilters.tsx
+    RelatedFilters.tsx
     Products.tsx
+    ProductGallery.tsx
+    ProductSpecs.tsx
     AboutWithStats.tsx
-    AboutNews.tsx
-    WhyChoose.tsx
+    AboutNewsCms.tsx               # CMS версия с авто-загрузкой новостей
+    WhyChooseCms.tsx               # CMS версия с flexbox центрированием
     QualityAssurance.tsx
     ContentWithImages.tsx
-    RelatedFilters.tsx
     NewsCarousel.tsx
     LimitedWarrantyDetails.tsx
     MagnussonMossAct.tsx
     WarrantyClaimProcess.tsx
     WarrantyContact.tsx
     WarrantyPromise.tsx
-    ProductGallery.tsx
-    ProductSpecs.tsx
     ContactOptions.tsx
+    ContactHero.tsx
+    ContactForm.tsx
+    ContactInfo.tsx
+    ContactDetails.tsx
+    ContactFormInfo.tsx
+  src/components/forms/
+    DynamicForm.tsx                # Универсальный рендер форм
+    FormBuilder.tsx                # Drag-and-drop редактор полей
   src/components/ui/
     Button.tsx
     Card.tsx
@@ -143,8 +187,17 @@ surefilter-ui/
     Logo.tsx
     Pagination.tsx
     Collapsible.tsx
+    ManagedImage.tsx               # Image с shimmer placeholder
+  src/components/admin/
+    AdminNav.tsx                   # Навигация админки с dropdown
+    Breadcrumbs.tsx
+    ... другие админ-компоненты
   src/components/seo/SEO.tsx
-  src/lib/utils.ts
+  src/lib/
+    utils.ts                       # cn(...classes)
+    assets.ts                      # getAssetUrl, getOptimizedImageUrl
+    site-settings.ts               # getHeaderNavigation, getFooterContent
+    prisma.ts                      # Глобальный Prisma client
 ```
 
 ### Запуск

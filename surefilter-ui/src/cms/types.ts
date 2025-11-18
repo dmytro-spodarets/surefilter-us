@@ -1,5 +1,6 @@
 export type SectionType =
   | 'hero_full'
+  | 'hero_carousel'
   | 'hero_compact'
   | 'page_hero'
   | 'page_hero_reverse'

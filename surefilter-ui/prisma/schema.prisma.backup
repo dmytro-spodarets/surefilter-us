@@ -1,0 +1,310 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Auth models
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// CMS primitives
+enum SectionType {
+  hero_full
+  hero_compact
+  page_hero
+  page_hero_reverse
+  single_image_hero
+  compact_search_hero
+  search_hero
+  simple_search
+  why_choose
+  featured_products
+  products
+  quick_search
+  industries
+  industries_list
+  listing_card_meta
+  filter_types_grid
+  filter_types_image_grid
+  popular_filters
+  about_with_stats
+  about_news
+  quality_assurance
+  content_with_images
+  related_filters
+  news_carousel
+  product_gallery
+  product_specs
+  limited_warranty_details
+  magnusson_moss_act
+  warranty_claim_process
+  warranty_contact
+  warranty_promise
+  contact_options
+  manufacturing_facilities
+  our_company
+  stats_band
+  awards_carousel
+  contact_hero
+  contact_form
+  contact_info
+  contact_details
+  contact_form_info
+}
+
+model Page {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String?
+  ogImage     String?
+  status      String        @default("published") // draft | published
+  type        PageType      @default(CUSTOM)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  sections    PageSection[]
+}
+
+model Section {
+  id        String        @id @default(cuid())
+  type      SectionType
+  data      Json
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  pages     PageSection[]
+}
+
+model PageSection {
+  id        String @id @default(cuid())
+  pageId    String
+  sectionId String
+  position  Int
+
+  page    Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, sectionId])
+  @@index([pageId, position])
+}
+
+enum PageType {
+  CORE
+  CUSTOM
+  INDUSTRY
+}
+
+// Catalog taxonomy
+enum FilterCategory {
+  HEAVY_DUTY
+  AUTOMOTIVE
+}
+
+model FilterType {
+  id       String         @id @default(cuid())
+  category FilterCategory
+  parentId String?
+  parent   FilterType?    @relation("FilterTypeToChildren", fields: [parentId], references: [id])
+  children FilterType[]   @relation("FilterTypeToChildren")
+  products Product[]
+
+  slug        String
+  name        String
+  description String?
+  icon        String?
+  heroImage   String?
+  position    Int     @default(0)
+  pageSlug    String?
+  isActive    Boolean @default(true)
+  fullSlug    String  @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, parentId, slug])
+  @@index([category, position])
+}
+
+// Catalog products
+model Product {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  description String?
+
+  // Optional high-level category and link to a FilterType
+  category     FilterCategory?
+  filterTypeId String?
+  filterType   FilterType?     @relation(fields: [filterTypeId], references: [id])
+
+  status String? // e.g., 'Release Product'
+
+  // Content fields
+  images     Json // [{ src, alt? }]
+  specsLeft  Json // [{ label, value }]
+  specsRight Json // [{ label, value }]
+  oems       Json // [{ number, manufacturer }]
+
+  // Optional metadata
+  tags         String[] @default([])
+  manufacturer String?
+  industries   String[] @default([])
+
+  // Dimensions / attributes
+  heightMm Float?
+  odMm     Float?
+  idMm     Float?
+  thread   String?
+  model    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Normalized specifications
+  specValues ProductSpecValue[]
+
+  @@index([filterTypeId])
+}
+
+// Master list of available specification parameters
+model SpecParameter {
+  id        String   @id @default(cuid())
+  name      String
+  unit      String?
+  category  String?
+  position  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  values ProductSpecValue[]
+
+  @@index([category, position])
+}
+
+// Value of a specification parameter for a concrete product
+model ProductSpecValue {
+  id           String        @id @default(cuid())
+  productId    String
+  parameterId  String
+  value        String
+  unitOverride String?
+  position     Int           @default(0)
+
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  parameter SpecParameter @relation(fields: [parameterId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, parameterId])
+  @@index([productId, position])
+}
+
+// Media assets for file manager
+model MediaAsset {
+  id          String   @id @default(cuid())
+  filename    String
+  s3Path      String   @unique // "images/hero/construction.jpg"
+  cdnUrl      String   // Full CDN URL
+  mimeType    String
+  fileSize    Int
+  width       Int?     // For images
+  height      Int?     // For images
+  altText     String?  // For SEO
+  tags        String[] @default([])
+  folder      String?  // "images/hero", "videos/products", etc.
+  isPublic    Boolean  @default(true)
+  uploadedBy  String?  // User ID who uploaded
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([folder])
+  @@index([mimeType])
+  @@index([createdAt])
+}
+
+// News & Events system
+enum ArticleType {
+  NEWS
+  EVENT
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model NewsArticle {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  type           ArticleType   @default(NEWS)
+  
+  // General fields
+  title          String
+  excerpt        String        // Short description (150-250 chars)
+  content        String        @db.Text // Full content (HTML or Markdown)
+  
+  // Images
+  featuredImage    String?
+  featuredImageAlt String?
+  
+  // Metadata
+  category       String?       // "Product Launch", "Trade Show", "Business", etc.
+  tags           String[]      @default([])
+  author         String?
+  
+  // Publishing
+  publishedAt    DateTime      // When to show on site
+  status         ArticleStatus @default(DRAFT)
+  
+  // Event-specific fields (only used when type = EVENT)
+  eventStartDate DateTime?     // Event start date
+  eventEndDate   DateTime?     // Event end date (optional)
+  eventUrl       String?       // External event website URL
+  isFeatured     Boolean       @default(false) // Show at top (events only)
+  
+  // Event location
+  venue          String?       // "Las Vegas Convention Center"
+  location       String?       // "Las Vegas, NV"
+  booth          String?       // "Booth #C4521"
+  hall           String?       // "Hall A4"
+  eventType      String?       // "Trade Show", "Conference", "Webinar"
+  attendees      String?       // "140,000+"
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  @@index([type, publishedAt(sort: Desc)])
+  @@index([type, status, publishedAt(sort: Desc)])
+  @@index([type, eventStartDate(sort: Asc)])
+  @@index([type, isFeatured, eventStartDate(sort: Asc)])
+  @@index([category])
+  @@index([status])
+}

@@ -23,6 +23,7 @@ const CreateFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Invalid slug format'),
   description: z.string().optional(),
+  type: z.enum(['DOWNLOAD', 'CONTACT']).default('CONTACT'),
   fields: z.array(FormFieldSchema),
   successTitle: z.string().optional(),
   successMessage: z.string().optional(),

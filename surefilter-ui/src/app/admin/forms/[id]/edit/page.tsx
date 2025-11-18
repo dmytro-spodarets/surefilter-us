@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import FormBuilder, { FormData } from '@/components/admin/FormBuilder';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/admin/Breadcrumbs';
 
 export default function EditFormPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -25,6 +26,7 @@ export default function EditFormPage({ params }: { params: Promise<{ id: string 
         name: data.name,
         slug: data.slug,
         description: data.description || '',
+        type: data.type || 'CONTACT',
         fields: data.fields,
         successTitle: data.successTitle || 'Thank You!',
         successMessage: data.successMessage || 'Your form has been submitted successfully.',
@@ -97,6 +99,12 @@ export default function EditFormPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="p-6">
+      <Breadcrumbs items={[
+        { label: 'Admin', href: '/admin' },
+        { label: 'Forms', href: '/admin/forms' },
+        { label: formData?.name || 'Edit Form' },
+      ]} />
+
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Edit Form</h1>
@@ -110,7 +118,7 @@ export default function EditFormPage({ params }: { params: Promise<{ id: string 
         </Link>
       </div>
 
-      <FormBuilder initialData={formData} onSave={handleSave} onCancel={handleCancel} />
+      <FormBuilder initialData={formData} onSave={handleSave} onCancel={handleCancel} formId={id} />
     </div>
   );
 }
