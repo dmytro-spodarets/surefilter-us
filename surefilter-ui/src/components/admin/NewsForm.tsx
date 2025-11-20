@@ -296,25 +296,31 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Full Content *
           </label>
-          <Editor
-            apiKey={tinymceApiKey}
-            onInit={(evt, editor) => (editorRef.current = editor)}
-            initialValue={formData.content}
-            init={{
-              height: 500,
-              menubar: true,
-              plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-              ],
-              toolbar: 'undo redo | blocks | ' +
-                'bold italic forecolor | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | help',
-              content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-            }}
-          />
+          {tinymceApiKey === 'no-api-key' ? (
+            <div className="border border-gray-300 rounded-md p-4 bg-gray-50">
+              <p className="text-gray-600">Loading editor...</p>
+            </div>
+          ) : (
+            <Editor
+              apiKey={tinymceApiKey}
+              onInit={(evt, editor) => (editorRef.current = editor)}
+              initialValue={formData.content}
+              init={{
+                height: 500,
+                menubar: true,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+              }}
+            />
+          )}
         </div>
       </div>
 
