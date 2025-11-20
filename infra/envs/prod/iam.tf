@@ -39,6 +39,13 @@ resource "aws_iam_policy" "ssm_parameter_access" {
           "arn:aws:ssm:${var.aws_region}:*:parameter/surefilter/*",
           "arn:aws:ssm:${var.aws_region}:*:parameter/surefilter"
         ]
+      },
+      {
+        Effect: "Allow",
+        Action: [
+          "kms:Decrypt"
+        ],
+        Resource: "arn:aws:kms:${var.aws_region}:*:key/*"
       }
     ]
   })

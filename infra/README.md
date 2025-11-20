@@ -21,13 +21,25 @@
 
 ## First Run (prod)
 1) In Scalr, create workspace "prod" pointing to path infra/envs/prod. State is stored in Scalr via Terraform remote backend (see providers.tf).
-2) Set variables as needed:
+2) Create secrets file:
+   ```bash
+   cd envs/prod
+   cp secrets.tfvars.example secrets.tfvars
+   # Edit secrets.tfvars and add your TinyMCE API key
+   ```
+3) Set variables as needed:
    - aws_region = "us-east-1"
    - vpc_id, subnet_ids (optional; fallback to default VPC)
-3) Plan → Apply.
-4) Note outputs:
+4) Plan → Apply:
+   ```bash
+   terraform plan -var-file="secrets.tfvars"
+   terraform apply -var-file="secrets.tfvars"
+   ```
+5) Note outputs:
    - rds_endpoint
    - database_url_secret_arn
+
+**Important:** `secrets.tfvars` is gitignored. See `envs/prod/SECRETS.md` for details.
 
 ## CI (GitHub Actions)
 - Workflow .github/workflows/ci-build-push.yml builds surefilter-ui/Dockerfile and pushes to ECR with tags ${sha} and release.

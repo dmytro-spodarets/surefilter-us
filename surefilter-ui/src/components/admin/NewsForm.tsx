@@ -23,6 +23,7 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
   const [loading, setLoading] = useState(false);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [mediaFieldTarget, setMediaFieldTarget] = useState<'featuredImage' | 'ogImage' | null>(null);
+  const [tinymceApiKey, setTinymceApiKey] = useState('no-api-key');
   
   const [formData, setFormData] = useState({
     slug: '',
@@ -56,6 +57,7 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
 
   useEffect(() => {
     fetchCategories();
+    fetchTinymceConfig();
     if (initialData) {
       setFormData({
         ...initialData,
@@ -75,6 +77,16 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
       setCategories(data.filter((cat: any) => cat.isActive));
     } catch (error) {
       console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchTinymceConfig = async () => {
+    try {
+      const response = await fetch('/api/config/tinymce');
+      const data = await response.json();
+      setTinymceApiKey(data.apiKey);
+    } catch (error) {
+      console.error('Error fetching TinyMCE config:', error);
     }
   };
 
@@ -285,7 +297,7 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
             Full Content *
           </label>
           <Editor
-            apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
+            apiKey={tinymceApiKey}
             onInit={(evt, editor) => (editorRef.current = editor)}
             initialValue={formData.content}
             init={{

@@ -9,4 +9,10 @@ variable "placeholder_db_host" {
   default     = "localhost"
 }
 
+variable "tinymce_api_key" {
+  description = "TinyMCE API key for rich text editor"
+  type        = string
+  sensitive   = true
+}
+
 

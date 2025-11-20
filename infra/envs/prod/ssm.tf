@@ -30,3 +30,10 @@ resource "aws_ssm_parameter" "origin_secret" {
   value = random_password.origin_secret.result
 }
 
+# TinyMCE API Key - loaded from secrets.tfvars
+resource "aws_ssm_parameter" "tinymce_api_key" {
+  name  = "/surefilter/TINYMCE_API_KEY"
+  type  = "SecureString"
+  value = var.tinymce_api_key
+}
+
