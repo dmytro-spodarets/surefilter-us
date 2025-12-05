@@ -8,7 +8,13 @@ export async function loadPageBySlug(slug: string): Promise<CmsPage | null> {
     include: {
       sections: {
         orderBy: { position: 'asc' },
-        include: { section: true },
+        include: { 
+          section: {
+            include: {
+              sharedSection: true
+            }
+          }
+        },
       },
     },
   });
@@ -20,7 +26,13 @@ export async function loadPageBySlug(slug: string): Promise<CmsPage | null> {
     type: ps.section.type as any,
     data: ps.section.data as any,
     position: ps.position,
-  }));
+    sharedSection: ps.section.sharedSection ? {
+      id: ps.section.sharedSection.id,
+      name: ps.section.sharedSection.name,
+      type: ps.section.sharedSection.type as any,
+      data: ps.section.sharedSection.data as any,
+    } : undefined,
+  } as any));
 
   return {
     id: page.id,

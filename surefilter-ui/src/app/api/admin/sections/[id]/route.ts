@@ -32,6 +32,7 @@ import {
   PopularFiltersSchema,
   FilterTypesGridSchema,
   FilterTypesImageGridSchema,
+  IndustryShowcaseSchema,
 } from '@/cms/schemas';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -39,8 +40,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { type, data } = body ?? {};
+  const { type, data, sharedSectionId } = body ?? {};
   const { id } = await params;
+
+  // If sharedSectionId is provided, just update the link
+  if (sharedSectionId !== undefined) {
+    await prisma.section.update({ 
+      where: { id }, 
+      data: { sharedSectionId: sharedSectionId || null } 
+    });
+    return NextResponse.json({ success: true });
+  }
   if (type === 'hero_full') {
     const parsed = HeroFullSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
@@ -156,6 +166,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   } else if (type === 'listing_card_meta') {
     const parsed = ListingCardMetaSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'industry_showcase') {
+    const parsed = IndustryShowcaseSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else {
     return NextResponse.json({ error: 'Unsupported section type' }, { status: 400 });

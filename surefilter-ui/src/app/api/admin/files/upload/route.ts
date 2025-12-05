@@ -43,8 +43,21 @@ export async function POST(request: NextRequest) {
 
     // Create S3 key with folder structure
     const timestamp = Date.now();
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const s3Key = folder ? `${folder}/${timestamp}_${sanitizedName}` : `${timestamp}_${sanitizedName}`;
+    
+    // Handle files without proper names (e.g., from paste/drag-drop)
+    let finalName = file.name;
+    if (!finalName || finalName === 'blob' || finalName === 'image.png') {
+      const ext = mime.extension(mimeType) || 'bin';
+      finalName = `file-${timestamp}.${ext}`;
+    } else {
+      // For files with proper names, keep original name but sanitize it
+      const nameParts = finalName.split('.');
+      const extension = nameParts.pop();
+      const baseName = nameParts.join('.').replace(/[^a-zA-Z0-9-]/g, '_');
+      finalName = `${baseName}.${extension}`;
+    }
+    
+    const s3Key = folder ? `${folder}/${finalName}` : finalName;
 
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());

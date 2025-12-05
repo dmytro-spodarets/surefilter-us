@@ -22,13 +22,30 @@ export default async function EditPage({ params }: { params: Promise<{ slug: str
   const page = await prisma.page.findUnique({
     where: { slug },
     include: {
-      sections: { orderBy: { position: 'asc' }, include: { section: true } },
+      sections: { 
+        orderBy: { position: 'asc' }, 
+        include: { 
+          section: {
+            include: {
+              sharedSection: true
+            }
+          }
+        } 
+      },
     },
   });
   if (!page) redirect('/admin/pages');
 
   // Find hero_full section for Home for now
-  const sectionList = page.sections.map((s) => ({ id: s.section.id, type: s.section.type, position: s.position }));
+  const sectionList = page.sections.map((s) => ({ 
+    id: s.section.id, 
+    type: s.section.type, 
+    position: s.position,
+    sharedSection: s.section.sharedSection ? {
+      id: s.section.sharedSection.id,
+      name: s.section.sharedSection.name,
+    } : null,
+  }));
 
   return (
     <AdminContainer className="space-y-8">
@@ -55,10 +72,26 @@ export default async function EditPage({ params }: { params: Promise<{ slug: str
           <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
             {sectionList.map((s, idx) => (
               <li key={s.id} className="px-4 py-3 flex items-center justify-between gap-4">
-                <div className="text-sm text-gray-700 flex-1">{s.position}. {s.type}</div>
+                <div className="flex-1 flex items-center gap-3">
+                  <span className="text-sm text-gray-700">{s.position}. {s.type}</span>
+                  {s.sharedSection && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                      Shared: {s.sharedSection.name}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-3">
                   <ReorderButtons slug={page.slug} sectionId={s.id} isFirst={idx === 0} isLast={idx === sectionList.length - 1} />
-                  <a href={`/admin/sections/${s.id}`} className="text-sure-blue-600 hover:underline">Edit</a>
+                  {s.sharedSection ? (
+                    <Link href={`/admin/shared-sections/${s.sharedSection.id}`} className="text-purple-600 hover:underline">
+                      Edit Shared
+                    </Link>
+                  ) : (
+                    <a href={`/admin/sections/${s.id}`} className="text-sure-blue-600 hover:underline">Edit</a>
+                  )}
                 </div>
               </li>
             ))}

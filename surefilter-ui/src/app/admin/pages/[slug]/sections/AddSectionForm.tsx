@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 const OPTIONS = [
   // Home
@@ -27,6 +28,7 @@ const OPTIONS = [
   // Industries & Filters
   { value: 'industries_list', label: 'Industries: List (dynamic)' },
   { value: 'listing_card_meta', label: 'Listing Card Meta (for list cards)' },
+  { value: 'industry_showcase', label: 'Industry: Showcase (Overview + Metrics)' },
   { value: 'popular_filters', label: 'Industry: Popular Filters' },
   { value: 'related_filters', label: 'Industry: Related Filter Types' },
   { value: 'filter_types_grid', label: 'Heavy Duty: Filter Types Grid (Icons)' },
@@ -68,30 +70,74 @@ const OPTIONS = [
   { value: 'warranty_promise', label: 'Warranty: Promise' },
 ];
 
+interface SharedSection {
+  id: string;
+  name: string;
+  type: string;
+  _count: { sections: number };
+}
+
 export default function AddSectionForm({ slug }: { slug: string }) {
+  const [mode, setMode] = useState<'new' | 'shared'>('new');
   const [type, setType] = useState('page_hero');
+  const [sharedSectionId, setSharedSectionId] = useState('');
+  const [sharedSections, setSharedSections] = useState<SharedSection[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode === 'shared') {
+      loadSharedSections();
+    }
+  }, [mode]);
+
+  const loadSharedSections = async () => {
+    try {
+      const res = await fetch('/api/admin/shared-sections');
+      const data = await res.json();
+      setSharedSections(data.sharedSections || []);
+    } catch (error) {
+      console.error('Error loading shared sections:', error);
+    }
+  };
 
   const onAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/pages/${slug}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type }),
-      });
-      if (!res.ok) {
+      if (mode === 'shared' && sharedSectionId) {
+        // Add shared section reference
+        const res = await fetch(`/api/admin/pages/${slug}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            type: 'shared', // Special type to indicate shared section
+            sharedSectionId 
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data?.error || 'Failed to add shared section');
+          return;
+        }
+      } else {
+        // Add new section
+        const res = await fetch(`/api/admin/pages/${slug}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data?.error || 'Failed to add section');
+          return;
+        }
         const data = await res.json().catch(() => ({}));
-        setError(data?.error || 'Failed to add section');
-        return;
-      }
-      const data = await res.json().catch(() => ({}));
-      if (data?.id) {
-        window.location.href = `/admin/sections/${data.id}`;
-        return;
+        if (data?.id) {
+          window.location.href = `/admin/sections/${data.id}`;
+          return;
+        }
       }
       window.location.reload();
     } finally {
@@ -100,15 +146,83 @@ export default function AddSectionForm({ slug }: { slug: string }) {
   };
 
   return (
-    <form onSubmit={onAdd} className="flex items-center gap-3 mb-4">
-      <select value={type} onChange={(e) => setType(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2">
-        {OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <button type="submit" className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg" disabled={loading}>{loading ? 'Adding…' : 'Add section'}</button>
-      {error && <span className="text-sm text-red-600">{error}</span>}
-    </form>
+    <div className="mb-6 space-y-4">
+      {/* Mode Toggle */}
+      <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+        <button
+          type="button"
+          onClick={() => setMode('new')}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            mode === 'new'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          New Section
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('shared')}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            mode === 'shared'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          Use Shared Section
+        </button>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={onAdd} className="flex items-center gap-3">
+        {mode === 'new' ? (
+          <select 
+            value={type} 
+            onChange={(e) => setType(e.target.value)} 
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
+          >
+            {OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        ) : (
+          <div className="flex-1 flex items-center gap-2">
+            <select 
+              value={sharedSectionId} 
+              onChange={(e) => setSharedSectionId(e.target.value)} 
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
+              required
+            >
+              <option value="">Select a shared section...</option>
+              {sharedSections.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.name} ({section.type}) - Used on {section._count.sections} page(s)
+                </option>
+              ))}
+            </select>
+            <Link
+              href="/admin/shared-sections/new"
+              className="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 whitespace-nowrap"
+            >
+              + Create New
+            </Link>
+          </div>
+        )}
+        <button 
+          type="submit" 
+          className="bg-sure-blue-600 text-white px-4 py-2 rounded-lg hover:bg-sure-blue-700 disabled:opacity-50" 
+          disabled={loading || (mode === 'shared' && !sharedSectionId)}
+        >
+          {loading ? 'Adding…' : 'Add Section'}
+        </button>
+      </form>
+      
+      {error && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+          {error}
+        </div>
+      )}
+    </div>
   );
 }
 

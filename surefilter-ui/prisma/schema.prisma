@@ -76,6 +76,7 @@ enum SectionType {
   contact_details
   contact_form_info
   form_embed
+  industry_showcase
 }
 
 model Page {
@@ -92,12 +93,31 @@ model Page {
 }
 
 model Section {
-  id        String        @id @default(cuid())
-  type      SectionType
-  data      Json
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  pages     PageSection[]
+  id              String         @id @default(cuid())
+  type            SectionType
+  data            Json
+  sharedSectionId String?
+  sharedSection   SharedSection? @relation(fields: [sharedSectionId], references: [id], onDelete: SetNull)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  pages           PageSection[]
+
+  @@index([sharedSectionId])
+}
+
+model SharedSection {
+  id          String      @id @default(cuid())
+  name        String      // "Contact CTA", "Newsletter Signup", etc.
+  type        SectionType
+  data        Json
+  description String?     // Описание для админов
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Связь с секциями, которые используют эту общую секцию
+  sections    Section[]
+
+  @@index([type])
 }
 
 model PageSection {

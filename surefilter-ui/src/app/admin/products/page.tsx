@@ -7,11 +7,12 @@ import AdminContainer from '@/components/admin/AdminContainer';
 
 export const metadata = { robots: { index: false, follow: false } };
 
-export default async function ProductsPage({ searchParams }: any) {
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login?callbackUrl=/admin/products');
 
-  const q = (searchParams?.q as string) || '';
+  const params = await searchParams;
+  const q = (params?.q as string) || '';
 
   const where: any = q
     ? {

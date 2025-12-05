@@ -82,7 +82,14 @@ export default function FileUploader({
       // Only use compressed if it's smaller
       if (compressedFile.size < file.size) {
         console.log(`Compressed ${file.name}: ${formatFileSize(file.size)} → ${formatFileSize(compressedFile.size)}`);
-        return compressedFile;
+        
+        // Preserve original filename - imageCompression loses it
+        const renamedFile = new File([compressedFile], file.name, {
+          type: compressedFile.type,
+          lastModified: compressedFile.lastModified,
+        });
+        
+        return renamedFile;
       }
       
       return file;

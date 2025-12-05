@@ -6,6 +6,7 @@ import QuickSearchCms from '@/components/sections/QuickSearchCms';
 import SimpleSearch from '@/components/sections/SimpleSearch';
 import IndustriesCms from '@/components/sections/IndustriesCms';
 import IndustriesList from '@/components/sections/IndustriesList';
+import IndustryShowcase from '@/components/sections/IndustryShowcase';
 import AboutNewsCms from '@/components/sections/AboutNewsCms';
 import PageHero from '@/components/sections/PageHero';
 import FullScreenHero from '@/components/sections/FullScreenHero';
@@ -34,9 +35,29 @@ import FilterTypesImageGrid from '@/components/sections/FilterTypesImageGrid';
 import FormEmbed from '@/components/forms/FormEmbed';
 
 export function renderSection(section: CmsSection) {
-  switch ((section as any).type) {
+  // If section uses a shared section, use its data instead
+  const sectionData = (section as any).sharedSection 
+    ? (section as any).sharedSection.data 
+    : section.data;
+  
+  const sectionType = (section as any).sharedSection 
+    ? (section as any).sharedSection.type 
+    : (section as any).type;
+
+  // Debug logging for shared sections (can be removed in production)
+  // if ((section as any).sharedSection) {
+  //   console.log('Rendering shared section:', {
+  //     sharedSectionId: (section as any).sharedSection.id,
+  //     sharedSectionName: (section as any).sharedSection.name,
+  //     type: sectionType,
+  //     hasData: !!sectionData,
+  //     dataKeys: Object.keys(sectionData || {})
+  //   });
+  // }
+
+  switch (sectionType) {
     case 'hero_full': {
-      const parsed = HeroFullSchema.safeParse(section.data);
+      const parsed = HeroFullSchema.safeParse(sectionData);
       if (!parsed.success) return null;
       const { badge, title, titlePrefix, titleHighlight, subtitle, image } = parsed.data;
       return (
@@ -100,6 +121,18 @@ export function renderSection(section: CmsSection) {
     case 'industries_list': {
       const d = section.data as any;
       return <IndustriesList title={d?.title} description={d?.description} />;
+    }
+    case 'industry_showcase': {
+      const d = sectionData as any;
+      return (
+        <IndustryShowcase
+          industryTitle={d?.industryTitle || ''}
+          industryDescription={d?.industryDescription || ''}
+          brandPromise={d?.brandPromise || ''}
+          keyFeatures={Array.isArray(d?.keyFeatures) ? d.keyFeatures : []}
+          metrics={Array.isArray(d?.metrics) ? d.metrics : []}
+        />
+      );
     }
     case 'about_news': {
       const d = section.data as any;

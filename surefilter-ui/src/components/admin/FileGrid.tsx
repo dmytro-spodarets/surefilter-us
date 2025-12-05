@@ -176,10 +176,13 @@ export default function FileGrid({
             className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow group relative"
           >
             {/* Dropdown Menu */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
               <button
-                onClick={() => setActiveDropdown(activeDropdown === file.key ? null : file.key)}
-                className="p-1 rounded-full hover:bg-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveDropdown(activeDropdown === file.key ? null : file.key);
+                }}
+                className="p-1 rounded-full hover:bg-gray-100 bg-white shadow-sm"
               >
                 <EllipsisVerticalIcon className="h-4 w-4 text-gray-500" />
               </button>
@@ -187,7 +190,8 @@ export default function FileGrid({
               {activeDropdown === file.key && (
                 <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[120px]">
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       onPreviewFile(file);
                       setActiveDropdown(null);
                     }}
@@ -197,7 +201,8 @@ export default function FileGrid({
                     Preview
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (file.metadata?.cdnUrl) {
                         onCopyUrl(file.metadata.cdnUrl);
                       }
@@ -209,7 +214,8 @@ export default function FileGrid({
                     Copy URL
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (file.metadata?.id) {
                         onDeleteFile(file.metadata.id, file.key);
                       }

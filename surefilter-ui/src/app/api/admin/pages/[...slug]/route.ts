@@ -88,11 +88,48 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { slug: parts } = await params;
   const slug = joinSlug(parts);
-  const { type } = await req.json();
+  const { type, sharedSectionId } = await req.json();
   if (!type) return NextResponse.json({ error: 'Type required' }, { status: 400 });
 
   const page = await prisma.page.findUnique({ where: { slug } });
   if (!page) return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+
+  // Handle shared section
+  if (type === 'shared' && sharedSectionId) {
+    const sharedSection = await prisma.sharedSection.findUnique({ where: { id: sharedSectionId } });
+    if (!sharedSection) return NextResponse.json({ error: 'Shared section not found' }, { status: 404 });
+
+    const maxPos = await prisma.pageSection.findFirst({
+      where: { pageId: page.id },
+      orderBy: { position: 'desc' },
+      select: { position: true },
+    });
+    const nextPos = (maxPos?.position ?? -1) + 1;
+
+    // Create a section that references the shared section
+    const section = await prisma.section.create({
+      data: {
+        type: sharedSection.type as any,
+        data: {}, // Empty data, will use sharedSection.data
+        sharedSectionId: sharedSection.id,
+      },
+    });
+
+    await prisma.pageSection.create({
+      data: {
+        pageId: page.id,
+        sectionId: section.id,
+        position: nextPos,
+      },
+    });
+
+    try {
+      const { revalidateTag } = await import('next/cache');
+      revalidateTag(`page:${slug}`);
+    } catch {}
+
+    return NextResponse.json({ ok: true, id: section.id });
+  }
 
   const defaults: Record<string, any> = {
     page_hero: { title: page.title, description: page.description ?? '' },

@@ -360,4 +360,21 @@ export const FormEmbedSchema = z.object({
 });
 export type FormEmbedInput = z.infer<typeof FormEmbedSchema>;
 
+// Industry Showcase
+export const IndustryShowcaseMetricSchema = z.object({
+  text: z.string(),
+  size: z.enum(['small', 'medium', 'large']),
+  image: z.string().optional(),
+});
+
+export const IndustryShowcaseSchema = z.object({
+  industryTitle: z.string(),
+  industryDescription: z.string(),
+  brandPromise: z.string(),
+  keyFeatures: z.array(z.string()).default([]),
+  metrics: z.array(IndustryShowcaseMetricSchema).default([]),
+});
+
+export type IndustryShowcaseInput = z.infer<typeof IndustryShowcaseSchema>;
+
 
