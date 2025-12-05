@@ -1,7 +1,7 @@
 'use client';
 
 import { CalendarDaysIcon, MapPinIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
 interface Category {
@@ -27,32 +27,15 @@ interface NewsArticle {
   category: Category | null;
 }
 
-export default function NewsroomClient() {
-  const [upcomingEvents, setUpcomingEvents] = useState<NewsArticle[]>([]);
-  const [pressReleases, setPressReleases] = useState<NewsArticle[]>([]);
-  const [loading, setLoading] = useState(true);
+interface NewsroomClientProps {
+  initialEvents: NewsArticle[];
+  initialNews: NewsArticle[];
+}
+
+export default function NewsroomClient({ initialEvents, initialNews }: NewsroomClientProps) {
+  const [upcomingEvents] = useState<NewsArticle[]>(initialEvents);
+  const [pressReleases] = useState<NewsArticle[]>(initialNews);
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Загружаем события
-        const eventsRes = await fetch('/api/news?type=EVENT&featured=true&limit=10');
-        const eventsData = await eventsRes.json();
-        setUpcomingEvents(eventsData.articles || []);
-
-        // Загружаем новости
-        const newsRes = await fetch('/api/news?type=NEWS&limit=10');
-        const newsData = await newsRes.json();
-        setPressReleases(newsData.articles || []);
-      } catch (error) {
-        console.error('Error loading newsroom data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
 
   const eventsPerSlide = 2; // 2 события на слайд (оригинальный дизайн)
   const totalSlides = Math.ceil(upcomingEvents.length / eventsPerSlide);
@@ -64,14 +47,6 @@ export default function NewsroomClient() {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
-
-  if (loading) {
-    return (
-      <div className="py-16 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sure-blue-600 mx-auto"></div>
-      </div>
-    );
-  }
 
   return (
     <>

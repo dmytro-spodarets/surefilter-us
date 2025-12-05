@@ -4,7 +4,7 @@ import Icon from '@/components/ui/Icon';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getAssetUrl } from '@/lib/assets';
 
 // Icon mapping for categories
@@ -52,56 +52,21 @@ interface Resource {
   };
 }
 
-export default function ResourcesClient() {
+interface ResourcesClientProps {
+  initialResources: Resource[];
+  initialCategories: Category[];
+}
+
+export default function ResourcesClient({ initialResources, initialCategories }: ResourcesClientProps) {
   const [activeFilter, setActiveFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'gallery' | 'list'>('gallery');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [categories] = useState<Category[]>(initialCategories);
+  const [allResources] = useState<Resource[]>(initialResources);
 
-  // Fetch categories on mount
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  // Fetch resources when filter changes
-  useEffect(() => {
-    fetchResources();
-  }, [activeFilter]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/resources/categories');
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
-  const fetchResources = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (activeFilter !== 'all') {
-        params.append('category', activeFilter);
-      }
-
-      const response = await fetch(`/api/resources?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch resources');
-
-      const data = await response.json();
-      setResources(data.resources);
-    } catch (error) {
-      console.error('Error fetching resources:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredResources = resources;
+  // Filter resources based on active filter
+  const filteredResources = activeFilter === 'all' 
+    ? allResources 
+    : allResources.filter(r => r.category.slug === activeFilter);
 
   return (
     <section className="py-16">
@@ -194,12 +159,7 @@ export default function ResourcesClient() {
         </div>
 
         {/* Resources View */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-sure-blue-600"></div>
-            <p className="mt-2 text-gray-600">Loading resources...</p>
-          </div>
-        ) : filteredResources.length === 0 ? (
+        {filteredResources.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
             <DocumentTextIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-600 text-lg">No resources found</p>
