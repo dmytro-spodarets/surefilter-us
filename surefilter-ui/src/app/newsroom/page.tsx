@@ -3,8 +3,6 @@ import Footer from '@/components/layout/Footer';
 import DynamicNewsroomHero from '@/components/sections/DynamicNewsroomHero';
 import NewsroomClient from './NewsroomClient';
 
-export const dynamic = 'force-dynamic';
-
 // Server Component - SEO оптимизирован ✅
 // Все данные загружаются на сервере
 export default async function NewsroomPage() {

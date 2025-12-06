@@ -7,8 +7,6 @@ import { prisma } from '@/lib/prisma';
 import { getAssetUrl } from '@/lib/assets';
 import ResourceDownloadForm from './ResourceDownloadForm';
 
-export const dynamic = 'force-dynamic';
-
 interface PageProps {
   params: Promise<{ slug: string }>;
 }

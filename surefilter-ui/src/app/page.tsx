@@ -4,8 +4,6 @@ import { renderSection } from '@/cms/renderer';
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 
-export const dynamic = 'force-dynamic';
-
 export async function generateMetadata(): Promise<Metadata> {
   const page = await prisma.page.findUnique({ where: { slug: 'home' } });
   const title = page?.title || 'Sure Filter® - Premium Automotive & Industrial Filters';

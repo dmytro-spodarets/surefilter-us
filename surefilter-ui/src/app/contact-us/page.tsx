@@ -3,8 +3,6 @@ import Footer from '@/components/layout/Footer';
 import { loadPageBySlug } from '@/cms/fetch';
 import { renderSection } from '@/cms/renderer';
 
-export const dynamic = 'force-dynamic';
-
 export default async function ContactUsPage() {
   const page = await loadPageBySlug('contact-us');
   const sections = page?.sections ?? [];

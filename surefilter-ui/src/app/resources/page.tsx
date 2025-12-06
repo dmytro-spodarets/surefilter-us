@@ -3,8 +3,6 @@ import Footer from '@/components/layout/Footer';
 import DynamicResourcesHero from '@/components/sections/DynamicResourcesHero';
 import ResourcesClient from './ResourcesClient';
 
-export const dynamic = 'force-dynamic';
-
 // Server Component - SEO оптимизирован ✅
 // Все данные загружаются на сервере
 export default async function ResourcesPage() {

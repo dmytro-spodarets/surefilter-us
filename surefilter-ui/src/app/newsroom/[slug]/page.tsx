@@ -7,8 +7,6 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ManagedImage } from '@/components/ui/ManagedImage';
 
-export const dynamic = 'force-dynamic';
-
 interface NewsPageProps {
   params: Promise<{
     slug: string;

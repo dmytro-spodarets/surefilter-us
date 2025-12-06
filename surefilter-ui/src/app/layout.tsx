@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
+// Force dynamic rendering for all pages (data from database)
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     default: 'Sure Filter® - Premium Automotive & Industrial Filters',
