@@ -29,6 +29,8 @@ FROM deps AS build
 COPY . .
 # Build with Next.js
 ENV NODE_ENV=production
+# Note: DATABASE_URL not needed at build time because all pages are dynamic (force-dynamic)
+# Real DATABASE_URL will be injected at runtime via App Runner environment
 RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 # Prune dev dependencies for production runtime

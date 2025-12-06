@@ -62,96 +62,41 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     return cachedSettings;
   }
 
-  try {
-    const settings = await prisma.siteSettings.findUnique({
-      where: { id: 'site_settings' },
-    });
+  const settings = await prisma.siteSettings.findUnique({
+    where: { id: 'site_settings' },
+  });
 
-    if (!settings) {
-      // Return defaults if no settings found
-      const defaults: SiteSettings = {
-        newsroomTitle: 'Newsroom',
-        newsroomDescription: 'Stay updated with our upcoming events, exhibitions, and latest press releases.',
-        resourcesTitle: 'Resources',
-        resourcesDescription: 'Access technical documentation, installation guides, product catalogs, and educational materials.',
-        headerNavigation: [
-          { label: 'HOME', url: '/', order: 0, isActive: true },
-          { label: 'HEAVY DUTY', url: '/heavy-duty', order: 1, isActive: true },
-          { label: 'AUTOMOTIVE', url: '/automotive', order: 2, isActive: true },
-          { label: 'INDUSTRIES', url: '/industries', order: 3, isActive: true },
-          { label: 'ABOUT US', url: '/about-us', order: 4, isActive: true },
-          { label: 'CONTACT US', url: '/contact-us', order: 5, isActive: true },
-        ],
-        footerContent: {
-          description: 'Your trusted partner for superior filtration solutions. Premium quality, performance, and reliability for the world\'s toughest applications.',
-          address: ['1470 Civic Dr. STE 309', 'Concord, CA 94520'],
-          phone: '+1 (925) 566-8863/73',
-          fax: '+1 (925) 566-8893',
-          phoneTollFree: '+1 8448 BE SURE',
-          aiAgent: 'Phil, our AI Service Agent: +1-651-273-9232',
-          email: 'order@surefilter.us',
-          companyLinks: [
-            { name: 'About Us', href: '/about-us' },
-            { name: 'Contact Us', href: '/contact-us' },
-            { name: 'Newsroom', href: '/newsroom' },
-            { name: 'Warranty', href: '/warranty' },
-            { name: 'Resources', href: '/resources' },
-            { name: 'Catalog', href: '/catalog' },
-          ],
-          socialLinks: [
-            { name: 'LinkedIn', href: '#' },
-            { name: 'Facebook', href: '#' },
-          ],
-          appLinks: {
-            appStore: '#',
-            googlePlay: '#',
-          },
-          copyright: '© 2025 Sure Filter®. All rights reserved.',
-          legalLinks: [
-            { name: 'Privacy Policy', href: '/privacy' },
-            { name: 'Terms of Use', href: '/terms' },
-          ],
-        },
-      };
-      
-      cachedSettings = defaults;
-      cacheTimestamp = Date.now();
-      return defaults;
-    }
-
-    // Parse JSON fields
-    const parsedSettings: SiteSettings = {
-      newsroomTitle: settings.newsroomTitle || undefined,
-      newsroomDescription: settings.newsroomDescription || undefined,
-      newsroomHeroImage: settings.newsroomHeroImage || undefined,
-      newsroomMetaTitle: settings.newsroomMetaTitle || undefined,
-      newsroomMetaDesc: settings.newsroomMetaDesc || undefined,
-      newsroomOgImage: settings.newsroomOgImage || undefined,
-      resourcesTitle: settings.resourcesTitle || undefined,
-      resourcesDescription: settings.resourcesDescription || undefined,
-      resourcesHeroImage: settings.resourcesHeroImage || undefined,
-      resourcesMetaTitle: settings.resourcesMetaTitle || undefined,
-      resourcesMetaDesc: settings.resourcesMetaDesc || undefined,
-      resourcesOgImage: settings.resourcesOgImage || undefined,
-      headerNavigation: settings.headerNavigation as any,
-      footerContent: settings.footerContent as any,
-    };
-
-    cachedSettings = parsedSettings;
-    cacheTimestamp = Date.now();
-    
-    return parsedSettings;
-  } catch (error) {
-    console.error('Error fetching site settings:', error);
-    
-    // Return defaults on error
-    return {
-      newsroomTitle: 'Newsroom',
-      resourcesTitle: 'Resources',
+  if (!settings) {
+    // Return minimal empty settings - admin can fill them in admin panel
+    const emptySettings: SiteSettings = {
       headerNavigation: [],
       footerContent: {},
     };
+    return emptySettings;
   }
+
+  // Parse JSON fields
+  const parsedSettings: SiteSettings = {
+    newsroomTitle: settings.newsroomTitle || undefined,
+    newsroomDescription: settings.newsroomDescription || undefined,
+    newsroomHeroImage: settings.newsroomHeroImage || undefined,
+    newsroomMetaTitle: settings.newsroomMetaTitle || undefined,
+    newsroomMetaDesc: settings.newsroomMetaDesc || undefined,
+    newsroomOgImage: settings.newsroomOgImage || undefined,
+    resourcesTitle: settings.resourcesTitle || undefined,
+    resourcesDescription: settings.resourcesDescription || undefined,
+    resourcesHeroImage: settings.resourcesHeroImage || undefined,
+    resourcesMetaTitle: settings.resourcesMetaTitle || undefined,
+    resourcesMetaDesc: settings.resourcesMetaDesc || undefined,
+    resourcesOgImage: settings.resourcesOgImage || undefined,
+    headerNavigation: settings.headerNavigation as any,
+    footerContent: settings.footerContent as any,
+  };
+
+  cachedSettings = parsedSettings;
+  cacheTimestamp = Date.now();
+  
+  return parsedSettings;
 }
 
 // Helper to get only navigation
