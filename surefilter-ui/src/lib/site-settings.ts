@@ -45,10 +45,16 @@ export interface SiteSettings {
   };
 }
 
-// Cache for site settings (revalidate every 5 minutes in production)
+// Cache for site settings (revalidate every 1 minute in production)
 let cachedSettings: SiteSettings | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 1 * 60 * 1000; // 1 minute
+
+// Function to clear cache (called when settings are updated)
+export function clearSiteSettingsCache() {
+  cachedSettings = null;
+  cacheTimestamp = 0;
+}
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   // Use cache in production if fresh

@@ -1,42 +1,42 @@
 import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
-import { FaLinkedin, FaFacebook, FaApple, FaGooglePlay } from 'react-icons/fa';
+import { 
+  FaLinkedin, 
+  FaFacebook, 
+  FaTwitter, 
+  FaInstagram, 
+  FaYoutube, 
+  FaTiktok,
+  FaApple, 
+  FaGooglePlay 
+} from 'react-icons/fa';
 import { getFooterContent } from '@/lib/site-settings';
 
 const iconMap: Record<string, any> = {
   LinkedIn: FaLinkedin,
   Facebook: FaFacebook,
+  Twitter: FaTwitter,
+  Instagram: FaInstagram,
+  YouTube: FaYoutube,
+  TikTok: FaTiktok,
 };
 
 export default async function Footer() {
   const footerData = await getFooterContent();
 
-  // Fallbacks for missing data
-  const description = footerData.description || 'Your trusted partner for superior filtration solutions.';
-  const address = footerData.address || ['1470 Civic Dr. STE 309', 'Concord, CA 94520'];
-  const phone = footerData.phone || '+1 (925) 566-8863/73';
-  const fax = footerData.fax || '+1 (925) 566-8893';
-  const phoneTollFree = footerData.phoneTollFree || '+1 8448 BE SURE';
-  const aiAgent = footerData.aiAgent || 'Phil, our AI Service Agent: +1-651-273-9232';
-  const email = footerData.email || 'order@surefilter.us';
-  const companyLinks = footerData.companyLinks || [
-    { name: 'About Us', href: '/about-us' },
-    { name: 'Contact Us', href: '/contact-us' },
-    { name: 'Newsroom', href: '/newsroom' },
-    { name: 'Warranty', href: '/warranty' },
-    { name: 'Resources', href: '/resources' },
-    { name: 'Catalog', href: '/catalog' },
-  ];
-  const socialLinks = footerData.socialLinks || [
-    { name: 'LinkedIn', href: '#' },
-    { name: 'Facebook', href: '#' },
-  ];
-  const appLinks = footerData.appLinks || { appStore: '#', googlePlay: '#' };
-  const copyright = footerData.copyright || '© 2025 Sure Filter®. All rights reserved.';
-  const legalLinks = footerData.legalLinks || [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Use', href: '/terms' },
-  ];
+  // Use data from settings (fallbacks are handled in getFooterContent)
+  const description = footerData.description || '';
+  const address = footerData.address || [];
+  const phone = footerData.phone || '';
+  const fax = footerData.fax || '';
+  const phoneTollFree = footerData.phoneTollFree || '';
+  const aiAgent = footerData.aiAgent || '';
+  const email = footerData.email || '';
+  const companyLinks = footerData.companyLinks || [];
+  const socialLinks = footerData.socialLinks || [];
+  const appLinks = footerData.appLinks || { appStore: '', googlePlay: '' };
+  const copyright = footerData.copyright || '';
+  const legalLinks = footerData.legalLinks || [];
 
   return (
     <footer className="bg-gray-900 text-white">

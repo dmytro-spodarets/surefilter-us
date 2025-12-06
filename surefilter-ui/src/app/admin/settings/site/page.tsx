@@ -862,6 +862,7 @@ export default function SiteSettingsPage() {
                           <option value="Twitter">Twitter</option>
                           <option value="Instagram">Instagram</option>
                           <option value="YouTube">YouTube</option>
+                          <option value="TikTok">TikTok</option>
                         </select>
                         <input
                           type="text"

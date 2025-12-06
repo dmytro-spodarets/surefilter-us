@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { clearSiteSettingsCache } from '@/lib/site-settings';
 import { z } from 'zod';
 
 const UpdateSettingsSchema = z.object({
@@ -141,6 +142,9 @@ export async function PUT(request: NextRequest) {
         ...data,
       },
     });
+
+    // Clear cache after updating settings
+    clearSiteSettingsCache();
 
     return NextResponse.json(settings);
   } catch (error) {
