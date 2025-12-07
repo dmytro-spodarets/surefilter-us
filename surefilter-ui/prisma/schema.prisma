@@ -139,18 +139,59 @@ enum PageType {
   INDUSTRY
 }
 
-// Catalog taxonomy
-enum FilterCategory {
-  HEAVY_DUTY
-  AUTOMOTIVE
+// ============================================
+// CATALOG SYSTEM
+// ============================================
+
+// Product categories (flexible, not hardcoded)
+model ProductCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique // "Heavy Duty", "Automotive", "Industrial", etc.
+  slug        String  @unique
+  description String? @db.Text
+  icon        String?
+  position    Int     @default(0)
+  isActive    Boolean @default(true)
+  
+  // Relations
+  filterTypes      FilterType[]
+  productCategories ProductCategoryAssignment[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([position])
+  @@index([isActive])
+}
+
+// Brand model - supports multiple brands for future ACES/PIES exports
+model Brand {
+  id          String    @id @default(cuid())
+  name        String    @unique // "Sure Filter", "Premium Guard", etc.
+  code        String?   @unique // Short code for ACES/PIES (e.g., "SF", "PG")
+  description String?   @db.Text
+  logoUrl     String?   // Brand logo S3 path
+  website     String?   // Brand website URL
+  isActive    Boolean   @default(true)
+  position    Int       @default(0) // For sorting in UI
+  
+  // Relations
+  products Product[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([isActive, position])
 }
 
 model FilterType {
-  id       String         @id @default(cuid())
-  category FilterCategory
+  id         String  @id @default(cuid())
+  categoryId String? // Optional link to ProductCategory
+  category   ProductCategory? @relation(fields: [categoryId], references: [id])
+  
   parentId String?
-  parent   FilterType?    @relation("FilterTypeToChildren", fields: [parentId], references: [id])
-  children FilterType[]   @relation("FilterTypeToChildren")
+  parent   FilterType?  @relation("FilterTypeToChildren", fields: [parentId], references: [id])
+  children FilterType[] @relation("FilterTypeToChildren")
   products Product[]
 
   slug        String
@@ -166,81 +207,148 @@ model FilterType {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([category, parentId, slug])
-  @@index([category, position])
+  @@unique([categoryId, parentId, slug])
+  @@index([categoryId, position])
 }
 
 // Catalog products
 model Product {
   id          String  @id @default(cuid())
-  code        String  @unique
+  code        String  @unique // Product code (e.g., "SFO241")
   name        String
   description String?
 
-  // Optional high-level category and link to a FilterType
-  category     FilterCategory?
+  // Brand relationship (required)
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id])
+
+  // Optional link to a FilterType
   filterTypeId String?
-  filterType   FilterType?     @relation(fields: [filterTypeId], references: [id])
+  filterType   FilterType? @relation(fields: [filterTypeId], references: [id])
 
-  status String? // e.g., 'Release Product'
-
-  // Content fields
-  images     Json // [{ src, alt? }]
-  specsLeft  Json // [{ label, value }]
-  specsRight Json // [{ label, value }]
-  oems       Json // [{ number, manufacturer }]
+  status String? // e.g., 'Release Product', 'Discontinued'
 
   // Optional metadata
   tags         String[] @default([])
-  manufacturer String?
+  manufacturer String?  // Manufacturer name (e.g., "HYUNDAI", "CAT")
   industries   String[] @default([])
-
-  // Dimensions / attributes
-  heightMm Float?
-  odMm     Float?
-  idMm     Float?
-  thread   String?
-  model    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Normalized specifications
-  specValues ProductSpecValue[]
+  // Normalized relationships
+  categories      ProductCategoryAssignment[] // Many-to-many with priority
+  specValues      ProductSpecValue[]
+  media           ProductMedia[]
+  crossReferences ProductCrossReference[]
 
+  @@index([brandId])
   @@index([filterTypeId])
+  @@index([status])
+}
+
+// Many-to-many relationship between Product and ProductCategory with priority
+model ProductCategoryAssignment {
+  id         String  @id @default(cuid())
+  productId  String
+  categoryId String
+  
+  isPrimary Boolean @default(false) // Mark primary/priority category
+  position  Int     @default(0)     // Order if product has multiple categories
+  
+  product  Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([productId, categoryId])
+  @@index([productId, isPrimary])
+  @@index([categoryId])
+}
+
+// Normalized product images and media
+model ProductMedia {
+  id        String  @id @default(cuid())
+  productId String
+  assetId   String
+  
+  isPrimary Boolean @default(false) // Only one primary image per product
+  position  Int     @default(0)     // Order of images in gallery
+  caption   String? // Optional caption for the image
+  
+  product Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  asset   MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([productId, assetId])
+  @@index([productId, position])
+  @@index([productId, isPrimary])
+  @@index([assetId])
+}
+
+// Normalized cross references (OEM, competitor, interchange)
+model ProductCrossReference {
+  id        String  @id @default(cuid())
+  productId String
+  
+  // Reference details
+  refBrandName String  // Brand name (e.g., "HYUNDAI", "Fleetguard", "Baldwin")
+  refBrandId   String? // Optional link to Brand model if it's in our system
+  refCode      String  // Reference part number (e.g., "26300-35503", "LF3000")
+  
+  // Reference type and metadata
+  referenceType String  @default("OEM") // "OEM", "Competitor", "Supersedes", "Superseded By"
+  isPreferred   Boolean @default(false) // Mark as preferred/primary reference
+  notes         String? @db.Text        // Additional notes about this cross reference
+  
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([productId, refBrandName, refCode])
+  @@index([productId, referenceType])
+  @@index([refCode]) // For reverse lookup
+  @@index([refBrandName])
 }
 
 // Master list of available specification parameters
 model SpecParameter {
-  id        String   @id @default(cuid())
-  name      String
-  unit      String?
-  category  String?
-  position  Int      @default(0)
-  isActive  Boolean  @default(true)
+  id       String  @id @default(cuid())
+  code     String? @unique // Stable code for ACES/PIES (e.g., "HEIGHT", "OD", "THREAD")
+  name     String  // Display name (e.g., "Height", "Outer Diameter")
+  unit     String? // Default unit (e.g., "mm", "in", "psi")
+  category String? // Category for grouping (e.g., "Dimensions", "Performance")
+  position Int     @default(0)
+  isActive Boolean @default(true)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   values ProductSpecValue[]
 
   @@index([category, position])
+  @@index([isActive])
 }
 
 // Value of a specification parameter for a concrete product
 model ProductSpecValue {
-  id           String        @id @default(cuid())
+  id           String  @id @default(cuid())
   productId    String
   parameterId  String
-  value        String
-  unitOverride String?
-  position     Int           @default(0)
+  value        String  // The actual value (e.g., "77", "M22 x 1.5")
+  unitOverride String? // Override default unit if needed
+  position     Int     @default(0)
 
   product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   parameter SpecParameter @relation(fields: [parameterId], references: [id], onDelete: Cascade)
 
   @@unique([productId, parameterId])
   @@index([productId, position])
+  @@index([parameterId])
 }
 
 // Media assets for file manager
@@ -260,6 +368,9 @@ model MediaAsset {
   uploadedBy  String?  // User ID who uploaded
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Relations
+  productMedia ProductMedia[]
 
   @@index([folder])
   @@index([mimeType])

@@ -10,8 +10,9 @@ export default async function FilterTypesCms({ title, description, category, sec
     else resolvedCategory = 'HEAVY_DUTY';
   }
 
+  // TODO: Update to use ProductCategory relation instead of enum
   const items = await prisma.filterType.findMany({
-    where: { category: resolvedCategory, parentId: null, isActive: true },
+    where: { /* category: resolvedCategory, */ parentId: null, isActive: true },
     orderBy: [{ position: 'asc' }, { name: 'asc' }],
   });
   const pageSlugs = items.map((it) => it.pageSlug).filter((s): s is string => Boolean(s));

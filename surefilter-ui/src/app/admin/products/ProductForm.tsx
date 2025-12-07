@@ -1,407 +1,649 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import MediaPickerModal from '@/components/admin/MediaPickerModal';
+import Image from 'next/image';
+import SpecValuesSection from './components/SpecValuesSection';
+import CrossReferencesSection from './components/CrossReferencesSection';
+import MediaSection from './components/MediaSection';
 
-type FilterTypeOption = { id: string; name: string; category: 'HEAVY_DUTY' | 'AUTOMOTIVE'; fullSlug: string };
-type SpecParameterOption = { id: string; name: string; unit?: string | null; category?: string | null; position: number; isActive: boolean };
+// Types
+interface Brand {
+  id: string;
+  name: string;
+  code?: string | null;
+}
 
-type ProductInput = {
+interface ProductCategory {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface FilterType {
+  id: string;
+  name: string;
+  fullSlug: string;
+}
+
+interface SpecParameter {
+  id: string;
+  code?: string | null;
+  name: string;
+  unit?: string | null;
+  category?: string | null;
+}
+
+interface MediaAsset {
+  id: string;
+  s3Path: string;
+  cdnUrl: string;
+  filename: string;
+}
+
+interface ProductFormData {
   code: string;
   name: string;
-  description?: string | null;
-  category?: 'HEAVY_DUTY' | 'AUTOMOTIVE' | null;
-  filterTypeId?: string | null;
-  status?: string | null;
-  images: Array<{ src: string; alt?: string }>;
-  specsLeft: Array<{ label: string; value: string }>;
-  specsRight: Array<{ label: string; value: string }>;
-  oems: Array<{ number: string; manufacturer?: string }>;
+  description: string;
+  brandId: string;
+  filterTypeId: string;
+  status: string;
   tags: string[];
-  manufacturer?: string | null;
+  manufacturer: string;
   industries: string[];
-  heightMm?: number | null;
-  odMm?: number | null;
-  idMm?: number | null;
-  thread?: string | null;
-  model?: string | null;
-  specValues?: Array<{ parameterId: string; value: string; unitOverride?: string | null; position?: number }>;
-};
+  
+  // Many-to-many categories
+  categoryAssignments: Array<{
+    categoryId: string;
+    isPrimary: boolean;
+    position: number;
+  }>;
+  
+  // Spec values
+  specValues: Array<{
+    parameterId: string;
+    value: string;
+    unitOverride?: string;
+    position: number;
+  }>;
+  
+  // Media
+  mediaItems: Array<{
+    assetId: string;
+    isPrimary: boolean;
+    position: number;
+    caption?: string;
+  }>;
+  
+  // Cross references (OEMs)
+  crossReferences: Array<{
+    refBrandName: string;
+    refCode: string;
+    referenceType: string;
+    isPreferred: boolean;
+    notes?: string;
+  }>;
+}
 
-export default function ProductForm({
+interface ProductFormProps {
+  mode: 'create' | 'edit';
+  productId?: string;
+  brands: Brand[];
+  categories: ProductCategory[];
+  filterTypes: FilterType[];
+  specParameters: SpecParameter[];
+}
+
+export default function ProductFormNew({
   mode,
-  initial,
+  productId,
+  brands,
+  categories,
   filterTypes,
   specParameters,
-}: {
-  mode: 'create' | 'edit';
-  initial?: Partial<ProductInput> & { id?: string };
-  filterTypes: FilterTypeOption[];
-  specParameters: SpecParameterOption[];
-}) {
+}: ProductFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(mode === 'edit');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [mediaPickerTarget, setMediaPickerTarget] = useState<number | null>(null);
+  
+  const [formData, setFormData] = useState<ProductFormData>({
+    code: '',
+    name: '',
+    description: '',
+    brandId: '',
+    filterTypeId: '',
+    status: 'Active',
+    tags: [],
+    manufacturer: '',
+    industries: [],
+    categoryAssignments: [],
+    specValues: [],
+    mediaItems: [],
+    crossReferences: [],
+  });
 
-  const [form, setForm] = useState<ProductInput>(() => ({
-    code: initial?.code || '',
-    name: initial?.name || '',
-    description: initial?.description ?? '',
-    category: (initial?.category as any) || null,
-    filterTypeId: (initial?.filterTypeId as any) || null,
-    status: initial?.status ?? '',
-    images: (initial?.images as any) || [],
-    specsLeft: (initial?.specsLeft as any) || [],
-    specsRight: (initial?.specsRight as any) || [],
-    oems: (initial?.oems as any) || [],
-    tags: initial?.tags || [],
-    manufacturer: initial?.manufacturer ?? '',
-    industries: initial?.industries || [],
-    heightMm: (initial?.heightMm as any) ?? null,
-    odMm: (initial?.odMm as any) ?? null,
-    idMm: (initial?.idMm as any) ?? null,
-    thread: initial?.thread ?? '',
-    model: initial?.model ?? '',
-    specValues: (initial?.specValues as any) || [],
-  }));
-
+  // Load existing product data
   useEffect(() => {
-    // If initial changes (client nav), sync form
-    setForm((prev) => ({
-      ...prev,
-      ...initial,
-      code: initial?.code || '',
-      name: initial?.name || '',
-      description: initial?.description ?? '',
-      category: (initial?.category as any) || null,
-      filterTypeId: (initial?.filterTypeId as any) || null,
-      status: initial?.status ?? '',
-      images: (initial?.images as any) || [],
-      specsLeft: (initial?.specsLeft as any) || [],
-      specsRight: (initial?.specsRight as any) || [],
-      oems: (initial?.oems as any) || [],
-      tags: initial?.tags || [],
-      manufacturer: initial?.manufacturer ?? '',
-      industries: initial?.industries || [],
-      heightMm: (initial?.heightMm as any) ?? null,
-      odMm: (initial?.odMm as any) ?? null,
-      idMm: (initial?.idMm as any) ?? null,
-      thread: initial?.thread ?? '',
-      model: initial?.model ?? '',
-      specValues: (initial?.specValues as any) || [],
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initial?.id]);
+    if (mode === 'edit' && productId) {
+      loadProduct();
+    }
+  }, [mode, productId]);
 
-  const filterTypesByCategory = useMemo(() => ({
-    HEAVY_DUTY: filterTypes.filter((f) => f.category === 'HEAVY_DUTY'),
-    AUTOMOTIVE: filterTypes.filter((f) => f.category === 'AUTOMOTIVE'),
-  }), [filterTypes]);
+  const loadProduct = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/products/${productId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setFormData({
+          code: data.code,
+          name: data.name,
+          description: data.description || '',
+          brandId: data.brandId,
+          filterTypeId: data.filterTypeId || '',
+          status: data.status || 'Active',
+          tags: data.tags || [],
+          manufacturer: data.manufacturer || '',
+          industries: data.industries || [],
+          categoryAssignments: data.categories?.map((c: any) => ({
+            categoryId: c.categoryId,
+            isPrimary: c.isPrimary,
+            position: c.position,
+          })) || [],
+          specValues: data.specValues?.map((sv: any) => ({
+            parameterId: sv.parameterId,
+            value: sv.value,
+            unitOverride: sv.unitOverride,
+            position: sv.position,
+          })) || [],
+          mediaItems: data.media?.map((m: any) => ({
+            assetId: m.assetId,
+            isPrimary: m.isPrimary,
+            position: m.position,
+            caption: m.caption,
+          })) || [],
+          crossReferences: data.crossReferences?.map((cr: any) => ({
+            refBrandName: cr.refBrandName,
+            refCode: cr.refCode,
+            referenceType: cr.referenceType,
+            isPreferred: cr.isPreferred,
+            notes: cr.notes,
+          })) || [],
+        });
+      }
+    } catch (error) {
+      console.error('Error loading product:', error);
+      alert('Failed to load product');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const specById = useMemo(() => {
-    const m = new Map<string, SpecParameterOption>();
-    (specParameters || []).forEach((p) => m.set(p.id, p));
-    return m;
-  }, [specParameters]);
-
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    const payload: any = {
-      ...form,
-      description: form.description || null,
-      category: form.category || null,
-      filterTypeId: form.filterTypeId || null,
-      status: form.status || null,
-      manufacturer: form.manufacturer || null,
-      thread: form.thread || null,
-      model: form.model || null,
-      heightMm: form.heightMm === null || form.heightMm === undefined || form.heightMm === ('' as any) ? null : Number(form.heightMm),
-      odMm: form.odMm === null || form.odMm === undefined || form.odMm === ('' as any) ? null : Number(form.odMm),
-      idMm: form.idMm === null || form.idMm === undefined || form.idMm === ('' as any) ? null : Number(form.idMm),
-      specValues: (form.specValues || []).map((sv) => ({
-        parameterId: sv.parameterId,
-        value: sv.value,
-        unitOverride: (sv.unitOverride || '') === '' ? null : sv.unitOverride,
-        position: typeof sv.position === 'number' ? Math.trunc(sv.position) : 0,
-      })),
-    };
+    
+    if (!formData.brandId) {
+      alert('Please select a brand');
+      return;
+    }
 
     try {
-      const res = await fetch(mode === 'create' ? '/api/admin/products' : `/api/admin/products/${initial?.id}`, {
+      setSaving(true);
+      const url = mode === 'create' 
+        ? '/api/admin/products'
+        : `/api/admin/products/${productId}`;
+      
+      const response = await fetch(url, {
         method: mode === 'create' ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(formData),
       });
-      if (!res.ok) {
-        const t = await res.json().catch(() => ({} as any));
-        throw new Error(t?.error || 'Failed to save');
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Product ${mode === 'create' ? 'created' : 'updated'} successfully!`);
+        router.push('/admin/products');
+      } else {
+        alert(data.error || `Failed to ${mode} product`);
       }
-      window.location.href = '/admin/products';
-    } catch (err: any) {
-      setError(err?.message || 'Failed to save');
+    } catch (error) {
+      console.error('Error saving product:', error);
+      alert('Failed to save product');
     } finally {
       setSaving(false);
     }
   };
 
-  const onDelete = async () => {
-    if (!initial?.id) return;
-    if (!confirm('Delete this product? This cannot be undone.')) return;
-    setSaving(true);
-    setError(null);
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/admin/products/${initial.id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const t = await res.json().catch(() => ({} as any));
-        throw new Error(t?.error || 'Failed to delete');
+      setSaving(true);
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Product deleted successfully');
+        router.push('/admin/products');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete product');
       }
-      window.location.href = '/admin/products';
-    } catch (err: any) {
-      setError(err?.message || 'Failed to delete');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product');
     } finally {
       setSaving(false);
     }
   };
 
-  const setJson = (key: keyof ProductInput, value: string) => {
-    try {
-      const parsed = value.trim() ? JSON.parse(value) : [];
-      setForm((f) => ({ ...f, [key]: parsed } as any));
-      setError(null);
-    } catch (e) {
-      setError('Invalid JSON in one of JSON fields');
+  // Category management
+  const addCategory = (categoryId: string) => {
+    if (formData.categoryAssignments.find(c => c.categoryId === categoryId)) {
+      return;
     }
+    setFormData({
+      ...formData,
+      categoryAssignments: [
+        ...formData.categoryAssignments,
+        {
+          categoryId,
+          isPrimary: formData.categoryAssignments.length === 0,
+          position: formData.categoryAssignments.length,
+        },
+      ],
+    });
   };
+
+  const removeCategory = (categoryId: string) => {
+    setFormData({
+      ...formData,
+      categoryAssignments: formData.categoryAssignments.filter(c => c.categoryId !== categoryId),
+    });
+  };
+
+  const setPrimaryCategory = (categoryId: string) => {
+    setFormData({
+      ...formData,
+      categoryAssignments: formData.categoryAssignments.map(c => ({
+        ...c,
+        isPrimary: c.categoryId === categoryId,
+      })),
+    });
+  };
+
+  // Spec value management
+  const addSpecValue = () => {
+    setFormData({
+      ...formData,
+      specValues: [
+        ...formData.specValues,
+        {
+          parameterId: '',
+          value: '',
+          unitOverride: '',
+          position: formData.specValues.length,
+        },
+      ],
+    });
+  };
+
+  const updateSpecValue = (index: number, field: string, value: any) => {
+    const updated = [...formData.specValues];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, specValues: updated });
+  };
+
+  const removeSpecValue = (index: number) => {
+    setFormData({
+      ...formData,
+      specValues: formData.specValues.filter((_, i) => i !== index),
+    });
+  };
+
+  // Cross reference management
+  const addCrossReference = () => {
+    setFormData({
+      ...formData,
+      crossReferences: [
+        ...formData.crossReferences,
+        {
+          refBrandName: '',
+          refCode: '',
+          referenceType: 'OEM',
+          isPreferred: false,
+          notes: '',
+        },
+      ],
+    });
+  };
+
+  const updateCrossReference = (index: number, field: string, value: any) => {
+    const updated = [...formData.crossReferences];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, crossReferences: updated });
+  };
+
+  const removeCrossReference = (index: number) => {
+    setFormData({
+      ...formData,
+      crossReferences: formData.crossReferences.filter((_, i) => i !== index),
+    });
+  };
+
+  // Media management
+  const handleMediaSelect = (cdnUrl: string) => {
+    // Extract asset info from CDN URL - in real implementation, 
+    // you'd fetch the MediaAsset by cdnUrl
+    const assetId = 'temp-' + Date.now(); // Placeholder
+    
+    setFormData({
+      ...formData,
+      mediaItems: [
+        ...formData.mediaItems,
+        {
+          assetId,
+          isPrimary: formData.mediaItems.length === 0,
+          position: formData.mediaItems.length,
+          caption: '',
+        },
+      ],
+    });
+  };
+
+  const removeMedia = (index: number) => {
+    setFormData({
+      ...formData,
+      mediaItems: formData.mediaItems.filter((_, i) => i !== index),
+    });
+  };
+
+  const setPrimaryMedia = (index: number) => {
+    setFormData({
+      ...formData,
+      mediaItems: formData.mediaItems.map((m, i) => ({
+        ...m,
+        isPrimary: i === index,
+      })),
+    });
+  };
+
+  const getCdnUrl = (s3Path: string) => {
+    const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL || '';
+    return `${cdnUrl}/${s3Path}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="text-center text-gray-500">Loading product...</div>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Code</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} required />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Name</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        </div>
+    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          {mode === 'create' ? 'Create Product' : 'Edit Product'}
+        </h1>
       </div>
 
-      <div>
-        <label className="block text-sm text-gray-700 mb-1">Description</label>
-        <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" rows={3} value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Category</label>
-          <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.category || ''} onChange={(e) => setForm({ ...form, category: (e.target.value || null) as any, filterTypeId: null })}>
-            <option value="">—</option>
-            <option value="HEAVY_DUTY">Heavy Duty</option>
-            <option value="AUTOMOTIVE">Automotive</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Filter Type</label>
-          <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.filterTypeId || ''} onChange={(e) => setForm({ ...form, filterTypeId: e.target.value || null })}>
-            <option value="">—</option>
-            {(form.category ? filterTypesByCategory[form.category] : filterTypes).map((ft) => (
-              <option key={ft.id} value={ft.id}>{ft.name} ({ft.category})</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Status</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="e.g., Release Product" value={form.status || ''} onChange={(e) => setForm({ ...form, status: e.target.value })} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Manufacturer</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.manufacturer || ''} onChange={(e) => setForm({ ...form, manufacturer: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Model</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.model || ''} onChange={(e) => setForm({ ...form, model: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Thread</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={form.thread || ''} onChange={(e) => setForm({ ...form, thread: e.target.value })} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Height (mm)</label>
-          <input type="number" step="any" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={(form.heightMm as any) ?? ''} onChange={(e) => setForm({ ...form, heightMm: e.target.value === '' ? null : Number(e.target.value) })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">OD (mm)</label>
-          <input type="number" step="any" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={(form.odMm as any) ?? ''} onChange={(e) => setForm({ ...form, odMm: e.target.value === '' ? null : Number(e.target.value) })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">ID (mm)</label>
-          <input type="number" step="any" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={(form.idMm as any) ?? ''} onChange={(e) => setForm({ ...form, idMm: e.target.value === '' ? null : Number(e.target.value) })} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Tags (comma-separated)</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={(form.tags || []).join(', ')} onChange={(e) => setForm({ ...form, tags: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Industries (comma-separated)</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={(form.industries || []).join(', ')} onChange={(e) => setForm({ ...form, industries: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Images (JSON array)</label>
-          <textarea rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={JSON.stringify(form.images || [], null, 2)} onChange={(e) => setJson('images', e.target.value)} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Specs Left (JSON array)</label>
-          <textarea rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={JSON.stringify(form.specsLeft || [], null, 2)} onChange={(e) => setJson('specsLeft', e.target.value)} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Specs Right (JSON array)</label>
-          <textarea rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={JSON.stringify(form.specsRight || [], null, 2)} onChange={(e) => setJson('specsRight', e.target.value)} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">OEMs (JSON array)</label>
-          <textarea rows={4} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" value={JSON.stringify(form.oems || [], null, 2)} onChange={(e) => setJson('oems', e.target.value)} />
-        </div>
-      </div>
-
-      <div className="border-t border-gray-200 pt-4">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-medium text-gray-900">Specifications</h2>
-          <button
-            type="button"
-            className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm"
-            onClick={() =>
-              setForm((f) => ({
-                ...f,
-                specValues: [...(f.specValues || []), { parameterId: specParameters[0]?.id || '', value: '', unitOverride: '', position: (f.specValues?.length || 0) * 10 }],
-              }))
-            }
-          >
-            + Add spec
-          </button>
-        </div>
-
-        <div className="grid gap-3">
-          {(form.specValues || []).map((sv, idx) => {
-            const p = specById.get(sv.parameterId || '');
-            return (
-              <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end border border-gray-200 rounded-lg p-3">
-                <div className="md:col-span-4">
-                  <label className="block text-sm text-gray-700 mb-1">Parameter</label>
-                  <select
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    value={sv.parameterId || ''}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setForm((f) => {
-                        const next = [...(f.specValues || [])];
-                        next[idx] = { ...next[idx], parameterId: v } as any;
-                        return { ...f, specValues: next } as any;
-                      });
-                    }}
-                  >
-                    <option value="">— Select parameter —</option>
-                    {specParameters.map((sp) => (
-                      <option key={sp.id} value={sp.id}>
-                        {sp.name}{sp.unit ? ` (${sp.unit})` : ''}{sp.category ? ` — ${sp.category}` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="md:col-span-4">
-                  <label className="block text-sm text-gray-700 mb-1">Value</label>
-                  <input
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    value={sv.value || ''}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setForm((f) => {
-                        const next = [...(f.specValues || [])];
-                        next[idx] = { ...next[idx], value: v } as any;
-                        return { ...f, specValues: next } as any;
-                      });
-                    }}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm text-gray-700 mb-1">Unit override</label>
-                  <input
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    placeholder={p?.unit || ''}
-                    value={sv.unitOverride || ''}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setForm((f) => {
-                        const next = [...(f.specValues || [])];
-                        next[idx] = { ...next[idx], unitOverride: v } as any;
-                        return { ...f, specValues: next } as any;
-                      });
-                    }}
-                  />
-                </div>
-                <div className="md:col-span-1">
-                  <label className="block text-sm text-gray-700 mb-1">Pos</label>
-                  <input
-                    type="number"
-                    step="1"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    value={(sv.position as any) ?? 0}
-                    onChange={(e) => {
-                      const v = e.target.value === '' ? 0 : Number(e.target.value);
-                      setForm((f) => {
-                        const next = [...(f.specValues || [])];
-                        next[idx] = { ...next[idx], position: v } as any;
-                        return { ...f, specValues: next } as any;
-                      });
-                    }}
-                  />
-                </div>
-                <div className="md:col-span-1 flex justify-end">
-                  <button
-                    type="button"
-                    className="px-3 py-2 rounded-lg border border-red-300 text-red-700 text-sm"
-                    onClick={() =>
-                      setForm((f) => ({
-                        ...f,
-                        specValues: (f.specValues || []).filter((_, i) => i !== idx),
-                      }))
-                    }
-                  >
-                    Remove
-                  </button>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - 2 columns */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Basic Information */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Code <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                  placeholder="e.g., SFO241"
+                />
               </div>
-            );
-          })}
-          {(form.specValues || []).length === 0 && (
-            <p className="text-sm text-gray-600">No specifications added yet.</p>
-          )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Brand <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.brandId}
+                  onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                >
+                  <option value="">Select Brand</option>
+                  {brands.map(brand => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name} {brand.code && `(${brand.code})`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Product Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                placeholder="e.g., Heavy Duty Oil Filter"
+              />
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                placeholder="Product description..."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Filter Type
+                </label>
+                <select
+                  value={formData.filterTypeId}
+                  onChange={(e) => setFormData({ ...formData, filterTypeId: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                >
+                  <option value="">None</option>
+                  {filterTypes.map(ft => (
+                    <option key={ft.id} value={ft.id}>
+                      {ft.fullSlug}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Discontinued">Discontinued</option>
+                  <option value="Coming Soon">Coming Soon</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Manufacturer
+              </label>
+              <input
+                type="text"
+                value={formData.manufacturer}
+                onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                placeholder="e.g., HYUNDAI, CAT"
+              />
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold mb-4">Categories</h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Add Category
+              </label>
+              <select
+                onChange={(e) => {
+                  if (e.target.value) {
+                    addCategory(e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+              >
+                <option value="">Select a category...</option>
+                {categories
+                  .filter(cat => !formData.categoryAssignments.find(c => c.categoryId === cat.id))
+                  .map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {formData.categoryAssignments.length > 0 ? (
+              <div className="space-y-2">
+                {formData.categoryAssignments.map((assignment) => {
+                  const category = categories.find(c => c.id === assignment.categoryId);
+                  if (!category) return null;
+                  
+                  return (
+                    <div
+                      key={assignment.categoryId}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium">{category.name}</span>
+                        {assignment.isPrimary && (
+                          <span className="px-2 py-0.5 text-xs bg-sure-blue-100 text-sure-blue-800 rounded-full">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!assignment.isPrimary && (
+                          <button
+                            type="button"
+                            onClick={() => setPrimaryCategory(assignment.categoryId)}
+                            className="text-sm text-sure-blue-600 hover:text-sure-blue-800"
+                          >
+                            Set Primary
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(assignment.categoryId)}
+                          className="text-sm text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No categories assigned</p>
+            )}
+          </div>
+
+          {/* Specifications */}
+          <SpecValuesSection
+            specValues={formData.specValues}
+            specParameters={specParameters}
+            onChange={(specValues) => setFormData({ ...formData, specValues })}
+          />
+
+          {/* Media/Images */}
+          <MediaSection
+            mediaItems={formData.mediaItems}
+            onChange={(mediaItems) => setFormData({ ...formData, mediaItems })}
+            onOpenPicker={() => setShowMediaPicker(true)}
+          />
+
+          {/* Cross References (OEMs) */}
+          <CrossReferencesSection
+            crossReferences={formData.crossReferences}
+            onChange={(crossReferences) => setFormData({ ...formData, crossReferences })}
+          />
+          
+        </div>
+
+        {/* Sidebar - 1 column */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="font-semibold mb-4">Actions</h3>
+            
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full px-4 py-2 bg-sure-blue-600 text-white rounded-md hover:bg-sure-blue-700 disabled:opacity-50 mb-2"
+            >
+              {saving ? 'Saving...' : mode === 'create' ? 'Create Product' : 'Save Changes'}
+            </button>
+
+            {mode === 'edit' && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={saving}
+                className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+              >
+                Delete Product
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 mt-2">
-        {mode === 'edit' ? (
-          <button type="button" onClick={onDelete} className="px-3 py-2 rounded-lg border border-red-300 text-red-700">Delete</button>
-        ) : null}
-        <button type="submit" className="bg-sure-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-60" disabled={saving}>{saving ? (mode === 'create' ? 'Creating…' : 'Saving…') : (mode === 'create' ? 'Create product' : 'Save changes')}</button>
-      </div>
+      <MediaPickerModal
+        isOpen={showMediaPicker}
+        onSelect={handleMediaSelect}
+        onClose={() => setShowMediaPicker(false)}
+      />
     </form>
   );
 }

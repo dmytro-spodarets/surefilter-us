@@ -1,141 +1,291 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { PrismaClient } from '@/generated/prisma';
 
-const ImageSchema = z.object({ src: z.string().min(1), alt: z.string().optional().default('') });
-const SpecSchema = z.object({ label: z.string().min(1), value: z.string().min(1) });
-const OemSchema = z.object({ number: z.string().min(1), manufacturer: z.string().optional().default('') });
+const prisma = new PrismaClient();
+
+// Validation schemas for nested data
+const CategoryAssignmentSchema = z.object({
+  categoryId: z.string().min(1),
+  isPrimary: z.boolean().default(false),
+  position: z.number().int().min(0).default(0),
+});
 
 const SpecValueSchema = z.object({
   parameterId: z.string().min(1),
   value: z.string().min(1),
   unitOverride: z.string().optional().nullable(),
-  position: z.number().int().optional().default(0),
+  position: z.number().int().min(0).default(0),
 });
 
-const CreateProductSchema = z.object({
-  code: z.string().min(1),
-  name: z.string().min(1),
+const MediaItemSchema = z.object({
+  assetId: z.string().min(1),
+  isPrimary: z.boolean().default(false),
+  position: z.number().int().min(0).default(0),
+  caption: z.string().optional().nullable(),
+});
+
+const CrossReferenceSchema = z.object({
+  refBrandName: z.string().min(1),
+  refCode: z.string().min(1),
+  referenceType: z.string().default('OEM'),
+  isPreferred: z.boolean().default(false),
+  notes: z.string().optional().nullable(),
+});
+
+// Main product schema
+const ProductSchema = z.object({
+  code: z.string().min(1, 'Product code is required'),
+  name: z.string().min(1, 'Product name is required'),
   description: z.string().optional().nullable(),
-  category: z.enum(['HEAVY_DUTY', 'AUTOMOTIVE']).optional().nullable(),
+  brandId: z.string().min(1, 'Brand is required'),
   filterTypeId: z.string().optional().nullable(),
   status: z.string().optional().nullable(),
-  images: z.array(ImageSchema).default([]),
-  specsLeft: z.array(SpecSchema).default([]),
-  specsRight: z.array(SpecSchema).default([]),
-  oems: z.array(OemSchema).default([]),
-  tags: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).default([]),
   manufacturer: z.string().optional().nullable(),
-  industries: z.array(z.string()).optional().default([]),
-  heightMm: z.number().optional().nullable(),
-  odMm: z.number().optional().nullable(),
-  idMm: z.number().optional().nullable(),
-  thread: z.string().optional().nullable(),
-  model: z.string().optional().nullable(),
-  specValues: z.array(SpecValueSchema).optional().default([]),
+  industries: z.array(z.string()).default([]),
+  
+  // Nested relations
+  categoryAssignments: z.array(CategoryAssignmentSchema).default([]),
+  specValues: z.array(SpecValueSchema).default([]),
+  mediaItems: z.array(MediaItemSchema).default([]),
+  crossReferences: z.array(CrossReferenceSchema).default([]),
 });
 
-export async function GET(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+// GET /api/admin/products - List all products
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('q') || '';
+    const brandId = searchParams.get('brandId');
+    const categoryId = searchParams.get('categoryId');
+    const filterTypeId = searchParams.get('filterTypeId');
+    const status = searchParams.get('status');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const skip = (page - 1) * limit;
 
-  const { searchParams } = new URL(req.url);
-  const q = searchParams.get('q') ?? '';
-  const category = searchParams.get('category') as 'HEAVY_DUTY' | 'AUTOMOTIVE' | null;
-  const filterTypeId = searchParams.get('filterTypeId');
-  const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
-  const pageSize = Math.min(Math.max(parseInt(searchParams.get('pageSize') || '20', 10), 1), 100);
-  const sort = (searchParams.get('sort') ?? 'code') as 'code' | 'name' | 'createdAt';
-  const dir = (searchParams.get('dir') ?? 'asc') as 'asc' | 'desc';
+    // Build where clause
+    const where: any = {};
+    
+    if (search) {
+      where.OR = [
+        { code: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { manufacturer: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    
+    if (brandId) {
+      where.brandId = brandId;
+    }
+    
+    if (categoryId) {
+      where.categories = {
+        some: {
+          categoryId: categoryId,
+        },
+      };
+    }
+    
+    if (filterTypeId) {
+      where.filterTypeId = filterTypeId;
+    }
+    
+    if (status) {
+      where.status = status;
+    }
 
-  const where: any = {};
-  if (q) {
-    where.OR = [
-      { code: { contains: q, mode: 'insensitive' } },
-      { name: { contains: q, mode: 'insensitive' } },
-    ];
-  }
-  if (category === 'HEAVY_DUTY' || category === 'AUTOMOTIVE') {
-    where.category = category;
-  }
-  if (filterTypeId) where.filterTypeId = filterTypeId;
+    // Get products with all relations
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: [
+          { code: 'asc' },
+        ],
+        skip,
+        take: limit,
+        include: {
+          brand: true,
+          filterType: true,
+          categories: {
+            include: {
+              category: true,
+            },
+            orderBy: [
+              { isPrimary: 'desc' },
+              { position: 'asc' },
+            ],
+          },
+          specValues: {
+            include: {
+              parameter: true,
+            },
+            orderBy: {
+              position: 'asc',
+            },
+          },
+          media: {
+            include: {
+              asset: true,
+            },
+            orderBy: [
+              { isPrimary: 'desc' },
+              { position: 'asc' },
+            ],
+          },
+          crossReferences: {
+            orderBy: [
+              { isPreferred: 'desc' },
+              { refBrandName: 'asc' },
+            ],
+          },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-  const [total, items] = await Promise.all([
-    prisma.product.count({ where }),
-    prisma.product.findMany({
-      where,
-      include: {
-        filterType: true,
-        specValues: { include: { parameter: true }, orderBy: { position: 'asc' } },
+    return NextResponse.json({
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { [sort]: dir },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-  ]);
-
-  return NextResponse.json({ items, total, page, pageSize });
+    });
+  } catch (error: any) {
+    console.error('Error fetching products:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch products', details: error.message },
+      { status: 500 }
+    );
+  }
 }
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  let body: unknown;
+// POST /api/admin/products - Create new product
+export async function POST(request: NextRequest) {
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+    const body = await request.json();
+    
+    // Validate input
+    const validatedData = ProductSchema.parse(body);
 
-  const parsed = CreateProductSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', issues: parsed.error.flatten() }, { status: 400 });
-  }
+    // Check if code already exists
+    const existingCode = await prisma.product.findUnique({
+      where: { code: validatedData.code },
+    });
 
-  const data = parsed.data;
-  try {
-    const created = await prisma.$transaction(async (tx) => {
-      const p = await tx.product.create({
+    if (existingCode) {
+      return NextResponse.json(
+        { error: 'A product with this code already exists' },
+        { status: 400 }
+      );
+    }
+
+    // Create product with all nested relations in a transaction
+    const product = await prisma.$transaction(async (tx) => {
+      // Create the product
+      const newProduct = await tx.product.create({
         data: {
-          code: data.code,
-          name: data.name,
-          description: data.description ?? null,
-          category: data.category ?? null,
-          filterTypeId: data.filterTypeId ?? null,
-          status: data.status ?? null,
-          images: data.images,
-          specsLeft: data.specsLeft,
-          specsRight: data.specsRight,
-          oems: data.oems,
-          tags: data.tags ?? [],
-          manufacturer: data.manufacturer ?? null,
-          industries: data.industries ?? [],
-          heightMm: data.heightMm ?? null,
-          odMm: data.odMm ?? null,
-          idMm: data.idMm ?? null,
-          thread: data.thread ?? null,
-          model: data.model ?? null,
+          code: validatedData.code,
+          name: validatedData.name,
+          description: validatedData.description || null,
+          brandId: validatedData.brandId,
+          filterTypeId: validatedData.filterTypeId || null,
+          status: validatedData.status || null,
+          tags: validatedData.tags,
+          manufacturer: validatedData.manufacturer || null,
+          industries: validatedData.industries,
         },
       });
-      if ((data.specValues || []).length) {
-        await tx.productSpecValue.createMany({
-          data: (data.specValues || []).map((sv) => ({
-            productId: p.id,
-            parameterId: sv.parameterId,
-            value: sv.value,
-            unitOverride: sv.unitOverride ?? null,
-            position: sv.position ?? 0,
+
+      // Create category assignments
+      if (validatedData.categoryAssignments.length > 0) {
+        await tx.productCategoryAssignment.createMany({
+          data: validatedData.categoryAssignments.map(ca => ({
+            productId: newProduct.id,
+            categoryId: ca.categoryId,
+            isPrimary: ca.isPrimary,
+            position: ca.position,
           })),
-          skipDuplicates: true,
         });
       }
-      return p;
+
+      // Create spec values
+      if (validatedData.specValues.length > 0) {
+        await tx.productSpecValue.createMany({
+          data: validatedData.specValues.map(sv => ({
+            productId: newProduct.id,
+            parameterId: sv.parameterId,
+            value: sv.value,
+            unitOverride: sv.unitOverride || null,
+            position: sv.position,
+          })),
+        });
+      }
+
+      // Create media items
+      if (validatedData.mediaItems.length > 0) {
+        await tx.productMedia.createMany({
+          data: validatedData.mediaItems.map(mi => ({
+            productId: newProduct.id,
+            assetId: mi.assetId,
+            isPrimary: mi.isPrimary,
+            position: mi.position,
+            caption: mi.caption || null,
+          })),
+        });
+      }
+
+      // Create cross references
+      if (validatedData.crossReferences.length > 0) {
+        await tx.productCrossReference.createMany({
+          data: validatedData.crossReferences.map(cr => ({
+            productId: newProduct.id,
+            refBrandName: cr.refBrandName,
+            refCode: cr.refCode,
+            referenceType: cr.referenceType,
+            isPreferred: cr.isPreferred,
+            notes: cr.notes || null,
+          })),
+        });
+      }
+
+      // Return product with all relations
+      return tx.product.findUnique({
+        where: { id: newProduct.id },
+        include: {
+          brand: true,
+          filterType: true,
+          categories: {
+            include: { category: true },
+          },
+          specValues: {
+            include: { parameter: true },
+          },
+          media: {
+            include: { asset: true },
+          },
+          crossReferences: true,
+        },
+      });
     });
-    return NextResponse.json({ ok: true, item: created });
-  } catch (e: any) {
-    return NextResponse.json({ error: 'Failed to create', detail: e?.message }, { status: 400 });
+
+    return NextResponse.json(product, { status: 201 });
+  } catch (error: any) {
+    console.error('Error creating product:', error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to create product', details: error.message },
+      { status: 500 }
+    );
   }
 }

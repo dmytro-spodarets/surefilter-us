@@ -8,6 +8,7 @@ import { useState } from 'react';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [pagesMenuOpen, setPagesMenuOpen] = useState(false);
+  const [productsMenuOpen, setProductsMenuOpen] = useState(false);
   const [formsMenuOpen, setFormsMenuOpen] = useState(false);
   const [resourcesMenuOpen, setResourcesMenuOpen] = useState(false);
 
@@ -87,10 +88,54 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     News
                   </Link>
 
-                  {/* Products */}
-                  <Link href="/admin/products" className={linkClass('/admin/products')}>
-                    Products
-                  </Link>
+                  {/* Products Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setProductsMenuOpen(!productsMenuOpen)}
+                      onBlur={() => setTimeout(() => setProductsMenuOpen(false), 200)}
+                      className={`${linkClass('/admin/products')} flex items-center gap-1`}
+                    >
+                      Products
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {productsMenuOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1">
+                        <Link
+                          href="/admin/products"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          📦 All Products
+                        </Link>
+                        <Link
+                          href="/admin/products/new"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          ➕ Add Product
+                        </Link>
+                        <div className="border-t border-gray-200 my-1"></div>
+                        <Link
+                          href="/admin/products/categories"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          🏷️ Categories
+                        </Link>
+                        <Link
+                          href="/admin/products/brands"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          🏢 Brands
+                        </Link>
+                        <Link
+                          href="/admin/products/spec-parameters"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          📏 Spec Parameters
+                        </Link>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Forms Dropdown */}
                   <div className="relative">

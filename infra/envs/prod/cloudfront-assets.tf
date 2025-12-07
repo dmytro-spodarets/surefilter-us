@@ -60,6 +60,18 @@ resource "aws_cloudfront_distribution" "assets" {
     compress               = true
   }
 
+  # Don't cache 404 errors - prevents caching missing images
+  custom_error_response {
+    error_code            = 404
+    error_caching_min_ttl = 10  # Cache 404 for only 10 seconds
+  }
+
+  # Don't cache 403 errors either
+  custom_error_response {
+    error_code            = 403
+    error_caching_min_ttl = 10
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"

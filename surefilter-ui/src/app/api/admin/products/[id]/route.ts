@@ -1,144 +1,319 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { PrismaClient } from '@/generated/prisma';
 
-const ImageSchema = z.object({ src: z.string().min(1), alt: z.string().optional().default('') });
-const SpecSchema = z.object({ label: z.string().min(1), value: z.string().min(1) });
-const OemSchema = z.object({ number: z.string().min(1), manufacturer: z.string().optional().default('') });
+const prisma = new PrismaClient();
+
+// Validation schemas (same as in route.ts)
+const CategoryAssignmentSchema = z.object({
+  categoryId: z.string().min(1),
+  isPrimary: z.boolean().default(false),
+  position: z.number().int().min(0).default(0),
+});
 
 const SpecValueSchema = z.object({
   parameterId: z.string().min(1),
   value: z.string().min(1),
   unitOverride: z.string().optional().nullable(),
-  position: z.number().int().optional().default(0),
+  position: z.number().int().min(0).default(0),
 });
 
-const UpdateProductSchema = z.object({
-  code: z.string().min(1).optional(),
-  name: z.string().min(1).optional(),
+const MediaItemSchema = z.object({
+  assetId: z.string().min(1),
+  isPrimary: z.boolean().default(false),
+  position: z.number().int().min(0).default(0),
+  caption: z.string().optional().nullable(),
+});
+
+const CrossReferenceSchema = z.object({
+  refBrandName: z.string().min(1),
+  refCode: z.string().min(1),
+  referenceType: z.string().default('OEM'),
+  isPreferred: z.boolean().default(false),
+  notes: z.string().optional().nullable(),
+});
+
+const ProductSchema = z.object({
+  code: z.string().min(1, 'Product code is required'),
+  name: z.string().min(1, 'Product name is required'),
   description: z.string().optional().nullable(),
-  category: z.enum(['HEAVY_DUTY', 'AUTOMOTIVE']).optional().nullable(),
+  brandId: z.string().min(1, 'Brand is required'),
   filterTypeId: z.string().optional().nullable(),
   status: z.string().optional().nullable(),
-  images: z.array(ImageSchema).optional(),
-  specsLeft: z.array(SpecSchema).optional(),
-  specsRight: z.array(SpecSchema).optional(),
-  oems: z.array(OemSchema).optional(),
-  tags: z.array(z.string()).optional(),
+  tags: z.array(z.string()).default([]),
   manufacturer: z.string().optional().nullable(),
-  industries: z.array(z.string()).optional(),
-  heightMm: z.number().optional().nullable(),
-  odMm: z.number().optional().nullable(),
-  idMm: z.number().optional().nullable(),
-  thread: z.string().optional().nullable(),
-  model: z.string().optional().nullable(),
-  specValues: z.array(SpecValueSchema).optional(),
+  industries: z.array(z.string()).default([]),
+  
+  categoryAssignments: z.array(CategoryAssignmentSchema).default([]),
+  specValues: z.array(SpecValueSchema).default([]),
+  mediaItems: z.array(MediaItemSchema).default([]),
+  crossReferences: z.array(CrossReferenceSchema).default([]),
 });
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+// GET /api/admin/products/[id] - Get single product
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   try {
-    const item = await prisma.product.findUnique({
-      where: { id },
+    const product = await prisma.product.findUnique({
+      where: { id: id },
       include: {
+        brand: true,
         filterType: true,
-        specValues: { include: { parameter: true }, orderBy: { position: 'asc' } },
+        categories: {
+          include: {
+            category: true,
+          },
+          orderBy: [
+            { isPrimary: 'desc' },
+            { position: 'asc' },
+          ],
+        },
+        specValues: {
+          include: {
+            parameter: true,
+          },
+          orderBy: {
+            position: 'asc',
+          },
+        },
+        media: {
+          include: {
+            asset: true,
+          },
+          orderBy: [
+            { isPrimary: 'desc' },
+            { position: 'asc' },
+          ],
+        },
+        crossReferences: {
+          orderBy: [
+            { isPreferred: 'desc' },
+            { refBrandName: 'asc' },
+          ],
+        },
       },
     });
-    if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ item });
-  } catch (e: any) {
-    return NextResponse.json({ error: 'Failed to fetch', detail: e?.message }, { status: 400 });
+
+    if (!product) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(product);
+  } catch (error: any) {
+    console.error('Error fetching product:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch product', details: error.message },
+      { status: 500 }
+    );
   }
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+// PUT /api/admin/products/[id] - Update product
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
-
-  let body: unknown;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+    const body = await request.json();
+    
+    // Validate input
+    const validatedData = ProductSchema.parse(body);
 
-  const parsed = UpdateProductSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', issues: parsed.error.flatten() }, { status: 400 });
-  }
+    // Check if product exists
+    const existing = await prisma.product.findUnique({
+      where: { id: id },
+    });
 
-  const data = parsed.data;
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
+    }
 
-  try {
-    const updated = await prisma.$transaction(async (tx) => {
-      const p = await tx.product.update({
-        where: { id },
-        data: {
-          code: data.code ?? undefined,
-          name: data.name ?? undefined,
-          description: data.description ?? undefined,
-          category: data.category ?? undefined,
-          filterTypeId: data.filterTypeId ?? undefined,
-          status: data.status ?? undefined,
-          images: data.images ?? undefined,
-          specsLeft: data.specsLeft ?? undefined,
-          specsRight: data.specsRight ?? undefined,
-          oems: data.oems ?? undefined,
-          tags: data.tags ?? undefined,
-          manufacturer: data.manufacturer ?? undefined,
-          industries: data.industries ?? undefined,
-          heightMm: data.heightMm ?? undefined,
-          odMm: data.odMm ?? undefined,
-          idMm: data.idMm ?? undefined,
-          thread: data.thread ?? undefined,
-          model: data.model ?? undefined,
+    // Check if code conflicts with another product
+    if (validatedData.code !== existing.code) {
+      const codeConflict = await prisma.product.findFirst({
+        where: {
+          AND: [
+            { id: { not: id } },
+            { code: validatedData.code },
+          ],
         },
       });
-      if (data.specValues) {
-        await tx.productSpecValue.deleteMany({ where: { productId: id } });
-        if (data.specValues.length) {
-          await tx.productSpecValue.createMany({
-            data: data.specValues.map((sv) => ({
-              productId: id,
-              parameterId: sv.parameterId,
-              value: sv.value,
-              unitOverride: sv.unitOverride ?? null,
-              position: sv.position ?? 0,
-            })),
-          });
-        }
+
+      if (codeConflict) {
+        return NextResponse.json(
+          { error: 'A product with this code already exists' },
+          { status: 400 }
+        );
       }
-      return p;
-    });
-    return NextResponse.json({ ok: true, item: updated });
-  } catch (e: any) {
-    if (e?.code === 'P2025') {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    return NextResponse.json({ error: 'Failed to update', detail: e?.message }, { status: 400 });
+
+    // Update product with all nested relations in a transaction
+    const product = await prisma.$transaction(async (tx) => {
+      // Update the product
+      const updatedProduct = await tx.product.update({
+        where: { id: id },
+        data: {
+          code: validatedData.code,
+          name: validatedData.name,
+          description: validatedData.description || null,
+          brandId: validatedData.brandId,
+          filterTypeId: validatedData.filterTypeId || null,
+          status: validatedData.status || null,
+          tags: validatedData.tags,
+          manufacturer: validatedData.manufacturer || null,
+          industries: validatedData.industries,
+        },
+      });
+
+      // Update category assignments (delete all and recreate)
+      await tx.productCategoryAssignment.deleteMany({
+        where: { productId: id },
+      });
+      
+      if (validatedData.categoryAssignments.length > 0) {
+        await tx.productCategoryAssignment.createMany({
+          data: validatedData.categoryAssignments.map(ca => ({
+            productId: id,
+            categoryId: ca.categoryId,
+            isPrimary: ca.isPrimary,
+            position: ca.position,
+          })),
+        });
+      }
+
+      // Update spec values (delete all and recreate)
+      await tx.productSpecValue.deleteMany({
+        where: { productId: id },
+      });
+      
+      if (validatedData.specValues.length > 0) {
+        await tx.productSpecValue.createMany({
+          data: validatedData.specValues.map(sv => ({
+            productId: id,
+            parameterId: sv.parameterId,
+            value: sv.value,
+            unitOverride: sv.unitOverride || null,
+            position: sv.position,
+          })),
+        });
+      }
+
+      // Update media items (delete all and recreate)
+      await tx.productMedia.deleteMany({
+        where: { productId: id },
+      });
+      
+      if (validatedData.mediaItems.length > 0) {
+        await tx.productMedia.createMany({
+          data: validatedData.mediaItems.map(mi => ({
+            productId: id,
+            assetId: mi.assetId,
+            isPrimary: mi.isPrimary,
+            position: mi.position,
+            caption: mi.caption || null,
+          })),
+        });
+      }
+
+      // Update cross references (delete all and recreate)
+      await tx.productCrossReference.deleteMany({
+        where: { productId: id },
+      });
+      
+      if (validatedData.crossReferences.length > 0) {
+        await tx.productCrossReference.createMany({
+          data: validatedData.crossReferences.map(cr => ({
+            productId: id,
+            refBrandName: cr.refBrandName,
+            refCode: cr.refCode,
+            referenceType: cr.referenceType,
+            isPreferred: cr.isPreferred,
+            notes: cr.notes || null,
+          })),
+        });
+      }
+
+      // Return product with all relations
+      return tx.product.findUnique({
+        where: { id: id },
+        include: {
+          brand: true,
+          filterType: true,
+          categories: {
+            include: { category: true },
+          },
+          specValues: {
+            include: { parameter: true },
+          },
+          media: {
+            include: { asset: true },
+          },
+          crossReferences: true,
+        },
+      });
+    });
+
+    return NextResponse.json(product);
+  } catch (error: any) {
+    console.error('Error updating product:', error);
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to update product', details: error.message },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+// DELETE /api/admin/products/[id] - Delete product
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   try {
-    await prisma.product.delete({ where: { id } });
-    return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    if (e?.code === 'P2025') {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id: id },
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
     }
-    return NextResponse.json({ error: 'Failed to delete', detail: e?.message }, { status: 400 });
+
+    // Delete product (cascade will handle related records)
+    await prisma.product.delete({
+      where: { id: id },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Product deleted successfully' 
+    });
+  } catch (error: any) {
+    console.error('Error deleting product:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete product', details: error.message },
+      { status: 500 }
+    );
   }
 }

@@ -1,51 +1,66 @@
-import { getServerSession } from 'next-auth';
-import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
-import prisma from '@/lib/prisma';
-import { authOptions } from '@/lib/auth';
+'use client';
+
+import { useState, useEffect } from 'react';
 import ProductForm from '../ProductForm';
-import AdminContainer from '@/components/admin/AdminContainer';
+import { use } from 'react';
 
-export const metadata = { robots: { index: false, follow: false } };
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [loading, setLoading] = useState(true);
+  const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [filterTypes, setFilterTypes] = useState([]);
+  const [specParameters, setSpecParameters] = useState([]);
 
-export default async function EditProductPage({ params }: any) {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect(`/login?callbackUrl=/admin/products/${params.id}`);
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const [product, filterTypes, specParameters] = await Promise.all([
-    prisma.product.findUnique({
-      where: { id: params.id },
-      include: {
-        specValues: {
-          orderBy: { position: 'asc' },
-          include: { parameter: true },
-        },
-      },
-    }),
-    prisma.filterType.findMany({
-      where: { isActive: true },
-      orderBy: [{ category: 'asc' }, { name: 'asc' }],
-      select: { id: true, name: true, category: true, fullSlug: true },
-    }),
-    prisma.specParameter.findMany({
-      where: { isActive: true },
-      orderBy: [{ category: 'asc' }, { position: 'asc' }, { name: 'asc' }],
-      select: { id: true, name: true, unit: true, category: true, position: true, isActive: true },
-    }),
-  ]);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [brandsRes, categoriesRes, filterTypesRes, specParamsRes] = await Promise.all([
+        fetch('/api/admin/brands?isActive=true'),
+        fetch('/api/admin/categories?isActive=true'),
+        fetch('/api/admin/filter-types?isActive=true'),
+        fetch('/api/admin/spec-parameters?isActive=true'),
+      ]);
 
-  if (!product) notFound();
+      const [brandsData, categoriesData, filterTypesData, specParamsData] = await Promise.all([
+        brandsRes.json(),
+        categoriesRes.json(),
+        filterTypesRes.json(),
+        specParamsRes.json(),
+      ]);
+
+      setBrands(brandsData.brands || []);
+      setCategories(categoriesData.categories || []);
+      setFilterTypes(filterTypesData.filterTypes || []);
+      setSpecParameters(specParamsData.parameters || []);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      alert('Failed to load form data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="text-center text-gray-500">Loading form data...</div>
+      </div>
+    );
+  }
 
   return (
-    <AdminContainer className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">Edit Product</h1>
-          <Link href="/admin/products" className="text-sure-blue-600 hover:underline">← Back to products</Link>
-        </div>
-        <div className="border border-gray-200 rounded-lg p-5">
-          <ProductForm mode="edit" initial={product as any} filterTypes={filterTypes as any} specParameters={specParameters as any} />
-        </div>
-    </AdminContainer>
+    <ProductForm
+      mode="edit"
+      productId={id}
+      brands={brands}
+      categories={categories}
+      filterTypes={filterTypes}
+      specParameters={specParameters}
+    />
   );
 }
-
