@@ -11,34 +11,28 @@ export default async function FilterTypesPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login?callbackUrl=/admin/filter-types');
 
-  const [hd, auto] = await Promise.all([
-    prisma.filterType.findMany({ 
-      where: { category: 'HEAVY_DUTY' }, 
-      orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }],
-      select: {
-        id: true,
-        name: true,
-        pageSlug: true,
-        fullSlug: true,
-        category: true,
-        position: true,
-        parentId: true
-      }
-    }),
-    prisma.filterType.findMany({ 
-      where: { category: 'AUTOMOTIVE' }, 
-      orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }],
-      select: {
-        id: true,
-        name: true,
-        pageSlug: true,
-        fullSlug: true,
-        category: true,
-        position: true,
-        parentId: true
-      }
-    }),
-  ]);
+  // TODO: Update to use ProductCategory relation instead of enum
+  // Temporarily load all filter types and filter in-memory
+  const allFilterTypes = await prisma.filterType.findMany({ 
+    orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }],
+    select: {
+      id: true,
+      name: true,
+      pageSlug: true,
+      fullSlug: true,
+      // category: true, // TODO: Update to relation
+      position: true,
+      parentId: true
+    }
+  });
+
+  // Temporary: filter by slug pattern since we can't use category enum
+  const hd = allFilterTypes.filter(ft => 
+    ft.fullSlug?.startsWith('heavy-duty') || ft.pageSlug?.startsWith('heavy-duty')
+  );
+  const auto = allFilterTypes.filter(ft => 
+    ft.fullSlug?.startsWith('automotive') || ft.pageSlug?.startsWith('automotive')
+  );
 
   // Get page titles for all filter types that have pageSlug
   const pageSlugs = [...hd, ...auto]

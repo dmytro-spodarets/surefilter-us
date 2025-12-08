@@ -2,6 +2,34 @@
 
 ## 🚀 High Priority
 
+### FilterType.category Migration to ProductCategory Relation
+**Проблема:** `FilterType` модель использует старый enum `category` вместо relation к `ProductCategory`. Это вызывает TypeScript ошибки и несовместимо с новой нормализованной схемой.
+
+**Текущее состояние:**
+- ✅ Временно закомментирована фильтрация по `category` в 3 файлах
+- ✅ Используется фильтрация по `fullSlug`/`pageSlug` pattern
+- ⚠️ `typescript.ignoreBuildErrors: true` в `next.config.ts`
+
+**Решение:**
+- [ ] Добавить `categoryId String?` в модель `FilterType`
+- [ ] Создать relation `category ProductCategory? @relation(fields: [categoryId], references: [id])`
+- [ ] Создать миграцию для конвертации данных (enum → relation)
+- [ ] Обновить 3 файла для использования relation:
+  - `src/app/api/admin/filter-types/route.ts`
+  - `src/components/sections/FilterTypesCms.tsx`
+  - `src/app/admin/filter-types/page.tsx`
+- [ ] Убрать `typescript.ignoreBuildErrors` из `next.config.ts`
+
+**Файлы с TODO комментариями:**
+```typescript
+// TODO: Update to use ProductCategory relation instead of enum
+```
+
+**Приоритет:** High (блокирует чистый build)
+**Оценка:** 2-3 часа
+
+---
+
 ### Image Optimization
 **Проблема:** Next.js оптимизирует изображения динамически при каждом запросе, что может вызывать медленную загрузку при первом обращении и иногда показывать "Image not found".
 
@@ -84,6 +112,21 @@
 - [x] Убрали placeholder DATABASE_URL из Dockerfile
 - [x] Build проходит чисто без warnings
 
+### Prisma 7 Migration (2025-12-07)
+- [x] Обновили Node.js до v20.19.6 (latest LTS 20.x)
+- [x] Обновили Prisma до 7.1.0
+- [x] Установили @prisma/adapter-pg и pg
+- [x] Создали prisma.config.ts для CLI операций
+- [x] Убрали url из schema.prisma datasource
+- [x] Переписали lib/prisma.ts с PrismaPg adapter
+- [x] Обновили next.config.ts (serverExternalPackages, webpack)
+- [x] Обновили 8 API routes для использования shared prisma instance
+- [x] Исправили TypeScript ошибки (Next.js 15 params Promise)
+- [x] Обновили Dockerfile для Prisma 7
+- [x] Обновили GitHub Actions workflow (db-migrate.yml)
+- [x] Создали документацию PRISMA_7_MIGRATION.md
+- [x] Обновили README.md и CHANGELOG.md
+
 ---
 
 ## 📚 Documentation Needed
@@ -94,4 +137,4 @@
 
 ---
 
-**Последнее обновление:** 5 декабря 2025
+**Последнее обновление:** 7 декабря 2025
