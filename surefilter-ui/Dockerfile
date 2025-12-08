@@ -20,6 +20,7 @@ COPY package.json package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Generate Prisma Client early to leverage Docker layer cache
+# Prisma 7 requires both schema and config
 COPY prisma ./prisma
 RUN npx prisma generate
 

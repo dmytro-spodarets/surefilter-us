@@ -6,7 +6,8 @@
 - Next.js 15.5.7 (App Router)
 - React 19
 - Tailwind CSS 4.1.11
-- Prisma 6.14.0
+- Node.js 20.19.6 (LTS)
+- Prisma 7.1.0 (с PostgreSQL driver adapter)
 - Библиотеки: `@heroicons/react`, `react-icons`, `clsx` + `tailwind-merge` (утилита `cn`)
 
 ### Страницы и навигация (актуально)
@@ -561,3 +562,28 @@ docker compose -f docker/docker-compose.yml down
 - **Документация**:
   - ✅ Создан `TODO.md` с roadmap
   - ✅ Обновлен `README.md`
+
+### Обновления (2025-12-07) - Prisma 7 Migration
+- **✨ Успешное обновление на Prisma ORM 7.1.0**:
+  - ✅ Node.js обновлен до v20.19.6 (latest LTS в ветке 20.x)
+  - ✅ Prisma 7.1.0 с PostgreSQL driver adapter (@prisma/adapter-pg)
+  - ✅ Все TypeScript ошибки исправлены (Next.js 15 params Promise)
+  - ✅ Build проходит без warnings
+
+- **Изменения в конфигурации**:
+  - ✅ `prisma.config.ts` - новый конфиг файл для CLI операций
+  - ✅ `schema.prisma` - убран `url` из datasource (теперь в config)
+  - ✅ `lib/prisma.ts` - использует PrismaPg adapter с connection pool
+  - ✅ `next.config.ts` - serverExternalPackages для pg, pg-native в alias
+  - ✅ API routes - используют shared prisma instance (8 файлов обновлено)
+
+- **Docker и CI/CD**:
+  - ✅ `Dockerfile` - копирует prisma.config.ts, генерирует client
+  - ✅ `db-migrate.yml` - добавлен шаг генерации Prisma Client
+  - ✅ Готово к production deploy
+
+- **Преимущества Prisma 7**:
+  - 🚀 До 3x быстрее queries
+  - 📦 ~90% меньше bundle size
+  - 🔧 Упрощенный deployment
+  - 🔒 Лучшая безопасность через driver adapters

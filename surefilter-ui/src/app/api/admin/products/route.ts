@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { PrismaClient } from '@/generated/prisma';
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
+// Using shared prisma instance from lib/prisma
 
 // Validation schemas for nested data
 const CategoryAssignmentSchema = z.object({

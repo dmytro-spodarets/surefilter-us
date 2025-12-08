@@ -13,6 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-12-07 — Обновление на Prisma 7.1.0: Node.js 20.19.6, PostgreSQL driver adapter (@prisma/adapter-pg), prisma.config.ts для CLI, убран url из schema.prisma, shared prisma instance в API routes, обновлены Dockerfile и GitHub Actions workflows, build без warnings
 - 2025-11-18 — Hero Carousel: исправлена логика loop mode (требуется минимум 3 слайда, автоматическое отключение при 1-2 слайдах), оптимизирован autoplay (3sec вместо 5sec), убрана пауза при наведении мыши, исправлена TypeScript ошибка с loading prop, production build успешен
 - 2025-11-18 — Hero Carousel: добавлен HeroCarouselCms компонент с Swiper.js (slide transitions, autoplay, loop, navigation arrows, pagination dots, keyboard support, touch/swipe на мобильных, accessibility), админ-форма с управлением слайдами (вверх/вниз), настройки autoplay/navigation/pagination, поддержка prefers-reduced-motion
 - 2025-11-18 — Консолидация Header/Footer компонентов: оставлены 2 основных (Header и Footer как Server Components), Header разделён на sub-components (ScrollHeader, HeaderNav, MobileMenu), все публичные страницы конвертированы в Server Components для SEO, удалены дублирующие компоненты

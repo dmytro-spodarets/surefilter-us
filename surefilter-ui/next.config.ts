@@ -20,6 +20,39 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   
+  // Prisma 7 с PostgreSQL adapter требует external packages
+  serverExternalPackages: ['pg', '@prisma/adapter-pg'],
+  
+  // Webpack config для Prisma 7 с pg adapter
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Для server-side - добавляем pg-native в externals
+      config.externals = config.externals || [];
+      if (Array.isArray(config.externals)) {
+        config.externals.push('pg-native');
+      }
+    } else {
+      // Для client-side - игнорируем Node.js модули
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        net: false,
+        tls: false,
+        fs: false,
+        dns: false,
+        pg: false,
+        'pg-native': false,
+      };
+    }
+    
+    // Игнорируем pg-native для всех случаев
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'pg-native': false,
+    };
+    
+    return config;
+  },
+  
   // Оптимизация изображений
   images: {
     remotePatterns: [
