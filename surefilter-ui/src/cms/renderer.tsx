@@ -1,6 +1,7 @@
 import HeroCms from '@/components/sections/HeroCms';
 import HeroCarouselCms from '@/components/sections/HeroCarouselCms';
 import FeaturedProductsCms from '@/components/sections/FeaturedProductsCms';
+import FeaturedProductsCatalogCms from '@/components/sections/FeaturedProductsCatalogCms';
 import WhyChooseCms from '@/components/sections/WhyChooseCms';
 import QuickSearchCms from '@/components/sections/QuickSearchCms';
 import SimpleSearch from '@/components/sections/SimpleSearch';
@@ -99,6 +100,18 @@ export function renderSection(section: CmsSection) {
           description={data?.description}
           fallbackHref={data?.fallbackHref}
           items={Array.isArray(data?.items) ? data.items : []}
+        />
+      );
+    }
+    case 'featured_products_catalog': {
+      // Featured products from catalog
+      const data = section.data as any;
+      return (
+        <FeaturedProductsCatalogCms
+          title={data?.title}
+          description={data?.description}
+          fallbackHref={data?.fallbackHref}
+          productIds={Array.isArray(data?.productIds) ? data.productIds : []}
         />
       );
     }

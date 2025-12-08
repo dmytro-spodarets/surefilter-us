@@ -10,6 +10,7 @@ export type SectionType =
   | 'search_hero'
   | 'why_choose'
   | 'featured_products'
+  | 'featured_products_catalog'
   | 'products'
   | 'quick_search'
   | 'industries'

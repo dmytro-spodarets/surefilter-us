@@ -133,6 +133,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         >
                           📏 Spec Parameters
                         </Link>
+                        <Link
+                          href="/admin/products/product-filter-types"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          🔧 Filter Types
+                        </Link>
                       </div>
                     )}
                   </div>

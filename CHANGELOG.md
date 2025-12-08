@@ -13,6 +13,9 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-12-08 — Очистка кода: удален неиспользуемый роут /admin/pages/[slug]/sections/[sectionId], все редактирование секций через /admin/sections/[id]
+- 2025-12-08 — Новый CMS компонент Featured Products Catalog: выбор продуктов из каталога вместо ручного ввода, автоматическая подгрузка данных (изображения, названия, описания), поиск и упорядочивание продуктов в админке, отображение типа фильтра в badge, Server Component с загрузкой из БД
+- 2025-12-08 — Добавлена модель ProductFilterType: отдельная таблица для типов фильтров каталога (Air, Oil, Fuel и т.д.), 5 API endpoints, 3 админ страницы, интеграция с формой продукта, иконки и ACES коды, защита от удаления используемых типов
 - 2025-12-07 — Обновление на Prisma 7.1.0: Node.js 20.19.6, PostgreSQL driver adapter (@prisma/adapter-pg), prisma.config.ts в корне проекта для CLI, убран url из schema.prisma, shared prisma instance в API routes, обновлены Dockerfile и GitHub Actions workflows, build без warnings
 - 2025-11-18 — Hero Carousel: исправлена логика loop mode (требуется минимум 3 слайда, автоматическое отключение при 1-2 слайдах), оптимизирован autoplay (3sec вместо 5sec), убрана пауза при наведении мыши, исправлена TypeScript ошибка с loading prop, production build успешен
 - 2025-11-18 — Hero Carousel: добавлен HeroCarouselCms компонент с Swiper.js (slide transitions, autoplay, loop, navigation arrows, pagination dots, keyboard support, touch/swipe на мобильных, accessibility), админ-форма с управлением слайдами (вверх/вниз), настройки autoplay/navigation/pagination, поддержка prefers-reduced-motion

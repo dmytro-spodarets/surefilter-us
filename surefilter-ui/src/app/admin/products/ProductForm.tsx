@@ -21,10 +21,12 @@ interface ProductCategory {
   slug: string;
 }
 
-interface FilterType {
+interface ProductFilterType {
   id: string;
   name: string;
-  fullSlug: string;
+  slug: string;
+  code?: string | null;
+  icon?: string | null;
 }
 
 interface SpecParameter {
@@ -91,7 +93,7 @@ interface ProductFormProps {
   productId?: string;
   brands: Brand[];
   categories: ProductCategory[];
-  filterTypes: FilterType[];
+  filterTypes: ProductFilterType[];
   specParameters: SpecParameter[];
 }
 
@@ -340,10 +342,12 @@ export default function ProductFormNew({
   };
 
   // Media management
-  const handleMediaSelect = (cdnUrl: string) => {
-    // Extract asset info from CDN URL - in real implementation, 
-    // you'd fetch the MediaAsset by cdnUrl
-    const assetId = 'temp-' + Date.now(); // Placeholder
+  const handleMediaSelect = (cdnUrl: string, assetId?: string) => {
+    if (!assetId) {
+      console.error('No assetId provided for media');
+      alert('Error: Media asset ID not found. Please try uploading the image again.');
+      return;
+    }
     
     setFormData({
       ...formData,
@@ -477,10 +481,10 @@ export default function ProductFormNew({
                   onChange={(e) => setFormData({ ...formData, filterTypeId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
                 >
-                  <option value="">None</option>
+                  <option value="">Select filter type...</option>
                   {filterTypes.map(ft => (
                     <option key={ft.id} value={ft.id}>
-                      {ft.fullSlug}
+                      {ft.icon && `${ft.icon} `}{ft.name}
                     </option>
                   ))}
                 </select>

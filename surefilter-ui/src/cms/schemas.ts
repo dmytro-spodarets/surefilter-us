@@ -47,6 +47,16 @@ export const FeaturedProductsSchema = z.object({
 
 export type FeaturedProductsInput = z.infer<typeof FeaturedProductsSchema>;
 
+// Featured Products from Catalog
+export const FeaturedProductsCatalogSchema = z.object({
+  title: z.string().optional().default('Featured Products'),
+  description: z.string().optional().default(''),
+  fallbackHref: z.string().optional().default('/catalog'),
+  productIds: z.array(z.string()).default([]),
+});
+
+export type FeaturedProductsCatalogInput = z.infer<typeof FeaturedProductsCatalogSchema>;
+
 export const WhyChooseItemSchema = z.object({
   icon: z.string().optional().default('CheckCircleIcon'),
   title: z.string(),

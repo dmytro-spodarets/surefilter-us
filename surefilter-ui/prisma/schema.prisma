@@ -43,6 +43,7 @@ enum SectionType {
   simple_search
   why_choose
   featured_products
+  featured_products_catalog
   products
   quick_search
   industries
@@ -183,6 +184,27 @@ model Brand {
   @@index([isActive, position])
 }
 
+// Product filter types (Air, Oil, Fuel, Cabin, etc.) - separate from CMS FilterType
+model ProductFilterType {
+  id          String  @id @default(cuid())
+  name        String  @unique // "Air Filter", "Oil Filter", "Fuel Filter", "Cabin Filter", etc.
+  slug        String  @unique // "air", "oil", "fuel", "cabin"
+  code        String? @unique // Short code for ACES/PIES (e.g., "AIR", "OIL", "FUEL")
+  description String? @db.Text
+  icon        String? // Icon name or emoji
+  position    Int     @default(0)
+  isActive    Boolean @default(true)
+  
+  // Relations
+  products Product[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([isActive, position])
+  @@index([slug])
+}
+
 model FilterType {
   id         String  @id @default(cuid())
   categoryId String? // Optional link to ProductCategory
@@ -191,7 +213,7 @@ model FilterType {
   parentId String?
   parent   FilterType?  @relation("FilterTypeToChildren", fields: [parentId], references: [id])
   children FilterType[] @relation("FilterTypeToChildren")
-  products Product[]
+  // Note: FilterType is for CMS pages, ProductFilterType is for catalog products
 
   slug        String
   name        String
@@ -221,9 +243,9 @@ model Product {
   brandId String
   brand   Brand  @relation(fields: [brandId], references: [id])
 
-  // Optional link to a FilterType
+  // Filter type relationship (optional) - what type of filter this is
   filterTypeId String?
-  filterType   FilterType? @relation(fields: [filterTypeId], references: [id])
+  filterType   ProductFilterType? @relation(fields: [filterTypeId], references: [id])
 
   status String? // e.g., 'Release Product', 'Discontinued'
 

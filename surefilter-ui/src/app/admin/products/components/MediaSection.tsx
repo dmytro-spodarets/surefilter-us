@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface MediaItem {
@@ -28,6 +28,30 @@ export default function MediaSection({
   onChange,
   onOpenPicker,
 }: MediaSectionProps) {
+  const [assets, setAssets] = useState<Record<string, MediaAsset>>({});
+
+  // Load media assets
+  useEffect(() => {
+    const loadAssets = async () => {
+      const assetIds = mediaItems.map(m => m.assetId);
+      if (assetIds.length === 0) return;
+
+      try {
+        const res = await fetch(`/api/admin/media-assets?ids=${assetIds.join(',')}`);
+        const data = await res.json();
+        
+        const assetsMap: Record<string, MediaAsset> = {};
+        data.assets?.forEach((asset: MediaAsset) => {
+          assetsMap[asset.id] = asset;
+        });
+        setAssets(assetsMap);
+      } catch (error) {
+        console.error('Failed to load media assets:', error);
+      }
+    };
+
+    loadAssets();
+  }, [mediaItems]);
   
   const removeMedia = (index: number) => {
     onChange(mediaItems.filter((_, i) => i !== index));
@@ -71,10 +95,8 @@ export default function MediaSection({
   };
 
   const getCdnUrl = (assetId: string) => {
-    // In real implementation, you would fetch the asset details
-    // For now, return a placeholder
-    const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL || '';
-    return `${cdnUrl}/placeholder-${assetId}.jpg`;
+    const asset = assets[assetId];
+    return asset?.cdnUrl || null;
   };
 
   return (
@@ -104,12 +126,22 @@ export default function MediaSection({
             >
               {/* Image Preview */}
               <div className="relative aspect-video bg-gray-100">
-                <Image
-                  src={getCdnUrl(item.assetId)}
-                  alt={item.caption || `Product image ${index + 1}`}
-                  fill
-                  className="object-contain p-2"
-                />
+                {getCdnUrl(item.assetId) ? (
+                  <Image
+                    src={getCdnUrl(item.assetId)!}
+                    alt={item.caption || `Product image ${index + 1}`}
+                    fill
+                    className="object-contain p-2"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <svg className="animate-spin h-8 w-8 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-sm">Loading image...</span>
+                  </div>
+                )}
                 
                 {/* Primary Badge */}
                 {item.isPrimary && (

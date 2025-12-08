@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, MagnifyingGlassIcon, FolderIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 interface MediaFile {
   key: string;
   metadata?: {
+    id?: string;
     cdnUrl: string;
     filename: string;
     mimeType: string;
@@ -15,11 +16,12 @@ interface MediaFile {
 interface MediaPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (url: string) => void;
+  onSelect: (url: string, assetId?: string) => void;
 }
 
 export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPickerModalProps) {
   const [files, setFiles] = useState<MediaFile[]>([]);
+  const [folders, setFolders] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentFolder, setCurrentFolder] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,9 +35,12 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
   const loadFiles = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/files/list?folder=${currentFolder}`);
+      const prefix = currentFolder ? `${currentFolder}/` : '';
+      const res = await fetch(`/api/admin/files/list?prefix=${encodeURIComponent(prefix)}`);
       const data = await res.json();
+      console.log('Loaded files:', data); // Debug
       setFiles(data.files || []);
+      setFolders(data.folders || []);
     } catch (error) {
       console.error('Failed to load files:', error);
     } finally {
@@ -43,9 +48,22 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
     }
   };
 
+  const navigateToFolder = (folder: string) => {
+    // folder уже содержит полный путь от API
+    setCurrentFolder(folder);
+    setSearchQuery('');
+  };
+
+  const navigateUp = () => {
+    const parts = currentFolder.split('/').filter(Boolean);
+    parts.pop();
+    setCurrentFolder(parts.join('/'));
+    setSearchQuery('');
+  };
+
   const handleSelect = (file: MediaFile) => {
     if (file.metadata?.cdnUrl) {
-      onSelect(file.metadata.cdnUrl);
+      onSelect(file.metadata.cdnUrl, file.metadata.id);
       onClose();
     }
   };
@@ -76,8 +94,39 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
           </button>
         </div>
 
-        {/* Search */}
-        <div className="p-6 border-b">
+        {/* Breadcrumbs & Search */}
+        <div className="p-6 border-b space-y-4">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setCurrentFolder('');
+              }}
+              className="text-sure-blue-600 hover:underline"
+            >
+              Root
+            </button>
+            {currentFolder && currentFolder.split('/').filter(Boolean).map((part, index, arr) => (
+              <span key={index} className="flex items-center gap-2">
+                <span className="text-gray-400">/</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const path = arr.slice(0, index + 1).join('/');
+                    setCurrentFolder(path);
+                  }}
+                  className="text-sure-blue-600 hover:underline"
+                >
+                  {part}
+                </button>
+              </span>
+            ))}
+          </div>
+
+          {/* Search */}
           <div className="relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -96,12 +145,32 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
             <div className="flex items-center justify-center h-64">
               <div className="text-gray-500">Loading files...</div>
             </div>
-          ) : filteredFiles.length === 0 ? (
+          ) : folders.length === 0 && filteredFiles.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-gray-500">No files found</div>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {/* Folders */}
+              {!searchQuery && folders.map((folder) => (
+                <button
+                  key={folder}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigateToFolder(folder);
+                  }}
+                  className="group relative aspect-square bg-gray-50 rounded-lg overflow-hidden hover:ring-2 hover:ring-sure-blue-500 transition-all flex flex-col items-center justify-center border-2 border-dashed border-gray-300"
+                >
+                  <FolderIcon className="w-12 h-12 text-gray-400 group-hover:text-sure-blue-500 transition-colors" />
+                  <p className="mt-2 text-sm text-gray-600 px-2 text-center truncate w-full">
+                    {folder.split('/').pop()}
+                  </p>
+                </button>
+              ))}
+
+              {/* Files */}
               {filteredFiles.map((file) => {
                 const mimeType = file.metadata?.mimeType || '';
                 const filename = file.metadata?.filename || file.key.split('/').pop() || file.key;
@@ -112,7 +181,12 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                 return (
                   <button
                     key={file.key}
-                    onClick={() => handleSelect(file)}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSelect(file);
+                    }}
                     className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden hover:ring-2 hover:ring-sure-blue-500 transition-all"
                   >
                     {cdnUrl && (
@@ -135,6 +209,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
         {/* Footer */}
         <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
           >

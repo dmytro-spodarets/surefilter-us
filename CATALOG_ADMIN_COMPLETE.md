@@ -37,6 +37,14 @@
 - isActive, position
 ```
 
+#### **ProductFilterType** (Типы фильтров) ✨ НОВОЕ
+```prisma
+- id, name, slug
+- code (ACES/PIES), description, icon
+- isActive, position
+```
+Отдельная таблица для типов фильтров каталога (Air, Oil, Fuel, Cabin и т.д.), не связанная с CMS FilterType для страниц.
+
 #### **Product** (Продукты)
 ```prisma
 - id, code, name, description
@@ -118,7 +126,29 @@
 - ✅ Единицы измерения
 - ✅ Quick-select категорий
 
-### 4. Products (Продукты)
+### 4. Product Filter Types (Типы фильтров) ✨ НОВОЕ
+**Страницы:**
+- `/admin/products/product-filter-types` - список всех типов
+- `/admin/products/product-filter-types/new` - создание
+- `/admin/products/product-filter-types/[id]` - редактирование
+
+**Функции:**
+- ✅ CRUD операции
+- ✅ Автогенерация slug из названия
+- ✅ ACES/PIES коды
+- ✅ Иконки (emoji или название)
+- ✅ Счетчик использования (сколько продуктов)
+- ✅ Защита от удаления используемых типов
+- ✅ Сортировка по position
+
+**Примеры типов:**
+- 🌬️ Air Filter
+- 🛢️ Oil Filter
+- ⛽ Fuel Filter
+- 🚗 Cabin Air Filter
+- ⚙️ Hydraulic Filter
+
+### 5. Products (Продукты)
 **Страницы:**
 - `/admin/products` - список продуктов
 - `/admin/products/new` - создание
@@ -166,6 +196,15 @@ PUT    /api/admin/spec-parameters/[id]
 DELETE /api/admin/spec-parameters/[id]
 ```
 
+### Product Filter Types ✨ НОВОЕ
+```
+GET    /api/admin/product-filter-types
+POST   /api/admin/product-filter-types
+GET    /api/admin/product-filter-types/[id]
+PUT    /api/admin/product-filter-types/[id]
+DELETE /api/admin/product-filter-types/[id]
+```
+
 ### Products
 ```
 GET    /api/admin/products
@@ -175,7 +214,7 @@ PUT    /api/admin/products/[id]
 DELETE /api/admin/products/[id]
 ```
 
-**Всего:** 20 endpoints
+**Всего:** 25 endpoints (20 + 5 для Product Filter Types)
 
 ---
 

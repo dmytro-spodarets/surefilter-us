@@ -43,7 +43,7 @@
 - `sections/` (CMS-версии):
   - Hero: `HeroCms`, `FullScreenHero`, `SingleImageHero`, `PageHero`, `PageHeroReverse`, `CompactHero`, `CompactSearchHero`, `SearchHero`, `NewsroomHero`, `ResourcesHero`
   - Content: `ContentWithImages`, `AboutWithStats`, `QualityAssurance`, `AboutNewsCms` (авто-загрузка последних новостей)
-  - Features: `WhyChooseCms` (с центрированием карточек), `FeaturedProductsCms` (категория поверх изображения), `IndustriesCms`, `IndustriesList`
+  - Features: `WhyChooseCms` (с центрированием карточек), `FeaturedProductsCms` (ручной ввод), `FeaturedProductsCatalogCms` (выбор из каталога), `IndustriesCms`, `IndustriesList`
   - Filters: `FilterTypesGrid` (иконки), `FilterTypesImageGrid` (изображения, 16:9, настраиваемые колонки, два варианта стиля), `FilterTypesCms`, `PopularFilters`, `RelatedFilters`
   - Search: `QuickSearchCms`, `SimpleSearch`
   - Products: `Products`, `ProductGallery`, `ProductSpecs` (варианты `cards`/`table`, `contained`)
@@ -523,13 +523,14 @@ docker compose -f docker/docker-compose.yml down
 - **✨ Полная переработка админки каталога продуктов**:
   - ✅ Нормализованная схема БД (убраны все JSON поля)
   - ✅ Поддержка ACES/PIES экспорта (коды для брендов и параметров)
-  - ✅ 20 API endpoints для CRUD операций
-  - ✅ 12 admin страниц с современным UI
+  - ✅ 25 API endpoints для CRUD операций
+  - ✅ 15 admin страниц с современным UI
   - ✅ 4 переиспользуемых компонента
 
 - **Новые модели БД**:
   - ✅ `Brand` - бренды с логотипами и ACES кодами
   - ✅ `ProductCategory` - категории (заменили enum)
+  - ✅ `ProductFilterType` - типы фильтров (Air, Oil, Fuel и т.д.)
   - ✅ `SpecParameter` - параметры спецификаций с кодами
   - ✅ `ProductCategoryAssignment` - many-to-many с Primary флагом
   - ✅ `ProductSpecValue` - нормализованные спецификации
@@ -540,6 +541,7 @@ docker compose -f docker/docker-compose.yml down
   - ✅ Categories: CRUD, поиск, фильтрация, emoji иконки
   - ✅ Brands: CRUD, MediaPicker для логотипов, website links
   - ✅ Spec Parameters: CRUD, группировка по категориям, unit override
+  - ✅ Product Filter Types: CRUD, иконки, ACES коды, защита от удаления
   - ✅ Products: полная форма с секциями (basic info, categories, specs, media, cross-refs)
   - ✅ Real-time поиск и фильтрация
   - ✅ Drag & drop ordering для изображений

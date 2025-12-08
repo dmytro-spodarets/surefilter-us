@@ -20,7 +20,7 @@ export default function NewProductPage() {
       const [brandsRes, categoriesRes, filterTypesRes, specParamsRes] = await Promise.all([
         fetch('/api/admin/brands?isActive=true'),
         fetch('/api/admin/categories?isActive=true'),
-        fetch('/api/admin/filter-types?isActive=true'),
+        fetch('/api/admin/product-filter-types'),
         fetch('/api/admin/spec-parameters?isActive=true'),
       ]);
 
@@ -33,7 +33,7 @@ export default function NewProductPage() {
 
       setBrands(brandsData.brands || []);
       setCategories(categoriesData.categories || []);
-      setFilterTypes(filterTypesData.filterTypes || []);
+      setFilterTypes(filterTypesData || []);
       setSpecParameters(specParamsData.parameters || []);
     } catch (error) {
       console.error('Error loading data:', error);
