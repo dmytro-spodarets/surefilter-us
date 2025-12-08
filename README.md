@@ -571,11 +571,12 @@ docker compose -f docker/docker-compose.yml down
   - ✅ Build проходит без warnings
 
 - **Изменения в конфигурации**:
-  - ✅ `prisma.config.ts` - новый конфиг файл для CLI операций
+  - ✅ `prisma.config.ts` - новый конфиг файл в корне проекта для CLI операций
   - ✅ `schema.prisma` - убран `url` из datasource (теперь в config)
   - ✅ `lib/prisma.ts` - использует PrismaPg adapter с connection pool
   - ✅ `next.config.ts` - serverExternalPackages для pg, pg-native в alias
   - ✅ API routes - используют shared prisma instance (8 файлов обновлено)
+  - ⚠️ **ВАЖНО:** `prisma.config.ts` должен быть в корне проекта, не в `prisma/`
 
 - **Docker и CI/CD**:
   - ✅ `Dockerfile` - копирует prisma.config.ts, генерирует client

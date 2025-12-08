@@ -35,8 +35,9 @@ datasource db {
 ```
 
 ```typescript
-// prisma/prisma.config.ts (новый файл)
-import { defineConfig } from 'prisma/config';
+// prisma.config.ts (ВАЖНО: в корне проекта, рядом с package.json!)
+import 'dotenv/config';
+import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
@@ -44,11 +45,12 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    // DATABASE_URL will be read from environment variable
-    url: process.env.DATABASE_URL || '',
+    url: env('DATABASE_URL'),
   },
 });
 ```
+
+**⚠️ ВАЖНО:** Файл `prisma.config.ts` должен находиться в **корне проекта** (рядом с `package.json`), а НЕ в папке `prisma/`!
 
 ### 2. Prisma Client с Driver Adapter
 
@@ -179,6 +181,35 @@ RUN npx prisma generate
 ```
 
 ## 🔧 Исправленные проблемы
+
+### 0. prisma.config.ts расположение
+
+**Проблема:** `Error: The datasource property is required in your Prisma config file`
+
+**Причина:** Файл `prisma.config.ts` был в папке `prisma/`, а Prisma 7 требует чтобы он был в корне проекта.
+
+**Решение:**
+```bash
+# Переместить файл в корень проекта
+mv prisma/prisma.config.ts ./prisma.config.ts
+```
+
+**Правильная структура:**
+```
+project/
+├── package.json
+├── prisma.config.ts          ✅ В корне!
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+└── src/
+```
+
+**Обновить Dockerfile:**
+```dockerfile
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts  # Копируем из корня
+```
 
 ### 1. TypeScript Errors - Next.js 15 params
 

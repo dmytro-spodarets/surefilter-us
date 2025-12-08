@@ -116,15 +116,16 @@
 - [x] Обновили Node.js до v20.19.6 (latest LTS 20.x)
 - [x] Обновили Prisma до 7.1.0
 - [x] Установили @prisma/adapter-pg и pg
-- [x] Создали prisma.config.ts для CLI операций
+- [x] Создали prisma.config.ts в корне проекта для CLI операций
 - [x] Убрали url из schema.prisma datasource
 - [x] Переписали lib/prisma.ts с PrismaPg adapter
 - [x] Обновили next.config.ts (serverExternalPackages, webpack)
 - [x] Обновили 8 API routes для использования shared prisma instance
 - [x] Исправили TypeScript ошибки (Next.js 15 params Promise)
-- [x] Обновили Dockerfile для Prisma 7
+- [x] Обновили Dockerfile для Prisma 7 (копирует prisma.config.ts из корня)
 - [x] Обновили GitHub Actions workflow (db-migrate.yml)
-- [x] Создали документацию PRISMA_7_MIGRATION.md
+- [x] Исправили расположение prisma.config.ts (должен быть в корне!)
+- [x] Создали документацию PRISMA_7_MIGRATION.md с troubleshooting
 - [x] Обновили README.md и CHANGELOG.md
 
 ---
