@@ -7,6 +7,7 @@ import {
   HeroCarouselSchema,
   FeaturedProductsSchema,
   FeaturedProductsCatalogSchema,
+  PopularFiltersCatalogSchema,
   WhyChooseSchema,
   QuickSearchSchema,
   SimpleSearchSchema,
@@ -66,6 +67,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'featured_products_catalog') {
     const parsed = FeaturedProductsCatalogSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'popular_filters_catalog') {
+    const parsed = PopularFiltersCatalogSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'why_choose') {

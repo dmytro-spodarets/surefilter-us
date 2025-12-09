@@ -2,6 +2,7 @@ import HeroCms from '@/components/sections/HeroCms';
 import HeroCarouselCms from '@/components/sections/HeroCarouselCms';
 import FeaturedProductsCms from '@/components/sections/FeaturedProductsCms';
 import FeaturedProductsCatalogCms from '@/components/sections/FeaturedProductsCatalogCms';
+import PopularFiltersCatalogCms from '@/components/sections/PopularFiltersCatalogCms';
 import WhyChooseCms from '@/components/sections/WhyChooseCms';
 import QuickSearchCms from '@/components/sections/QuickSearchCms';
 import SimpleSearch from '@/components/sections/SimpleSearch';
@@ -111,6 +112,20 @@ export function renderSection(section: CmsSection) {
           title={data?.title}
           description={data?.description}
           fallbackHref={data?.fallbackHref}
+          productIds={Array.isArray(data?.productIds) ? data.productIds : []}
+        />
+      );
+    }
+    case 'popular_filters_catalog': {
+      // Popular filters from catalog
+      const data = section.data as any;
+      return (
+        <PopularFiltersCatalogCms
+          title={data?.title}
+          description={data?.description}
+          catalogHref={data?.catalogHref}
+          catalogText={data?.catalogText}
+          columnsPerRow={data?.columnsPerRow || 5}
           productIds={Array.isArray(data?.productIds) ? data.productIds : []}
         />
       );

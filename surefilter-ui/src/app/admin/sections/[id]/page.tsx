@@ -8,6 +8,7 @@ import HomeHeroForm from '@/app/admin/pages/[slug]/sections/HomeHeroForm';
 import HeroCarouselForm from '@/app/admin/pages/[slug]/sections/HeroCarouselForm';
 import FeaturedProductsForm from '@/app/admin/pages/[slug]/sections/FeaturedProductsForm';
 import FeaturedProductsCatalogForm from '@/app/admin/pages/[slug]/sections/FeaturedProductsCatalogForm';
+import PopularFiltersCatalogForm from '@/app/admin/pages/[slug]/sections/PopularFiltersCatalogForm';
 import WhyChooseForm from '@/app/admin/pages/[slug]/sections/WhyChooseForm';
 import QuickSearchForm from '@/app/admin/pages/[slug]/sections/QuickSearchForm';
 import IndustriesForm from '@/app/admin/pages/[slug]/sections/IndustriesForm';
@@ -168,6 +169,9 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         )}
         {section.type === 'featured_products_catalog' && (
           <FeaturedProductsCatalogForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'popular_filters_catalog' && (
+          <PopularFiltersCatalogForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'why_choose' && (
           <WhyChooseForm sectionId={section.id} initialData={section.data as any} />

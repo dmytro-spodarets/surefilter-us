@@ -23,7 +23,15 @@ const nextConfig: NextConfig = {
   // Prisma 7 с PostgreSQL adapter требует external packages
   serverExternalPackages: ['pg', '@prisma/adapter-pg'],
   
-  // Webpack config для Prisma 7 с pg adapter
+  // Turbopack config для Prisma 7 с pg adapter
+  turbopack: {
+    resolveAlias: {
+      // Игнорируем pg-native модуль
+      'pg-native': './turbopack-stub.js',
+    },
+  },
+  
+  // Webpack config для Prisma 7 с pg adapter (используется только в production build)
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Для server-side - добавляем pg-native в externals
@@ -91,6 +99,12 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 512],
+    // Настройка качества изображений (требуется для Next.js 16+)
+    qualities: [75, 85, 90, 100],
+    // Разрешаем SVG изображения
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 

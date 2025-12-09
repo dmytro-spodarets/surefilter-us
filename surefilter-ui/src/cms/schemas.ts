@@ -57,6 +57,18 @@ export const FeaturedProductsCatalogSchema = z.object({
 
 export type FeaturedProductsCatalogInput = z.infer<typeof FeaturedProductsCatalogSchema>;
 
+// Popular Filters from Catalog
+export const PopularFiltersCatalogSchema = z.object({
+  title: z.string().optional().default('Popular Filters'),
+  description: z.string().optional().default('Top-selling filters for heavy duty applications'),
+  catalogHref: z.string().optional().default('/catalog'),
+  catalogText: z.string().optional().default('Browse All Filters'),
+  columnsPerRow: z.number().optional().default(5),
+  productIds: z.array(z.string()).default([]),
+});
+
+export type PopularFiltersCatalogInput = z.infer<typeof PopularFiltersCatalogSchema>;
+
 export const WhyChooseItemSchema = z.object({
   icon: z.string().optional().default('CheckCircleIcon'),
   title: z.string(),

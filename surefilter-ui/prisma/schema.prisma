@@ -52,6 +52,7 @@ enum SectionType {
   filter_types_grid
   filter_types_image_grid
   popular_filters
+  popular_filters_catalog
   about_with_stats
   about_news
   quality_assurance

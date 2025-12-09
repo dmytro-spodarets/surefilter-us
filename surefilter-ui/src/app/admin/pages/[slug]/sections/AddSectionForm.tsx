@@ -10,6 +10,7 @@ const OPTIONS = [
   { value: 'hero_compact', label: 'Home: Hero Compact' },
   { value: 'featured_products', label: 'Home: Featured Products (Manual)' },
   { value: 'featured_products_catalog', label: 'Home: Featured Products (Catalog)' },
+  { value: 'popular_filters_catalog', label: 'Home: Popular Filters (Catalog)' },
   { value: 'why_choose', label: 'Home: Why Choose' },
   { value: 'quick_search', label: 'Home: Quick Search' },
   { value: 'industries', label: 'Home: Industries' },
