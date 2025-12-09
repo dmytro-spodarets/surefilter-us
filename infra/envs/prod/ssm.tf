@@ -10,6 +10,8 @@ resource "random_password" "nextauth" {
 resource "aws_ssm_parameter" "database_url" {
   name  = "/surefilter/DATABASE_URL"
   type  = "SecureString"
+  # SSL is configured in application code (src/lib/prisma.ts) with certificate verification
+  # sslmode parameter is not needed as pg Pool handles SSL via ssl config object
   value = "postgresql://surefilter:${urlencode("${random_password.dbpw.result}")}@${aws_db_instance.surefilter.address}:5432/surefilter?schema=public"
 }
 

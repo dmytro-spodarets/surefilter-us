@@ -1,9 +1,10 @@
 # Infra (OpenTofu + AWS via Scalr)
 
 ## Overview
-- Region: us-east-1
-- Components: ECR (surefilter), RDS PostgreSQL, Secrets Manager (DATABASE_URL), App Runner (surefilter-prod), IAM roles (App Runner)
-- Orchestration: Scalr (remote runs, state, RBAC) — connect repo and create prod workspace.
+- **IaC Tool:** OpenTofu (open-source Terraform fork)
+- **Region:** us-east-1
+- **Components:** ECR (surefilter), RDS PostgreSQL, SSM Parameter Store (DATABASE_URL), App Runner (surefilter-prod), IAM roles
+- **Orchestration:** Scalr (remote runs, state, RBAC) — connect repo and create prod workspace.
 
 ## Structure
 - modules/
@@ -32,8 +33,8 @@
    - vpc_id, subnet_ids (optional; fallback to default VPC)
 4) Plan → Apply:
    ```bash
-   terraform plan -var-file="secrets.tfvars"
-   terraform apply -var-file="secrets.tfvars"
+   tofu plan -var-file="secrets.tfvars"
+   tofu apply -var-file="secrets.tfvars"
    ```
 5) Note outputs:
    - rds_endpoint
