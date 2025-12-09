@@ -21,9 +21,12 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Generate Prisma Client early to leverage Docker layer cache
 # Prisma 7 requires both schema and config (config must be in root)
+# DATABASE_URL is only needed for Prisma config validation during generation
+# It's not used to connect to any database at build time
+ARG DATABASE_URL="postgresql://localhost:5432/buildtime?schema=public"
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
-RUN npx prisma generate
+RUN DATABASE_URL="${DATABASE_URL}" npx prisma generate
 
 # Build Next.js app
 FROM deps AS build
