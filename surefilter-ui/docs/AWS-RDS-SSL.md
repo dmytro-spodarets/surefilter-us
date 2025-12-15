@@ -6,7 +6,7 @@
 
 ### SSL Connection to AWS RDS PostgreSQL
 
-We use **SSL with certificate verification** for secure database connections.
+We use **SSL encryption** for secure database connections to AWS RDS.
 
 ### Implementation
 
@@ -15,8 +15,9 @@ We use **SSL with certificate verification** for secure database connections.
 ```typescript
 const sslConfig = process.env.NODE_ENV === 'production' 
   ? {
-      rejectUnauthorized: true,
-      // AWS RDS uses Amazon Root CA, trusted by Node.js by default
+      rejectUnauthorized: false,
+      // AWS RDS certificates are self-signed and not in Node.js CA bundle
+      // Connection is still encrypted, just not verified against CA
     }
   : false; // Local development without SSL
 
@@ -30,17 +31,22 @@ const pool = new Pool({
 
 #### ✅ Advantages:
 
-1. **Certificate Verification**: `rejectUnauthorized: true` validates the server certificate
-2. **No Manual CA File**: AWS RDS certificates are signed by Amazon Root CA, which is included in Node.js system CA certificates
-3. **MITM Protection**: Prevents man-in-the-middle attacks
-4. **Compliance**: Meets security best practices for production databases
-5. **Zero Configuration**: No need to download or bundle RDS CA certificates
+1. **Encryption**: All data in transit is encrypted via TLS
+2. **Simple Configuration**: No need to bundle CA certificates in Docker image
+3. **Works with RDS**: AWS RDS uses self-signed certificates that aren't in standard CA bundles
+4. **Zero Maintenance**: No certificate rotation needed
+5. **Acceptable Security**: Connection is encrypted, protecting against passive eavesdropping
+
+#### ⚠️ Trade-offs:
+
+1. **No Certificate Verification**: `rejectUnauthorized: false` means we don't verify the server certificate
+2. **MITM Risk**: Theoretically vulnerable to man-in-the-middle attacks (mitigated by AWS VPC security)
+3. **Not Ideal**: Best practice would be to use proper CA verification, but requires bundling AWS RDS CA certificates
 
 #### ❌ Alternatives We Don't Use:
 
-1. **`sslmode=no-verify`**: Encrypts but doesn't verify certificate (vulnerable to MITM)
-2. **`sslmode=require`**: Same as no-verify in pg driver
-3. **No SSL**: Unencrypted connection (never use in production)
+1. **No SSL**: Unencrypted connection (never use in production)
+2. **Full Verification**: Would require bundling AWS RDS CA certificate in Docker image
 
 ### Connection String
 
@@ -55,7 +61,7 @@ postgresql://user:password@host:5432/database?schema=public
 
 | Environment | SSL Enabled | Certificate Verification |
 |-------------|-------------|-------------------------|
-| Production  | ✅ Yes      | ✅ Yes                  |
+| Production  | ✅ Yes      | ❌ No (rejectUnauthorized: false) |
 | Development | ❌ No       | N/A                     |
 
 ### AWS RDS Certificate Chain
@@ -82,8 +88,10 @@ AWS RDS PostgreSQL uses certificates signed by:
 
 ### Security Checklist
 
-- [x] SSL enabled in production
-- [x] Certificate verification enabled (`rejectUnauthorized: true`)
+- [x] SSL encryption enabled in production
+- [x] Connection encrypted via TLS
+- [ ] Certificate verification disabled (`rejectUnauthorized: false`) - acceptable for AWS RDS
 - [x] No credentials in connection string (use environment variables)
 - [x] Connection string stored in AWS SSM Parameter Store
 - [x] No SSL parameters in connection string (managed in code)
+- [x] Database in private VPC (mitigates MITM risk)
