@@ -66,9 +66,15 @@ export async function PUT(
     const body = await req.json();
     const data = updateSchema.parse(body);
 
+    // Convert empty strings to null for optional unique fields
+    const cleanData = {
+      ...data,
+      code: data.code?.trim() || null,
+    };
+
     const filterType = await prisma.productFilterType.update({
       where: { id },
-      data,
+      data: cleanData,
     });
 
     return NextResponse.json(filterType);

@@ -53,12 +53,12 @@ export default function FilterTypesImageGrid({
           </p>
         </div>
         
-        <div className={`grid ${gridClasses} gap-3 sm:gap-4`}>
+        <div className={`grid ${gridClasses} gap-3 sm:gap-4 justify-items-center`}>
           {items.map((filterType, index) => (
             <Link
               key={index}
               href={filterType.href}
-              className="group"
+              className="group w-full max-w-xs"
             >
               {variant === 'card' ? (
                 // Card variant - with border and background

@@ -52,8 +52,14 @@ export async function POST(req: Request) {
     const body = await req.json();
     const data = createSchema.parse(body);
 
+    // Convert empty strings to null for optional unique fields
+    const cleanData = {
+      ...data,
+      code: data.code?.trim() || null,
+    };
+
     const filterType = await prisma.productFilterType.create({
-      data,
+      data: cleanData,
     });
 
     return NextResponse.json(filterType, { status: 201 });
