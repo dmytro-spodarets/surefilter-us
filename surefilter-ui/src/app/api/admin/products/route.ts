@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    // Get products with all relations
+    // Get products with counts only (not full relations) for list view
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
@@ -117,28 +117,12 @@ export async function GET(request: NextRequest) {
               { position: 'asc' },
             ],
           },
-          specValues: {
-            include: {
-              parameter: true,
+          _count: {
+            select: {
+              specValues: true,
+              media: true,
+              crossReferences: true,
             },
-            orderBy: {
-              position: 'asc',
-            },
-          },
-          media: {
-            include: {
-              asset: true,
-            },
-            orderBy: [
-              { isPrimary: 'desc' },
-              { position: 'asc' },
-            ],
-          },
-          crossReferences: {
-            orderBy: [
-              { isPreferred: 'desc' },
-              { refBrandName: 'asc' },
-            ],
           },
         },
       }),

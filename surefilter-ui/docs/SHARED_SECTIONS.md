@@ -400,6 +400,11 @@ Shared section используется на страницах. Сначала 
 
 ## Changelog
 
+### v1.1.0 (Dec 20, 2025)
+- ✅ Исправлено центрирование неполных рядов в `FilterTypesImageGrid` (используется `justify-center`)
+- ✅ Оптимизирован API `/api/admin/products` - возвращает `_count` вместо полных данных для списка
+- ✅ Исправлена обработка пустых `code` в `ProductFilterType` (конвертация в `null`)
+
 ### v1.0.0 (Dec 3, 2025)
 - ✅ Базовая реализация Shared Sections
 - ✅ CRUD API для shared sections

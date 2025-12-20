@@ -13,6 +13,10 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-12-20 — Исправлено центрирование неполных рядов в FilterTypesImageGrid (justify-center вместо justify-items-center)
+- 2025-12-20 — Оптимизирован API /api/admin/products: возвращает _count вместо полных данных для списка продуктов (быстрее и эффективнее)
+- 2025-12-17 — Исправлена обработка пустых code в ProductFilterType: пустые строки конвертируются в null для корректной работы unique constraint
+- 2025-12-14 — Настроено SSL подключение к AWS RDS PostgreSQL: rejectUnauthorized: false для self-signed сертификатов, шифрование соединения
 - 2025-12-09 — Новый CMS компонент Popular Filters Catalog: аналог Featured Products Catalog для популярных фильтров, выбор продуктов из каталога, автоматическая подгрузка данных, поиск и упорядочивание в админке
 - 2025-12-09 — Улучшения конфигурации Next.js: добавлена поддержка Turbopack (resolveAlias для pg-native), настроено images.qualities для Next.js 16+, исправлена обработка пустых src в ManagedImage
 - 2025-12-08 — Очистка кода: удален неиспользуемый роут /admin/pages/[slug]/sections/[sectionId], все редактирование секций через /admin/sections/[id]

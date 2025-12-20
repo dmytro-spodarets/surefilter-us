@@ -45,7 +45,6 @@ Admin → Pages → Shared Sections → New Shared Section
 
 **Documentation:**
 - [Full Documentation](./docs/SHARED_SECTIONS.md)
-- [Quick Start Guide](./docs/SHARED_SECTIONS_QUICKSTART.md)
 
 **Benefits:**
 - ✅ Content consistency across pages
@@ -176,10 +175,11 @@ npm run type-check       # Run TypeScript compiler
 
 ## Documentation
 
-- [Shared Sections](./docs/SHARED_SECTIONS.md) - Full documentation
-- [Shared Sections Quick Start](./docs/SHARED_SECTIONS_QUICKSTART.md) - Quick guide
-- [API Documentation](./docs/API.md) - API endpoints (coming soon)
-- [Deployment Guide](./docs/DEPLOYMENT.md) - AWS deployment (coming soon)
+- [Shared Sections](./docs/SHARED_SECTIONS.md) - CMS system documentation
+- [Featured Products Catalog](./docs/CMS_FEATURED_PRODUCTS_CATALOG.md) - Product component guide
+- [AWS RDS SSL](./docs/AWS-RDS-SSL.md) - Database SSL configuration
+- [Development Guides](../docs/GUIDES.md) - Setup and tools
+- [Forms System](../docs/FORMS.md) - Universal forms documentation
 
 ## CMS Section Types
 
