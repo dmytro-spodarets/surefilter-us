@@ -59,7 +59,8 @@ export default function PopularFiltersCatalogForm({
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/products');
+      // Загружаем больше продуктов для поиска
+      const res = await fetch('/api/admin/products?limit=200');
       const data = await res.json();
       setProducts(data.products || []);
     } catch (error) {
@@ -253,12 +254,17 @@ export default function PopularFiltersCatalogForm({
           />
 
           {loading ? (
-            <p className="text-sm text-gray-500">Loading products...</p>
+            <div className="flex items-center justify-center py-8">
+              <div className="flex flex-col items-center gap-2">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sure-blue-600"></div>
+                <p className="text-sm text-gray-500">Loading products...</p>
+              </div>
+            </div>
           ) : (
             <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
               {filteredProducts.length > 0 ? (
                 <div className="divide-y">
-                  {filteredProducts.slice(0, 20).map((product) => (
+                  {filteredProducts.map((product) => (
                     <div key={product.id} className="flex items-center gap-3 p-3 hover:bg-gray-50">
                       <img 
                         src={getProductImage(product)} 

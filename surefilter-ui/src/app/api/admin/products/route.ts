@@ -56,14 +56,55 @@ const ProductSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const idsParam = searchParams.get('ids');
     const search = searchParams.get('q') || '';
     const brandId = searchParams.get('brandId');
     const categoryId = searchParams.get('categoryId');
     const filterTypeId = searchParams.get('filterTypeId');
     const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = parseInt(searchParams.get('limit') || '50'); // Увеличиваем для поиска
     const skip = (page - 1) * limit;
+
+    // If specific IDs requested, return those products with full media
+    if (idsParam) {
+      const ids = idsParam.split(',').filter(Boolean);
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: ids },
+        },
+        include: {
+          brand: true,
+          filterType: true,
+          categories: {
+            include: {
+              category: true,
+            },
+            orderBy: [
+              { isPrimary: 'desc' },
+              { position: 'asc' },
+            ],
+          },
+          media: {
+            include: {
+              asset: true,
+            },
+            orderBy: [
+              { isPrimary: 'desc' },
+              { position: 'asc' },
+            ],
+            take: 1, // Только первое изображение
+          },
+        },
+      });
+      
+      // Сортируем в том же порядке что и ids
+      const sortedProducts = ids
+        .map(id => products.find(p => p.id === id))
+        .filter(Boolean);
+      
+      return NextResponse.json({ products: sortedProducts });
+    }
 
     // Build where clause
     const where: any = {};
@@ -96,7 +137,7 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    // Get products with counts only (not full relations) for list view
+    // Get products with media for search/list view
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
@@ -116,6 +157,16 @@ export async function GET(request: NextRequest) {
               { isPrimary: 'desc' },
               { position: 'asc' },
             ],
+          },
+          media: {
+            include: {
+              asset: true,
+            },
+            orderBy: [
+              { isPrimary: 'desc' },
+              { position: 'asc' },
+            ],
+            take: 1, // Только первое изображение для списка
           },
           _count: {
             select: {
