@@ -43,8 +43,8 @@
 - `sections/` (CMS-версии):
   - Hero: `HeroCms`, `FullScreenHero`, `SingleImageHero`, `PageHero`, `PageHeroReverse`, `CompactHero`, `CompactSearchHero`, `SearchHero`, `NewsroomHero`, `ResourcesHero`
   - Content: `ContentWithImages`, `AboutWithStats`, `QualityAssurance`, `AboutNewsCms` (авто-загрузка последних новостей)
-  - Features: `WhyChooseCms` (с центрированием карточек), `FeaturedProductsCms` (ручной ввод), `FeaturedProductsCatalogCms` (выбор из каталога), `IndustriesCms`, `IndustriesList`
-  - Filters: `FilterTypesGrid` (иконки), `FilterTypesImageGrid` (изображения, 16:9, настраиваемые колонки, два варианта стиля), `FilterTypesCms`, `PopularFilters`, `RelatedFilters`
+  - Features: `WhyChooseCms` (с центрированием карточек), `FeaturedProductsCms` (ручной ввод), `FeaturedProductsCatalogCms` (выбор из каталога, 8 случайных из N), `PopularFiltersCatalogCms` (выбор из каталога, columnsPerRow случайных), `IndustriesCms`, `IndustriesList`
+  - Filters: `FilterTypesGrid` (иконки), `FilterTypesImageGrid` (изображения, 16:9, Flexbox центрирование, настраиваемые колонки, два варианта стиля), `FilterTypesCms`, `PopularFilters`, `RelatedFilters`
   - Search: `QuickSearchCms`, `SimpleSearch`
   - Products: `Products`, `ProductGallery`, `ProductSpecs` (варианты `cards`/`table`, `contained`)
   - Contact: `ContactOptions`, `ContactHero`, `ContactForm`, `ContactInfo`, `ContactDetails`, `ContactFormInfo`
@@ -611,3 +611,115 @@ docker compose -f docker/docker-compose.yml down
 - **[docs/FORMS.md](./docs/FORMS.md)** - Система форм
 - **[surefilter-ui/docs/SHARED_SECTIONS.md](./surefilter-ui/docs/SHARED_SECTIONS.md)** - CMS система
 - **[infra/README.md](./infra/README.md)** - Инфраструктура (OpenTofu, AWS)
+
+---
+
+## 🚀 Деплой и инфраструктура
+
+### CI/CD Pipeline
+
+**GitHub Actions Workflows:**
+
+1. **ci-build-push.yml** - Сборка и публикация Docker образа
+   - Триггер: push в main или manual dispatch
+   - Создает версионированный образ (v0.0.X)
+   - Публикует в AWS ECR
+   - Требует ручного обновления `infra/envs/prod/app-runner.tf`
+
+2. **static-upload.yml** - Загрузка статики на S3
+   - Триггер: manual dispatch (после сборки образа)
+   - Извлекает `/_next/static/*` из Docker образа
+   - Загружает на S3 bucket `surefilter-static-prod`
+   - Опционально: CloudFront invalidation
+   - ⚠️ **ВАЖНО:** Запускать после каждого деплоя нового образа!
+
+3. **db-migrate.yml** - Миграции базы данных
+   - Триггер: manual dispatch
+   - Запускает Prisma migrations в production
+
+### Архитектура продакшена
+
+```
+CloudFront (new.surefilter.us)
+├── Default: App Runner (SSR, no cache)
+├── /_next/static/*: S3 (1 year TTL, immutable)
+└── /_next/image*: App Runner (image optimization)
+```
+
+**Компоненты:**
+- **App Runner**: Docker контейнер с Next.js app
+- **S3**: Статические файлы (JS, CSS, fonts)
+- **CloudFront**: CDN + SSL (ACM certificate)
+- **RDS PostgreSQL**: База данных
+- **ECR**: Docker registry
+
+### Процесс деплоя
+
+1. **Коммит и пуш в main**
+   ```bash
+   git add .
+   git commit -m "feat: описание изменений"
+   git push origin main
+   ```
+
+2. **CI автоматически собирает образ** (v0.0.X)
+
+3. **Обновить версию в Terraform**
+   ```bash
+   # Редактировать infra/envs/prod/app-runner.tf
+   image_identifier = "...ecr.../surefilter:v0.0.X"
+   ```
+
+4. **Применить Terraform**
+   ```bash
+   cd infra/envs/prod
+   tofu plan
+   tofu apply
+   ```
+
+5. **Загрузить статику на S3** (через GitHub Actions UI)
+   - Workflow: "Static - Upload to S3"
+   - Параметры: version=v0.0.X, invalidate=true
+
+6. **Очистить CloudFront кеш** (если нужно)
+   ```bash
+   aws cloudfront create-invalidation \
+     --profile surefilter-local \
+     --distribution-id E1TEXCEJ38G3RE \
+     --paths "/*"
+   ```
+
+### Полезные команды
+
+**Проверить статус деплоя:**
+```bash
+aws apprunner list-operations \
+  --profile surefilter-local \
+  --service-arn $(cd infra/envs/prod && tofu output -raw service_arn)
+```
+
+**Посмотреть логи App Runner:**
+```bash
+# Через AWS Console -> App Runner -> surefilter-prod -> Logs
+```
+
+**Список файлов на S3:**
+```bash
+aws s3 ls s3://surefilter-static-prod/_next/static/ \
+  --profile surefilter-local \
+  --recursive | head -20
+```
+
+### Известные проблемы
+
+1. **Статика не обновляется после деплоя**
+   - Причина: Забыли запустить static-upload.yml
+   - Решение: Запустить workflow с нужной версией
+
+2. **Изменения не видны на сайте**
+   - Причина: CloudFront кеш
+   - Решение: Создать invalidation (см. команду выше)
+
+3. **App Runner не стартует**
+   - Проверить логи в AWS Console
+   - Проверить DATABASE_URL и другие secrets в SSM Parameter Store

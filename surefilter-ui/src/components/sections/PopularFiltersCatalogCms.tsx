@@ -72,16 +72,16 @@ export default async function PopularFiltersCatalogCms({
     return null;
   }
 
+  // Randomly select products based on columnsPerRow
+  const shuffled = [...sortedProducts].sort(() => Math.random() - 0.5);
+  const displayProducts = shuffled.slice(0, columnsPerRow);
+
   const getProductImage = (product: any) => {
     return product.media?.[0]?.asset?.cdnUrl || '/images/placeholder-product.jpg';
   };
 
   const getProductFilterType = (product: any) => {
     return product.filterType?.name || 'Filter';
-  };
-
-  const getProductHref = (product: any) => {
-    return `/catalog/${product.code}`;
   };
 
   // Grid columns logic like original PopularFilters
@@ -103,8 +103,8 @@ export default async function PopularFiltersCatalogCms({
 
         {/* Filters Grid */}
         <div className={`grid ${gridCols} gap-6 mb-12`}>
-          {sortedProducts.map((product: any) => (
-            <Link key={product.id} href={getProductHref(product)} className="group">
+          {displayProducts.map((product: any) => (
+            <Link key={product.id} href={catalogHref} className="group">
               <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 hover:-translate-y-1">
                 <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
                   <Image

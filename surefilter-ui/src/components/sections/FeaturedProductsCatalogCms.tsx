@@ -65,16 +65,16 @@ export default async function FeaturedProductsCatalogCms({
     return null;
   }
 
+  // Randomly select up to 8 products
+  const shuffled = [...sortedProducts].sort(() => Math.random() - 0.5);
+  const displayProducts = shuffled.slice(0, 8);
+
   const getProductImage = (product: any) => {
     return product.media?.[0]?.asset?.cdnUrl || '/images/placeholder-product.jpg';
   };
 
   const getProductFilterType = (product: any) => {
     return product.filterType?.name || 'Filter';
-  };
-
-  const getProductHref = (product: any) => {
-    return `/catalog/${product.code}`;
   };
 
   return (
@@ -90,10 +90,10 @@ export default async function FeaturedProductsCatalogCms({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-          {sortedProducts.map((product: any) => (
+          {displayProducts.map((product: any) => (
             <Link
               key={product.id}
-              href={getProductHref(product)}
+              href={fallbackHref}
               className="block bg-white rounded-lg border border-gray-100 overflow-hidden hover:border-sure-blue-200 transition-all duration-200 group"
             >
               <div className="relative h-40 bg-gray-100">
