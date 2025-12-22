@@ -23,28 +23,103 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [currentFolder, setCurrentFolder] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [hasMore, setHasMore] = useState(false);
+  const [nextToken, setNextToken] = useState<string | undefined>(undefined);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      loadFiles();
+      loadFiles(true);
     }
   }, [isOpen, currentFolder]);
 
-  const loadFiles = async () => {
-    setLoading(true);
+  // Debounced search
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        searchFiles();
+      } else {
+        loadFiles(true);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const loadFiles = async (reset = false, token?: string) => {
+    if (reset) {
+      setLoading(true);
+      setFiles([]);
+      setFolders([]);
+      setNextToken(undefined);
+    } else {
+      setLoadingMore(true);
+    }
+    
     try {
       const prefix = currentFolder ? `${currentFolder}/` : '';
-      const res = await fetch(`/api/admin/files/list?prefix=${encodeURIComponent(prefix)}`);
+      const params = new URLSearchParams({
+        prefix,
+        maxKeys: '50',
+      });
+      
+      if (token) {
+        params.append('continuationToken', token);
+      }
+      
+      const res = await fetch(`/api/admin/files/list?${params}`);
       const data = await res.json();
-      console.log('Loaded files:', data); // Debug
-      setFiles(data.files || []);
-      setFolders(data.folders || []);
+      
+      if (reset) {
+        setFiles(data.files || []);
+        setFolders(data.folders || []);
+      } else {
+        setFiles(prev => [...prev, ...(data.files || [])]);
+      }
+      
+      setHasMore(data.hasMore || false);
+      setNextToken(data.nextToken);
     } catch (error) {
       console.error('Failed to load files:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const searchFiles = async () => {
+    setIsSearching(true);
+    setLoading(true);
+    try {
+      const prefix = currentFolder ? `${currentFolder}/` : '';
+      const params = new URLSearchParams({
+        prefix,
+        maxKeys: '200', // Больше для поиска
+        search: searchQuery,
+      });
+      
+      const res = await fetch(`/api/admin/files/list?${params}`);
+      const data = await res.json();
+      
+      setFiles(data.files || []);
+      setFolders([]); // Скрываем папки при поиске
+      setHasMore(false); // Отключаем пагинацию при поиске
+    } catch (error) {
+      console.error('Failed to search files:', error);
+    } finally {
+      setLoading(false);
+      setIsSearching(false);
+    }
+  };
+
+  const loadMoreFiles = () => {
+    if (nextToken && !loadingMore) {
+      loadFiles(false, nextToken);
     }
   };
 
@@ -72,11 +147,8 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
     return mimeType.startsWith('image/');
   };
 
-  const filteredFiles = files.filter(file => {
-    if (!searchQuery) return true;
-    const filename = file.metadata?.filename || file.key;
-    return filename.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // Фильтрация теперь происходит на сервере через API
+  const filteredFiles = files;
 
   if (!isOpen) return null;
 
@@ -143,14 +215,20 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-gray-500">Loading files...</div>
+              <div className="flex flex-col items-center gap-2">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sure-blue-600"></div>
+                <div className="text-gray-500">{isSearching ? 'Searching...' : 'Loading files...'}</div>
+              </div>
             </div>
           ) : folders.length === 0 && filteredFiles.length === 0 ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-gray-500">No files found</div>
+              <div className="text-gray-500">
+                {searchQuery ? 'No files found matching your search' : 'No files found'}
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {/* Folders */}
               {!searchQuery && folders.map((folder) => (
                 <button
@@ -202,10 +280,31 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                   </button>
                 );
               })}
-            </div>
+              </div>
+
+              {/* Load More Button */}
+              {hasMore && !searchQuery && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={loadMoreFiles}
+                    disabled={loadingMore}
+                    className="px-6 py-2 bg-sure-blue-600 text-white rounded-lg hover:bg-sure-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Loading...
+                      </span>
+                    ) : (
+                      'Load More'
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
-
         {/* Footer */}
         <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
           <button

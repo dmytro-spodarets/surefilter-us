@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const prefix = searchParams.get('prefix') || '';
     const maxKeys = parseInt(searchParams.get('maxKeys') || '50');
     const continuationToken = searchParams.get('continuationToken') || undefined;
+    const searchQuery = searchParams.get('search') || '';
 
     // Get files from S3
     const s3Result = await listS3Objects(prefix, maxKeys, continuationToken);
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Merge S3 data with database metadata
-    const filesWithMetadata = s3Result.files.map(file => {
+    let filesWithMetadata = s3Result.files.map(file => {
       const metadata = mediaAssets.find(asset => asset.s3Path === file.key);
       return {
         ...file,
@@ -47,6 +48,15 @@ export async function GET(request: NextRequest) {
         } : null
       };
     });
+
+    // Filter by search query if provided
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filesWithMetadata = filesWithMetadata.filter(file => {
+        const filename = file.metadata?.filename || file.key;
+        return filename.toLowerCase().includes(query);
+      });
+    }
 
     return NextResponse.json({
       files: filesWithMetadata,
