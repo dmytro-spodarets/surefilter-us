@@ -5,6 +5,7 @@ import { useState } from 'react';
 interface IndustryShowcaseOverrideFormProps {
   sectionId: string;
   initialData: {
+    industryTitleOverride?: string;
     industryDescriptionOverride?: string;
   };
   sharedSectionData: {
@@ -18,10 +19,12 @@ export default function IndustryShowcaseOverrideForm({
   initialData,
   sharedSectionData,
 }: IndustryShowcaseOverrideFormProps) {
-  const [override, setOverride] = useState(initialData?.industryDescriptionOverride || '');
+  const [titleOverride, setTitleOverride] = useState(initialData?.industryTitleOverride || '');
+  const [descriptionOverride, setDescriptionOverride] = useState(initialData?.industryDescriptionOverride || '');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [useOverride, setUseOverride] = useState(!!initialData?.industryDescriptionOverride);
+  const [useTitleOverride, setUseTitleOverride] = useState(!!initialData?.industryTitleOverride);
+  const [useDescriptionOverride, setUseDescriptionOverride] = useState(!!initialData?.industryDescriptionOverride);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +38,8 @@ export default function IndustryShowcaseOverrideForm({
         body: JSON.stringify({
           type: 'industry_showcase',
           data: {
-            industryDescriptionOverride: useOverride ? override : '',
+            industryTitleOverride: useTitleOverride ? titleOverride : '',
+            industryDescriptionOverride: useDescriptionOverride ? descriptionOverride : '',
           },
         }),
       });
@@ -63,7 +67,7 @@ export default function IndustryShowcaseOverrideForm({
       </h3>
       
       <p className="text-sm text-gray-600 mb-6">
-        You can customize the Industry Description for this specific page while keeping all other content from the shared section.
+        You can customize the Industry Title and Description for this specific page while keeping all other content from the shared section.
       </p>
 
       {saved && (
@@ -75,67 +79,108 @@ export default function IndustryShowcaseOverrideForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Shared Section Preview */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">
-            From Shared Section: "{sharedSectionData.industryTitle}"
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            From Shared Section
           </h4>
-          <p className="text-sm text-gray-600 italic">
-            {sharedSectionData.industryDescription || '(No description set)'}
-          </p>
-        </div>
-
-        {/* Override Toggle */}
-        <div className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="useOverride"
-            checked={useOverride}
-            onChange={(e) => setUseOverride(e.target.checked)}
-            className="w-4 h-4 text-sure-blue-600 border-gray-300 rounded focus:ring-sure-blue-500"
-          />
-          <label htmlFor="useOverride" className="text-sm font-medium text-gray-700">
-            Use custom description for this page
-          </label>
-        </div>
-
-        {/* Override Field */}
-        {useOverride && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Custom Industry Description (for this page only)
-            </label>
-            <textarea
-              value={override}
-              onChange={(e) => setOverride(e.target.value)}
-              rows={6}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sure-blue-500 focus:border-transparent"
-              placeholder="Enter custom description for this page..."
-            />
-            <p className="mt-2 text-xs text-gray-500">
-              This description will be shown only on this page. All other pages using this shared section will see the original description.
-            </p>
+          <div className="space-y-2">
+            <div>
+              <span className="text-xs text-gray-500">Title:</span>
+              <p className="text-sm text-gray-900 font-medium">{sharedSectionData.industryTitle || '(No title set)'}</p>
+            </div>
+            <div>
+              <span className="text-xs text-gray-500">Description:</span>
+              <p className="text-sm text-gray-600 italic">{sharedSectionData.industryDescription || '(No description set)'}</p>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Title Override */}
+        <div className="border-t border-gray-200 pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              type="checkbox"
+              id="useTitleOverride"
+              checked={useTitleOverride}
+              onChange={(e) => setUseTitleOverride(e.target.checked)}
+              className="w-4 h-4 text-sure-blue-600 border-gray-300 rounded focus:ring-sure-blue-500"
+            />
+            <label htmlFor="useTitleOverride" className="text-sm font-medium text-gray-700">
+              Use custom title for this page
+            </label>
+          </div>
+
+          {useTitleOverride && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Custom Industry Title (for this page only)
+              </label>
+              <input
+                type="text"
+                value={titleOverride}
+                onChange={(e) => setTitleOverride(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sure-blue-500 focus:border-transparent"
+                placeholder="Enter custom title for this page..."
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Description Override */}
+        <div className="border-t border-gray-200 pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              type="checkbox"
+              id="useDescriptionOverride"
+              checked={useDescriptionOverride}
+              onChange={(e) => setUseDescriptionOverride(e.target.checked)}
+              className="w-4 h-4 text-sure-blue-600 border-gray-300 rounded focus:ring-sure-blue-500"
+            />
+            <label htmlFor="useDescriptionOverride" className="text-sm font-medium text-gray-700">
+              Use custom description for this page
+            </label>
+          </div>
+
+          {useDescriptionOverride && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Custom Industry Description (for this page only)
+              </label>
+              <textarea
+                value={descriptionOverride}
+                onChange={(e) => setDescriptionOverride(e.target.value)}
+                rows={6}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-sure-blue-500 focus:border-transparent"
+                placeholder="Enter custom description for this page..."
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                This description will be shown only on this page. All other pages using this shared section will see the original description.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Save Button */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 border-t border-gray-200 pt-6">
           <button
             type="submit"
             disabled={saving}
             className="px-6 py-2 bg-sure-blue-600 text-white rounded-lg hover:bg-sure-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {saving ? 'Saving...' : 'Save Override'}
+            {saving ? 'Saving...' : 'Save Overrides'}
           </button>
           
-          {useOverride && override && (
+          {(useTitleOverride || useDescriptionOverride) && (
             <button
               type="button"
               onClick={() => {
-                setUseOverride(false);
-                setOverride('');
+                setUseTitleOverride(false);
+                setUseDescriptionOverride(false);
+                setTitleOverride('');
+                setDescriptionOverride('');
               }}
               className="text-sm text-gray-600 hover:text-gray-800 underline"
             >
-              Clear and use shared description
+              Clear all overrides
             </button>
           )}
         </div>
