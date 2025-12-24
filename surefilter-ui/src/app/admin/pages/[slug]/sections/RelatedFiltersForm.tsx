@@ -24,11 +24,22 @@ export default function RelatedFiltersForm({ sectionId, initialData }: { section
     e.preventDefault();
     setSaving(true);
     try {
-      await fetch(`/api/admin/sections/${sectionId}`, {
+      const response = await fetch(`/api/admin/sections/${sectionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'related_filters', data: { title, description, filterTypeIds } }),
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Save error:', error);
+        alert(`Failed to save: ${error.error || 'Unknown error'}\n${error.details ? JSON.stringify(error.details) : ''}`);
+      } else {
+        alert('Saved successfully!');
+      }
+    } catch (err) {
+      console.error('Network error:', err);
+      alert('Network error occurred');
     } finally {
       setSaving(false);
     }

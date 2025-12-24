@@ -32,6 +32,7 @@ import {
   ContactOptionsSchema,
   ListingCardMetaSchema,
   PopularFiltersSchema,
+  RelatedFiltersSchema,
   FilterTypesGridSchema,
   FilterTypesImageGridSchema,
   IndustryShowcaseSchema,
@@ -164,6 +165,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   } else if (type === 'popular_filters') {
     const parsed = PopularFiltersSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'related_filters') {
+    const parsed = RelatedFiltersSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'filter_types_grid') {
     const parsed = FilterTypesGridSchema.safeParse(data);
