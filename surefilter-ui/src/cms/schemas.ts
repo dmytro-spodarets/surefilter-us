@@ -194,21 +194,49 @@ export type QualityAssuranceInput = z.infer<typeof QualityAssuranceSchema>;
 
 // PageHeroReverse - Hero with title, description and image grid on right
 export const PageHeroReverseSchema = z.object({
-  title: z.string().default(''),
-  description: z.string().optional().default(''),
+  title: z.string().optional(),
+  description: z.string().optional(),
 });
 export type PageHeroReverseInput = z.infer<typeof PageHeroReverseSchema>;
 
-// MagnussonMossAct - Static warranty law section
-export const MagnussonMossActSchema = z.object({});
+// MagnussonMossAct - Warranty law section
+export const MagnussonMossActSchema = z.object({
+  badge: z.string().optional(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  image: z.string().optional(),
+  mainText: z.string().optional(),
+  lawQuote: z.string().optional(),
+  lawReference: z.string().optional(),
+  bottomText: z.string().optional(),
+  ctaTitle: z.string().optional(),
+  ctaText: z.string().optional(),
+});
 export type MagnussonMossActInput = z.infer<typeof MagnussonMossActSchema>;
 
-// LimitedWarrantyDetails - Static warranty coverage details
-export const LimitedWarrantyDetailsSchema = z.object({});
+// LimitedWarrantyDetails - Warranty coverage details
+export const LimitedWarrantyDetailsSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  image: z.string().optional(),
+  introText: z.string().optional(),
+  promiseTitle: z.string().optional(),
+  promiseText: z.string().optional(),
+  warrantyTitle: z.string().optional(),
+  warrantyText1: z.string().optional(),
+  warrantyText2: z.string().optional(),
+});
 export type LimitedWarrantyDetailsInput = z.infer<typeof LimitedWarrantyDetailsSchema>;
 
-// WarrantyContact - Static warranty contact section
-export const WarrantyContactSchema = z.object({});
+// WarrantyContact - Warranty contact section
+export const WarrantyContactSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  phone: z.string().optional(),
+  phoneHours: z.string().optional(),
+  email: z.string().optional(),
+  emailResponse: z.string().optional(),
+});
 export type WarrantyContactInput = z.infer<typeof WarrantyContactSchema>;
 
 // Manufacturing Facilities

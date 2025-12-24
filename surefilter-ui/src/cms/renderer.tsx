@@ -233,13 +233,16 @@ export function renderSection(section: CmsSection) {
       return <PageHeroReverse title={d?.title || ''} description={d?.description} />;
     }
     case 'magnusson_moss_act': {
-      return <MagnussonMossAct />;
+      const d = sectionData as any;
+      return <MagnussonMossAct {...d} />;
     }
     case 'limited_warranty_details': {
-      return <LimitedWarrantyDetails />;
+      const d = sectionData as any;
+      return <LimitedWarrantyDetails {...d} />;
     }
     case 'warranty_contact': {
-      return <WarrantyContact />;
+      const d = sectionData as any;
+      return <WarrantyContact {...d} />;
     }
     case 'manufacturing_facilities': {
       const d = sectionData as any;

@@ -5,8 +5,8 @@ import type { PageHeroReverseInput } from '@/cms/schemas';
 
 export default function PageHeroReverseForm({ sectionId, initialData }: { sectionId: string; initialData: PageHeroReverseInput }) {
   const [form, setForm] = useState<PageHeroReverseInput>({
-    title: initialData.title || '',
-    description: initialData.description || '',
+    title: initialData.title,
+    description: initialData.description,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);

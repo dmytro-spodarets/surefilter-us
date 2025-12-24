@@ -4,7 +4,7 @@ import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';
 
 interface PageHeroReverseProps {
-  title: string;
+  title?: string;
   description?: string;
   className?: string;
 }
@@ -14,7 +14,9 @@ const PageHeroReverse: React.FC<PageHeroReverseProps> = ({
   description,
   className,
 }) => {
-  // Изображения для сетки 2x2 с offset'ами
+  if (!title) return null;
+  
+  // Изображения для сетки 2x2 с offset'ами (статичные, можно будет сделать редактируемыми позже)
   const gridImages = [
     { src: '/images/image.jpg', alt: 'Filter manufacturing', offset: true },
     { src: '/images/image-2.jpg', alt: 'Quality control', offset: false },

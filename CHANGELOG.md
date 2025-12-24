@@ -13,6 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-12-24 — Интеграция Warranty компонентов в CMS: добавлены schemas, renderer, API валидация и admin формы для PageHeroReverse, MagnussonMossAct, LimitedWarrantyDetails, WarrantyContact; все компоненты без дефолтных значений, с проверками на undefined; создана тестовая страница /warranty-cms
 - 2025-12-23 — Добавлена поддержка page-level overrides для Industry Showcase: возможность переопределить industryTitle и industryDescription для конкретной страницы при использовании Shared Section, независимое управление каждым полем, preview оригинальных значений из Shared Section
 - 2025-12-23 — Исправлена работа Shared Sections: renderer теперь правильно использует sectionData (берет данные из sharedSection.data для Shared Sections и section.data для обычных секций), исправлено для всех 30+ типов секций
 - 2025-12-23 — Исправлена динамическая ширина в FilterTypesImageGrid: заменены динамически генерируемые классы на статические предопределенные (Tailwind не компилирует динамические calc() с переменными), добавлена поддержка 2-8 колонок с правильными responsive breakpoints

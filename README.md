@@ -48,7 +48,7 @@
   - Search: `QuickSearchCms`, `SimpleSearch`
   - Products: `Products`, `ProductGallery`, `ProductSpecs` (варианты `cards`/`table`, `contained`)
   - Contact: `ContactOptions`, `ContactHero`, `ContactForm`, `ContactInfo`, `ContactDetails`, `ContactFormInfo`
-  - Warranty: `LimitedWarrantyDetails`, `MagnussonMossAct`, `WarrantyClaimProcess`, `WarrantyContact`, `WarrantyPromise`
+  - Warranty: `LimitedWarrantyDetails` (CMS), `MagnussonMossAct` (CMS), `WarrantyClaimProcess`, `WarrantyContact` (CMS), `WarrantyPromise`, `QualityAssurance` (CMS), `PageHeroReverse` (CMS)
   - About: `ManufacturingFacilities`, `OurCompany`, `StatsBand`, `AwardsCarousel`
   - News: `NewsCarousel`, `NewsroomClient` (события + новости с фильтрацией)
   - Resources: `ResourcesClient` (список ресурсов с фильтрацией), `ResourceDownloadForm` (форма загрузки)
@@ -254,6 +254,14 @@ docker compose -f docker/docker-compose.yml down
 - Главная страница полностью рендерится из CMS (БД) в порядке, заданном в админке.
 - Админка: `/admin` → Pages → выберите страницу → SEO и список секций; редактирование конкретной секции по клику Edit.
 - Поддерживаемые секции на главной: `hero_full`, `featured_products`, `why_choose`, `quick_search`, `industries`, `about_news`.
+- **Warranty компоненты в CMS**:
+  - `PageHeroReverse` — Hero с title и description (изображения статичные)
+  - `MagnussonMossAct` — 10 редактируемых полей (badge, title, subtitle, image, mainText, lawQuote, lawReference, bottomText, ctaTitle, ctaText)
+  - `QualityAssurance` — статичный компонент (без редактируемых полей)
+  - `LimitedWarrantyDetails` — 9 редактируемых полей (title, subtitle, image, introText, promiseTitle, promiseText, warrantyTitle, warrantyText1, warrantyText2)
+  - `WarrantyContact` — 6 редактируемых полей (title, subtitle, phone, phoneHours, email, emailResponse)
+  - Все компоненты без дефолтных значений — создаются пустыми, заполняются через админку
+  - Компоненты безопасны — не ломаются при отсутствии данных (проверки на undefined)
 - Кеш: используется tag‑based кеширование. После сохранения секции выполняется `revalidateTag` и HTML обновляется автоматически. В dev при необходимости перезапустите `npm run dev`.
 - Сидинг контента:
   - Создание без перезаписи: `npm run seed:content`

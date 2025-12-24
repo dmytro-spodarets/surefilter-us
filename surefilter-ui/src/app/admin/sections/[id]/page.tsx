@@ -281,13 +281,13 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
           <PageHeroReverseForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'magnusson_moss_act' && (
-          <MagnussonMossActForm sectionId={section.id} />
+          <MagnussonMossActForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'limited_warranty_details' && (
-          <LimitedWarrantyDetailsForm sectionId={section.id} />
+          <LimitedWarrantyDetailsForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'warranty_contact' && (
-          <WarrantyContactForm sectionId={section.id} />
+          <WarrantyContactForm sectionId={section.id} initialData={section.data as any} />
         )}
     </AdminContainer>
   );
