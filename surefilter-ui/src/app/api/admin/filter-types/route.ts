@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     },
     orderBy: [{ parentId: 'asc' }, { position: 'asc' }, { name: 'asc' }] 
   });
-  return NextResponse.json({ items });
+  return NextResponse.json({ items, filterTypes: items });
 }
 
 export async function POST(req: Request) {

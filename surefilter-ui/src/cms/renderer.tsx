@@ -266,8 +266,7 @@ export function renderSection(section: CmsSection) {
     }
     case 'related_filters': {
       const d = sectionData as any;
-      const category = d?.category as 'HEAVY_DUTY' | 'AUTOMOTIVE' | undefined;
-      return <FilterTypesCms title={d?.title} description={d?.description} category={category} sectionId={(section as any).id} />;
+      return <FilterTypesCms title={d?.title} description={d?.description} filterTypeIds={d?.filterTypeIds} />;
     }
     case 'popular_filters': {
       const d = sectionData as any;

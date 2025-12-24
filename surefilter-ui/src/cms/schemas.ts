@@ -312,11 +312,11 @@ export const PopularFiltersSchema = z.object({
 });
 export type PopularFiltersInput = z.infer<typeof PopularFiltersSchema>;
 
-// Related Filters (auto from catalog category)
+// Related Filters (manual selection)
 export const RelatedFiltersSchema = z.object({
   title: z.string().optional().default('Related Filter Types'),
   description: z.string().optional().default(''),
-  category: z.enum(['HEAVY_DUTY', 'AUTOMOTIVE']).optional(),
+  filterTypeIds: z.array(z.string()).default([]),
 });
 export type RelatedFiltersInput = z.infer<typeof RelatedFiltersSchema>;
 

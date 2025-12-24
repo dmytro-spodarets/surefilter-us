@@ -1,14 +1,14 @@
 "use client";
 
 import Link from 'next/link';
-import Icon from '@/components/ui/Icon';
 import { useRef } from 'react';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface RelatedFilter {
   name: string;
   href: string;
-  icon: string;
-  description: string;
+  image: string;
+  description?: string;
 }
 
 interface RelatedFiltersProps {
@@ -58,7 +58,9 @@ export default function RelatedFilters({
             className="hidden lg:flex absolute -left-16 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 items-center justify-center hover:bg-gray-50 transition-colors duration-200"
             aria-label="Scroll left"
           >
-            <Icon name="ChevronLeftIcon" className="w-5 h-5 text-gray-600" />
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
           
           <button
@@ -66,7 +68,9 @@ export default function RelatedFilters({
             className="hidden lg:flex absolute -right-16 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 items-center justify-center hover:bg-gray-50 transition-colors duration-200"
             aria-label="Scroll right"
           >
-            <Icon name="ChevronRightIcon" className="w-5 h-5 text-gray-600" />
+            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
 
           {/* Scrollable container */}
@@ -83,25 +87,38 @@ export default function RelatedFilters({
               <Link 
                 key={index}
                 href={filter.href}
-                className="group bg-white rounded-lg p-4 lg:p-6 border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 flex-shrink-0 w-[calc(50%-0.5rem)] lg:w-[calc(25%-1.125rem)]"
+                className="group bg-white rounded-lg overflow-hidden border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 flex-shrink-0 w-[calc(50%-0.5rem)] lg:w-[calc(25%-1.125rem)]"
                 style={{ 
                   scrollSnapAlign: 'start'
                 }}
               >
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-sure-blue-50 text-sure-blue-500 rounded-lg flex items-center justify-center group-hover:bg-sure-blue-100 transition-colors duration-200">
-                    <Icon name={filter.icon} className="w-6 h-6" />
-                  </div>
-                  <h3 className="ml-4 text-xl font-semibold text-gray-900 group-hover:text-sure-blue-600 transition-colors duration-200">
+                {/* Image - 16:9 aspect ratio */}
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-100">
+                  {filter.image ? (
+                    <ManagedImage
+                      src={filter.image}
+                      alt={filter.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                      <span className="text-gray-400 text-sm">No image</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Content - centered */}
+                <div className="p-4 text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-sure-blue-600 transition-colors duration-200 mb-2">
                     {filter.name}
                   </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  {filter.description}
-                </p>
-                <div className="flex items-center text-sure-blue-500 font-medium">
-                  Learn more
-                  <Icon name="ArrowRightIcon" className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  {filter.description && (
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {filter.description}
+                    </p>
+                  )}
                 </div>
               </Link>
             ))}
