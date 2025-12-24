@@ -74,7 +74,7 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'hero_carousel': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return (
         <HeroCarouselCms
           slides={Array.isArray(d?.slides) ? d.slides : []}
@@ -85,16 +85,16 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'filter_types_grid': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <FilterTypesGrid title={d?.title} description={d?.description} filterTypes={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'filter_types_image_grid': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <FilterTypesImageGrid title={d?.title} description={d?.description} columns={d?.columns} variant={d?.variant} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'featured_products': {
       // Dynamic featured products from DB
-      const data = section.data as any;
+      const data = sectionData as any;
       return (
         <FeaturedProductsCms
           title={data?.title}
@@ -106,7 +106,7 @@ export function renderSection(section: CmsSection) {
     }
     case 'featured_products_catalog': {
       // Featured products from catalog
-      const data = section.data as any;
+      const data = sectionData as any;
       return (
         <FeaturedProductsCatalogCms
           title={data?.title}
@@ -118,7 +118,7 @@ export function renderSection(section: CmsSection) {
     }
     case 'popular_filters_catalog': {
       // Popular filters from catalog
-      const data = section.data as any;
+      const data = sectionData as any;
       return (
         <PopularFiltersCatalogCms
           title={data?.title}
@@ -131,23 +131,23 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'why_choose': {
-      const data = section.data as any;
+      const data = sectionData as any;
       return <WhyChooseCms title={data?.title} description={data?.description} items={Array.isArray(data?.items) ? data.items : []} />;
     }
     case 'quick_search': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <QuickSearchCms title={d?.title} description={d?.description} placeholder={d?.placeholder} ctaLabel={d?.ctaLabel} ctaHref={d?.ctaHref} />;
     }
     case 'simple_search': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <SimpleSearch title={d?.title} description={d?.description} placeholder={d?.placeholder} buttonText={d?.buttonText} />;
     }
     case 'industries': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <IndustriesCms title={d?.title} description={d?.description} />;
     }
     case 'industries_list': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <IndustriesList title={d?.title} description={d?.description} />;
     }
     case 'industry_showcase': {
@@ -163,7 +163,7 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'about_news': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return (
         <AboutNewsCms
           aboutTitle={d?.aboutTitle}
@@ -179,23 +179,23 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'page_hero': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <PageHero title={d?.title || ''} description={d?.description || ''} />;
     }
     case 'single_image_hero': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <FullScreenHero title={d?.title || ''} description={d?.description || ''} backgroundImage={d?.image || ''} />;
     }
     case 'compact_search_hero': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <CompactSearchHero title={d?.title || ''} description={d?.description || ''} backgroundImage={d?.image || ''} />;
     }
     case 'search_hero': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <SearchHero title={d?.title || ''} description={d?.description || ''} backgroundImage={d?.image || ''} />;
     }
     case 'about_with_stats': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return (
         <AboutWithStats
           title={d?.title || ''}
@@ -206,7 +206,7 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'content_with_images': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return (
         <ContentWithImages
           title={d?.title || ''}
@@ -220,56 +220,56 @@ export function renderSection(section: CmsSection) {
       return <QualityAssurance />;
     }
     case 'manufacturing_facilities': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <ManufacturingFacilities title={d?.title} description={d?.description} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'our_company': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <OurCompany title={d?.title} subtitle={d?.subtitle} tabs={Array.isArray(d?.tabs) ? d.tabs : []} />;
     }
     case 'stats_band': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <StatsBand title={d?.title} subtitle={d?.subtitle} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'awards_carousel': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <AwardsCarousel title={d?.title} subtitle={d?.subtitle} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'contact_hero': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <ContactHero title={d?.title} description={d?.description} image={d?.image} />;
     }
     case 'contact_form': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <ContactForm title={d?.title} description={d?.description} subjects={Array.isArray(d?.subjects) ? d.subjects : []} />;
     }
     case 'contact_info': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <ContactInfo title={d?.title} general={d?.general} support={d?.support} address={d?.address} />;
     }
     case 'contact_details': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <ContactDetails options={d?.options || {}} info={d?.info || {}} />;
     }
     case 'contact_form_info': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <ContactFormInfo form={d?.form || {}} info={d?.info || {}} />;
     }
     case 'contact_options': {
-      const d = section.data as any;
-      return <ContactOptions items={Array.isArray(d?.items) ? d.items : undefined} phone={d?.phone || ''} chatHref={d?.chatHref || '#'} askHref={d?.askHref || '#contact-form'} />;
+      const d = sectionData as any;
+      return <ContactOptions items={Array.isArray(d?.items) ? d.items : undefined} phone={d?.phone || ''} chatHref={d?.chatHref || '#'} askHref={d?.askHref || ''} />;
     }
     case 'related_filters': {
-      const d = section.data as any;
+      const d = sectionData as any;
       const category = d?.category as 'HEAVY_DUTY' | 'AUTOMOTIVE' | undefined;
       return <FilterTypesCms title={d?.title} description={d?.description} category={category} sectionId={(section as any).id} />;
     }
     case 'popular_filters': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <PopularFilters title={d?.title} description={d?.description} filters={Array.isArray(d?.items) ? d.items : []} catalogHref={d?.catalogHref} catalogText={d?.catalogText} columnsPerRow={d?.columnsPerRow} />;
     }
     case 'form_embed': {
-      const d = section.data as any;
+      const d = sectionData as any;
       return <FormEmbed formId={d?.formId} title={d?.title} description={d?.description} />;
     }
     default:

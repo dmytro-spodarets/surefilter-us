@@ -31,6 +31,37 @@ function getGridClasses(columns: number): string {
   return columnMap[columns] || columnMap[4];
 }
 
+// Helper function to get dynamic width classes based on columns
+function getWidthClasses(columns: number): string {
+  // Calculate percentages for different breakpoints
+  const mobileWidth = 50; // Always 2 columns on mobile
+  const smWidth = columns >= 3 ? 33.333 : 50; // 3 cols on SM if columns >= 3
+  const mdWidth = 100 / Math.min(columns, 4); // Up to 4 cols on MD
+  const lgWidth = 100 / Math.min(columns, 6); // Up to 6 cols on LG
+  const xlWidth = 100 / columns; // Full columns on XL
+  
+  // Build responsive width classes
+  let classes = `w-[calc(${mobileWidth}%-0.375rem)]`;
+  
+  if (columns >= 3) {
+    classes += ` sm:w-[calc(${smWidth}%-0.667rem)]`;
+  }
+  
+  if (columns >= 4) {
+    classes += ` md:w-[calc(${mdWidth}%-0.75rem)]`;
+  }
+  
+  if (columns >= 5) {
+    classes += ` lg:w-[calc(${lgWidth}%-0.75rem)]`;
+  }
+  
+  if (columns >= 7) {
+    classes += ` xl:w-[calc(${xlWidth}%-1rem)]`;
+  }
+  
+  return classes;
+}
+
 export default function FilterTypesImageGrid({ 
   title = "Filter Types", 
   description = "Choose the right filter type for your equipment",
@@ -39,7 +70,7 @@ export default function FilterTypesImageGrid({
   items,
   className = ""
 }: FilterTypesImageGridProps) {
-  const gridClasses = getGridClasses(columns);
+  const widthClasses = getWidthClasses(columns);
   
   return (
     <section className={`py-12 sm:py-16 bg-white ${className}`}>
@@ -58,7 +89,7 @@ export default function FilterTypesImageGrid({
             <Link
               key={index}
               href={filterType.href}
-              className="group w-[calc(50%-0.375rem)] sm:w-[calc(33.333%-0.667rem)] md:w-[calc(25%-0.75rem)] max-w-xs"
+              className={`group ${widthClasses} max-w-xs`}
             >
               {variant === 'card' ? (
                 // Card variant - with border and background
