@@ -230,7 +230,7 @@ export function renderSection(section: CmsSection) {
     }
     case 'page_hero_reverse': {
       const d = sectionData as any;
-      return <PageHeroReverse title={d?.title || ''} description={d?.description} />;
+      return <PageHeroReverse {...d} />;
     }
     case 'magnusson_moss_act': {
       const d = sectionData as any;

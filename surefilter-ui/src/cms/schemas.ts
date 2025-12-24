@@ -196,6 +196,14 @@ export type QualityAssuranceInput = z.infer<typeof QualityAssuranceSchema>;
 export const PageHeroReverseSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
+  image1: z.string().optional(),
+  image1Alt: z.string().optional(),
+  image2: z.string().optional(),
+  image2Alt: z.string().optional(),
+  image3: z.string().optional(),
+  image3Alt: z.string().optional(),
+  image4: z.string().optional(),
+  image4Alt: z.string().optional(),
 });
 export type PageHeroReverseInput = z.infer<typeof PageHeroReverseSchema>;
 
