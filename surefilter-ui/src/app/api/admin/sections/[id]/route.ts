@@ -36,6 +36,10 @@ import {
   FilterTypesGridSchema,
   FilterTypesImageGridSchema,
   IndustryShowcaseSchema,
+  PageHeroReverseSchema,
+  MagnussonMossActSchema,
+  LimitedWarrantyDetailsSchema,
+  WarrantyContactSchema,
 } from '@/cms/schemas';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -196,6 +200,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
       await prisma.section.update({ where: { id }, data: { data: parsed.data } });
     }
+  } else if (type === 'page_hero_reverse') {
+    const parsed = PageHeroReverseSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'magnusson_moss_act') {
+    const parsed = MagnussonMossActSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'limited_warranty_details') {
+    const parsed = LimitedWarrantyDetailsSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'warranty_contact') {
+    const parsed = WarrantyContactSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else {
     return NextResponse.json({ error: 'Unsupported section type' }, { status: 400 });
   }

@@ -39,6 +39,10 @@ import FilterTypesImageGridForm from '@/app/admin/pages/[slug]/sections/FilterTy
 import PopularFiltersForm from '@/app/admin/pages/[slug]/sections/PopularFiltersForm';
 import SimpleSearchForm from '@/app/admin/pages/[slug]/sections/SimpleSearchForm';
 import FormEmbedForm from '@/app/admin/pages/[slug]/sections/FormEmbedForm';
+import PageHeroReverseForm from '@/app/admin/pages/[slug]/sections/PageHeroReverseForm';
+import MagnussonMossActForm from '@/app/admin/pages/[slug]/sections/MagnussonMossActForm';
+import LimitedWarrantyDetailsForm from '@/app/admin/pages/[slug]/sections/LimitedWarrantyDetailsForm';
+import WarrantyContactForm from '@/app/admin/pages/[slug]/sections/WarrantyContactForm';
 import AdminContainer from '@/components/admin/AdminContainer';
 import IndustryShowcaseOverrideForm from './IndustryShowcaseOverrideForm';
 
@@ -272,6 +276,18 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         )}
         {section.type === 'form_embed' && (
           <FormEmbedForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'page_hero_reverse' && (
+          <PageHeroReverseForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'magnusson_moss_act' && (
+          <MagnussonMossActForm sectionId={section.id} />
+        )}
+        {section.type === 'limited_warranty_details' && (
+          <LimitedWarrantyDetailsForm sectionId={section.id} />
+        )}
+        {section.type === 'warranty_contact' && (
+          <WarrantyContactForm sectionId={section.id} />
         )}
     </AdminContainer>
   );

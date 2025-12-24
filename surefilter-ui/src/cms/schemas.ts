@@ -192,6 +192,25 @@ export type ContentWithImagesInput = z.infer<typeof ContentWithImagesSchema>;
 export const QualityAssuranceSchema = z.object({});
 export type QualityAssuranceInput = z.infer<typeof QualityAssuranceSchema>;
 
+// PageHeroReverse - Hero with title, description and image grid on right
+export const PageHeroReverseSchema = z.object({
+  title: z.string().default(''),
+  description: z.string().optional().default(''),
+});
+export type PageHeroReverseInput = z.infer<typeof PageHeroReverseSchema>;
+
+// MagnussonMossAct - Static warranty law section
+export const MagnussonMossActSchema = z.object({});
+export type MagnussonMossActInput = z.infer<typeof MagnussonMossActSchema>;
+
+// LimitedWarrantyDetails - Static warranty coverage details
+export const LimitedWarrantyDetailsSchema = z.object({});
+export type LimitedWarrantyDetailsInput = z.infer<typeof LimitedWarrantyDetailsSchema>;
+
+// WarrantyContact - Static warranty contact section
+export const WarrantyContactSchema = z.object({});
+export type WarrantyContactInput = z.infer<typeof WarrantyContactSchema>;
+
 // Manufacturing Facilities
 export const ManufacturingFacilityItemSchema = z.object({
   title: z.string(),

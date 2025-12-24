@@ -11,12 +11,16 @@ import IndustriesList from '@/components/sections/IndustriesList';
 import IndustryShowcase from '@/components/sections/IndustryShowcase';
 import AboutNewsCms from '@/components/sections/AboutNewsCms';
 import PageHero from '@/components/sections/PageHero';
+import PageHeroReverse from '@/components/sections/PageHeroReverse';
 import FullScreenHero from '@/components/sections/FullScreenHero';
 import CompactSearchHero from '@/components/sections/CompactSearchHero';
 import SearchHero from '@/components/sections/SearchHero';
 import AboutWithStats from '@/components/sections/AboutWithStats';
 import ContentWithImages from '@/components/sections/ContentWithImages';
 import QualityAssurance from '@/components/sections/QualityAssurance';
+import MagnussonMossAct from '@/components/sections/MagnussonMossAct';
+import LimitedWarrantyDetails from '@/components/sections/LimitedWarrantyDetails';
+import WarrantyContact from '@/components/sections/WarrantyContact';
 import ManufacturingFacilities from '../components/sections/ManufacturingFacilities';
 import OurCompany from '../components/sections/OurCompany';
 import StatsBand from '../components/sections/StatsBand';
@@ -223,6 +227,19 @@ export function renderSection(section: CmsSection) {
     }
     case 'quality_assurance': {
       return <QualityAssurance />;
+    }
+    case 'page_hero_reverse': {
+      const d = sectionData as any;
+      return <PageHeroReverse title={d?.title || ''} description={d?.description} />;
+    }
+    case 'magnusson_moss_act': {
+      return <MagnussonMossAct />;
+    }
+    case 'limited_warranty_details': {
+      return <LimitedWarrantyDetails />;
+    }
+    case 'warranty_contact': {
+      return <WarrantyContact />;
     }
     case 'manufacturing_facilities': {
       const d = sectionData as any;
