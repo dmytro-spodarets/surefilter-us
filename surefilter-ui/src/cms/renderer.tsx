@@ -226,7 +226,8 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'quality_assurance': {
-      return <QualityAssurance />;
+      const d = sectionData as any;
+      return <QualityAssurance {...d} />;
     }
     case 'page_hero_reverse': {
       const d = sectionData as any;

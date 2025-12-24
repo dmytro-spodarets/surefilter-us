@@ -218,7 +218,7 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
           <ContentWithImagesForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'quality_assurance' && (
-          <QualityAssuranceForm sectionId={section.id} />
+          <QualityAssuranceForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'manufacturing_facilities' && (
           <ManufacturingFacilitiesForm sectionId={section.id} initialData={section.data as any} />

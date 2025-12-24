@@ -188,8 +188,26 @@ export const ContentWithImagesSchema = z.object({
 
 export type ContentWithImagesInput = z.infer<typeof ContentWithImagesSchema>;
 
-// QualityAssurance (static content component, schema kept for consistency)
-export const QualityAssuranceSchema = z.object({});
+// QualityAssurance - Quality assurance and testing section
+export const TestingProcedureSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const QualityAssuranceSchema = z.object({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  manufacturingImage: z.string().optional(),
+  manufacturingText1: z.string().optional(),
+  manufacturingText2: z.string().optional(),
+  certificationTitle: z.string().optional(),
+  certificationText: z.string().optional(),
+  testingTitle: z.string().optional(),
+  testingSubtitle: z.string().optional(),
+  testingProcedures: z.array(TestingProcedureSchema).optional(),
+  promiseText: z.string().optional(),
+  promiseTagline: z.string().optional(),
+});
 export type QualityAssuranceInput = z.infer<typeof QualityAssuranceSchema>;
 
 // PageHeroReverse - Hero with title, description and image grid on right
