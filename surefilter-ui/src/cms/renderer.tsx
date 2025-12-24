@@ -152,10 +152,14 @@ export function renderSection(section: CmsSection) {
     }
     case 'industry_showcase': {
       const d = sectionData as any;
+      // Allow page-level override of industryDescription
+      const pageOverride = section.data as any;
+      const industryDescription = pageOverride?.industryDescriptionOverride || d?.industryDescription || '';
+      
       return (
         <IndustryShowcase
           industryTitle={d?.industryTitle || ''}
-          industryDescription={d?.industryDescription || ''}
+          industryDescription={industryDescription}
           brandPromise={d?.brandPromise || ''}
           keyFeatures={Array.isArray(d?.keyFeatures) ? d.keyFeatures : []}
           metrics={Array.isArray(d?.metrics) ? d.metrics : []}

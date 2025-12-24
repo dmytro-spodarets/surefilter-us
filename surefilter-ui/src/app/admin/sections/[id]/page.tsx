@@ -40,6 +40,7 @@ import PopularFiltersForm from '@/app/admin/pages/[slug]/sections/PopularFilters
 import SimpleSearchForm from '@/app/admin/pages/[slug]/sections/SimpleSearchForm';
 import FormEmbedForm from '@/app/admin/pages/[slug]/sections/FormEmbedForm';
 import AdminContainer from '@/components/admin/AdminContainer';
+import IndustryShowcaseOverrideForm from './IndustryShowcaseOverrideForm';
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -126,7 +127,7 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
           <dl className="grid grid-cols-2 gap-4">
             <div>
               <dt className="text-sm font-medium text-gray-500">Type</dt>
-              <dd className="mt-1 text-sm text-gray-900">{section.type}</dd>
+              <dd className="mt-1 text-sm text-gray-900">{section.sharedSection.type}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Shared Section Name</dt>
@@ -140,6 +141,15 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
             )}
           </dl>
         </div>
+
+        {/* Page-specific overrides for industry_showcase */}
+        {section.sharedSection.type === 'industry_showcase' && (
+          <IndustryShowcaseOverrideForm
+            sectionId={section.id}
+            initialData={section.data as any}
+            sharedSectionData={section.sharedSection.data as any}
+          />
+        )}
       </AdminContainer>
     );
   }

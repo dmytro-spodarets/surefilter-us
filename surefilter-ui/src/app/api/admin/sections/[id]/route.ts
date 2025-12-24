@@ -178,9 +178,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'industry_showcase') {
-    const parsed = IndustryShowcaseSchema.safeParse(data);
-    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
-    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+    // Check if this is a shared section (only saving override)
+    const section = await prisma.section.findUnique({ where: { id }, select: { sharedSectionId: true } });
+    
+    if (section?.sharedSectionId) {
+      // This is a shared section - only save override data without validation
+      // Override data structure: { industryDescriptionOverride?: string }
+      await prisma.section.update({ where: { id }, data: { data } });
+    } else {
+      // This is a regular section - validate full schema
+      const parsed = IndustryShowcaseSchema.safeParse(data);
+      if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
+      await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+    }
   } else {
     return NextResponse.json({ error: 'Unsupported section type' }, { status: 400 });
   }
