@@ -1,22 +1,19 @@
 export const RESERVED_SLUGS = new Set<string>([
+  // System routes
   'admin',
   'api',
   'login',
   'logout',
   'health',
-  // Core site pages managed in code
-  'home',
-  'about-us',
-  'contact-us',
-  'catalog',
-  'filters',
-  'industries',
-  'resources',
-  'warranty',
-  'newsroom',
-  'heavy-duty',
-  'automotive',
-  'test-colors',
+  // Special pages
+  'home', // Main page (/)
+  // Functional pages with custom logic
+  'newsroom', // News & Events with DB queries
+  'resources', // Resources with DB queries
+  // Multi-segment prefixes
+  'industries', // For /industries/*
+  'heavy-duty', // For /heavy-duty/*
+  'automotive', // For /automotive/*
   '',
 ]);
 
