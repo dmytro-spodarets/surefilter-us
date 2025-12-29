@@ -9,7 +9,7 @@ resource "aws_apprunner_service" "surefilter" {
     }
 
     image_repository {
-      image_identifier      = "${aws_ecr_repository.surefilter.repository_url}:v0.0.64"
+      image_identifier      = "${aws_ecr_repository.surefilter.repository_url}:v0.0.65"
       image_repository_type = "ECR"
       image_configuration {
         port = "3000"
