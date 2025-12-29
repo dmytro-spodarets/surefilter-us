@@ -184,6 +184,7 @@ export const ContentWithImagesSchema = z.object({
   subtitle: z.string().optional().default(''),
   content: z.array(z.string()).default([]),
   images: z.array(ContentImageSchema).default([]),
+  sidebarSharedSectionId: z.string().optional(), // ID of shared sidebar widget section
 });
 
 export type ContentWithImagesInput = z.infer<typeof ContentWithImagesSchema>;
@@ -264,6 +265,32 @@ export const WarrantyContactSchema = z.object({
   emailResponse: z.string().optional(),
 });
 export type WarrantyContactInput = z.infer<typeof WarrantyContactSchema>;
+
+// SidebarWidget - Reusable sidebar widgets (can contain multiple blocks)
+export const SidebarWidgetItemSchema = z.object({
+  label: z.string().optional(),
+  value: z.string().optional(),
+});
+
+export const SidebarWidgetBlockSchema = z.object({
+  id: z.string().optional(), // For tracking in forms
+  widgetType: z.enum(['benefits', 'stats', 'badge', 'custom_html']),
+  title: z.string().optional(),
+  // For benefits and stats
+  items: z.array(SidebarWidgetItemSchema).optional(),
+  // For badge
+  brandName: z.string().optional(),
+  tagline: z.string().optional(),
+  certification: z.string().optional(),
+  // For custom_html
+  htmlContent: z.string().optional(),
+});
+
+export const SidebarWidgetSchema = z.object({
+  blocks: z.array(SidebarWidgetBlockSchema).optional().default([]),
+});
+export type SidebarWidgetInput = z.infer<typeof SidebarWidgetSchema>;
+export type SidebarWidgetBlock = z.infer<typeof SidebarWidgetBlockSchema>;
 
 // Manufacturing Facilities
 export const ManufacturingFacilityItemSchema = z.object({

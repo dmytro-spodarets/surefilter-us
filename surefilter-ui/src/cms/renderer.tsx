@@ -21,6 +21,7 @@ import QualityAssurance from '@/components/sections/QualityAssurance';
 import MagnussonMossAct from '@/components/sections/MagnussonMossAct';
 import LimitedWarrantyDetails from '@/components/sections/LimitedWarrantyDetails';
 import WarrantyContact from '@/components/sections/WarrantyContact';
+import SidebarWidget from '@/components/sections/SidebarWidget';
 import ManufacturingFacilities from '../components/sections/ManufacturingFacilities';
 import OurCompany from '../components/sections/OurCompany';
 import StatsBand from '../components/sections/StatsBand';
@@ -222,6 +223,8 @@ export function renderSection(section: CmsSection) {
           subtitle={d?.subtitle || ''}
           content={Array.isArray(d?.content) ? d.content : []}
           images={Array.isArray(d?.images) ? d.images : []}
+          sidebarSharedSectionId={d?.sidebarSharedSectionId}
+          sidebarData={d?.sidebarData}
         />
       );
     }
@@ -244,6 +247,10 @@ export function renderSection(section: CmsSection) {
     case 'warranty_contact': {
       const d = sectionData as any;
       return <WarrantyContact {...d} />;
+    }
+    case 'sidebar_widget': {
+      const d = sectionData as any;
+      return <SidebarWidget {...d} />;
     }
     case 'manufacturing_facilities': {
       const d = sectionData as any;

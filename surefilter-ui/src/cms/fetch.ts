@@ -21,18 +21,36 @@ export async function loadPageBySlug(slug: string): Promise<CmsPage | null> {
 
   if (!page) return null;
 
-  const sections: CmsSection[] = page.sections.map((ps) => ({
-    id: ps.section.id,
-    type: ps.section.type as any,
-    data: ps.section.data as any,
-    position: ps.position,
-    sharedSection: ps.section.sharedSection ? {
-      id: ps.section.sharedSection.id,
-      name: ps.section.sharedSection.name,
-      type: ps.section.sharedSection.type as any,
-      data: ps.section.sharedSection.data as any,
-    } : undefined,
-  } as any));
+  const sections: CmsSection[] = await Promise.all(page.sections.map(async (ps) => {
+    let sectionData = ps.section.data as any;
+    
+    // For content_with_images, load sidebar widget data if specified
+    if (ps.section.type === 'content_with_images' && sectionData?.sidebarSharedSectionId) {
+      const sharedSection = await prisma.sharedSection.findUnique({
+        where: { id: sectionData.sidebarSharedSectionId },
+      });
+      
+      if (sharedSection) {
+        sectionData = {
+          ...sectionData,
+          sidebarData: sharedSection.data as any,
+        };
+      }
+    }
+    
+    return {
+      id: ps.section.id,
+      type: ps.section.type as any,
+      data: sectionData,
+      position: ps.position,
+      sharedSection: ps.section.sharedSection ? {
+        id: ps.section.sharedSection.id,
+        name: ps.section.sharedSection.name,
+        type: ps.section.sharedSection.type as any,
+        data: ps.section.sharedSection.data as any,
+      } : undefined,
+    } as any;
+  }));
 
   return {
     id: page.id,

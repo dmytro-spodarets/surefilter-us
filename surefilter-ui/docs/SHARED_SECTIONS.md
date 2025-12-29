@@ -340,7 +340,7 @@ uniqueSlugs.forEach(slug => {
 
 ## Поддерживаемые типы секций
 
-Все 44 типа секций поддерживаются:
+Все 45 типов секций поддерживаются:
 
 - **Home**: hero_full, hero_carousel, hero_compact, featured_products, why_choose, quick_search, industries, about_news
 - **Page Heroes**: page_hero, page_hero_reverse, single_image_hero
@@ -352,6 +352,7 @@ uniqueSlugs.forEach(slug => {
 - **Contact**: contact_hero, contact_options, contact_form, contact_info, contact_details, contact_form_info
 - **Forms**: form_embed
 - **Warranty**: limited_warranty_details, magnusson_moss_act, warranty_claim_process, warranty_contact, warranty_promise
+- **Widgets**: sidebar_widget
 
 ## Безопасность
 
@@ -398,7 +399,95 @@ Shared section используется на страницах. Сначала 
 - [ ] Поиск и фильтрация shared sections
 - [ ] Экспорт/импорт shared sections
 
+## Sidebar Widget
+
+### Описание
+
+`sidebar_widget` - это специальный тип shared section, который позволяет создавать переиспользуемые sidebar виджеты с множественными блоками. Один sidebar widget может содержать несколько блоков разных типов.
+
+### Типы блоков
+
+1. **Benefits** - список преимуществ с иконками
+2. **Stats** - статистика с числовыми показателями
+3. **Badge** - trust badge с брендом и сертификацией
+4. **Custom HTML** - произвольный HTML контент
+
+### Использование
+
+#### 1. Создание Sidebar Widget
+
+1. **Pages → Shared Sections → New Shared Section**
+2. Выбрать тип **"Widget: Sidebar (Benefits/Stats/Badge/HTML)"**
+3. Добавить блоки:
+   - Нажать кнопку типа блока (+ Benefits, + Stats, + Badge, + HTML)
+   - Заполнить данные блока
+   - Повторить для добавления нескольких блоков
+4. Использовать кнопки ↑/↓ для изменения порядка блоков
+5. Сохранить
+
+#### 2. Добавление в ContentWithImages
+
+1. Редактировать секцию `content_with_images`
+2. В dropdown **"Sidebar Widget (Optional)"** выбрать созданный виджет
+3. Сохранить
+
+#### 3. Результат
+
+- Контент отображается слева (8 колонок на desktop)
+- Sidebar справа (4 колонки) с sticky позиционированием
+- Все блоки отображаются в порядке добавления с отступами
+
+### Пример структуры данных
+
+```json
+{
+  "blocks": [
+    {
+      "id": "block-1",
+      "widgetType": "benefits",
+      "title": "Key Benefits",
+      "items": [
+        { "label": "99.9% Filtration Efficiency" },
+        { "label": "Extended Service Life" },
+        { "label": "ISO 9001:2015 Certified" }
+      ]
+    },
+    {
+      "id": "block-2",
+      "widgetType": "stats",
+      "title": "Quality Assurance",
+      "items": [
+        { "value": "40+", "label": "Years Experience" },
+        { "value": "100%", "label": "Quality Tested" }
+      ]
+    },
+    {
+      "id": "block-3",
+      "widgetType": "badge",
+      "brandName": "SURE®",
+      "tagline": "Trusted Worldwide",
+      "certification": "ISO 9001:2015 Certified"
+    }
+  ]
+}
+```
+
+### Технические детали
+
+- **Schema**: `SidebarWidgetSchema` с массивом `SidebarWidgetBlockSchema`
+- **Компонент**: `src/components/sections/SidebarWidget.tsx`
+- **Форма**: `src/app/admin/pages/[slug]/sections/SidebarWidgetForm.tsx`
+- **Интеграция**: Автоматическая загрузка данных в `src/cms/fetch.ts` для `content_with_images`
+
 ## Changelog
+
+### v1.2.0 (Dec 28, 2025)
+- ✅ Добавлен новый тип секции `sidebar_widget`
+- ✅ Поддержка множественных блоков в одном sidebar widget
+- ✅ Интеграция с `content_with_images` для двухколоночного layout
+- ✅ Динамическая форма с add/remove/reorder блоков
+- ✅ 4 типа блоков: Benefits, Stats, Badge, Custom HTML
+- ✅ Автоматическая загрузка sidebar данных из shared sections
 
 ### v1.1.0 (Dec 20, 2025)
 - ✅ Исправлено центрирование неполных рядов в `FilterTypesImageGrid` (используется `justify-center`)
@@ -413,4 +502,4 @@ Shared section используется на страницах. Сначала 
 - ✅ Автоматическая revalidation
 - ✅ Визуальные индикаторы
 - ✅ Защита от удаления используемых секций
-- ✅ Поддержка всех 44 типов секций
+- ✅ Поддержка всех типов секций

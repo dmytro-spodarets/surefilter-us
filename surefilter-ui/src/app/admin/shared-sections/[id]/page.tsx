@@ -39,6 +39,7 @@ import StatsBandForm from '@/app/admin/pages/[slug]/sections/StatsBandForm';
 import AwardsCarouselForm from '@/app/admin/pages/[slug]/sections/AwardsCarouselForm';
 import QualityAssuranceForm from '@/app/admin/pages/[slug]/sections/QualityAssuranceForm';
 import FormEmbedForm from '@/app/admin/pages/[slug]/sections/FormEmbedForm';
+import SidebarWidgetForm from '@/app/admin/pages/[slug]/sections/SidebarWidgetForm';
 
 interface SharedSection {
   id: string;
@@ -203,6 +204,8 @@ export default function EditSharedSectionPage() {
         return <QualityAssuranceForm {...formProps} />;
       case 'form_embed':
         return <FormEmbedForm {...formProps} />;
+      case 'sidebar_widget':
+        return <SidebarWidgetForm {...formProps} />;
       default:
         return (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

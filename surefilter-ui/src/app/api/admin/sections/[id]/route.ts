@@ -40,6 +40,7 @@ import {
   MagnussonMossActSchema,
   LimitedWarrantyDetailsSchema,
   WarrantyContactSchema,
+  SidebarWidgetSchema,
 } from '@/cms/schemas';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -214,6 +215,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'warranty_contact') {
     const parsed = WarrantyContactSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'sidebar_widget') {
+    const parsed = SidebarWidgetSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data', details: parsed.error }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else {

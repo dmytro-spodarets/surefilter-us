@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ContentWithImagesInput } from '@/cms/schemas';
 
 export default function ContentWithImagesForm({ sectionId, initialData }: { sectionId: string; initialData: ContentWithImagesInput }) {
@@ -9,9 +9,19 @@ export default function ContentWithImagesForm({ sectionId, initialData }: { sect
     subtitle: initialData.subtitle || '',
     content: Array.isArray(initialData.content) ? initialData.content : [],
     images: Array.isArray(initialData.images) ? initialData.images : [],
+    sidebarSharedSectionId: initialData.sidebarSharedSectionId,
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [sidebarWidgets, setSidebarWidgets] = useState<Array<{ id: string; name: string }>>([]);
+  
+  // Load available sidebar widgets
+  useEffect(() => {
+    fetch('/api/admin/shared-sections?type=sidebar_widget')
+      .then(res => res.json())
+      .then(data => setSidebarWidgets(data?.sharedSections || []))
+      .catch(() => setSidebarWidgets([]));
+  }, []);
 
   const updateParagraph = (idx: number, value: string) => {
     setForm((f) => {
@@ -58,6 +68,21 @@ export default function ContentWithImagesForm({ sectionId, initialData }: { sect
         <div>
           <label className="block text-sm text-gray-700 mb-1">Subtitle</label>
           <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.subtitle || ''} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
+        </div>
+
+        <div className="border-t border-gray-200 pt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Sidebar Widget (Optional)</label>
+          <p className="text-xs text-gray-500 mb-2">Select a shared sidebar widget to display on the right side</p>
+          <select 
+            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            value={form.sidebarSharedSectionId || ''}
+            onChange={(e) => setForm({ ...form, sidebarSharedSectionId: e.target.value || undefined })}
+          >
+            <option value="">No sidebar</option>
+            {sidebarWidgets.map(widget => (
+              <option key={widget.id} value={widget.id}>{widget.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-3">

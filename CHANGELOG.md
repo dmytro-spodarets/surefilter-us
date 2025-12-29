@@ -13,6 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-12-28 — Новый тип секции sidebar_widget: переиспользуемые sidebar виджеты с множественными блоками (Benefits, Stats, Badge, Custom HTML), интеграция с ContentWithImages для двухколоночного layout, динамическая форма с add/remove/reorder блоков, автоматическая загрузка данных из shared sections
 - 2025-12-24 — Добавлены редактируемые изображения в PageHeroReverse: 4 поля для сетки 2x2 (image1-4), поддержка URL/S3/локальных путей, фоллбеки на дефолтные изображения, обновлена форма в админке
 - 2025-12-24 — Интеграция Warranty компонентов в CMS: добавлены schemas, renderer, API валидация и admin формы для PageHeroReverse, MagnussonMossAct, LimitedWarrantyDetails, WarrantyContact; все компоненты без дефолтных значений, с проверками на undefined; создана тестовая страница /warranty-cms
 - 2025-12-23 — Добавлена поддержка page-level overrides для Industry Showcase: возможность переопределить industryTitle и industryDescription для конкретной страницы при использовании Shared Section, независимое управление каждым полем, preview оригинальных значений из Shared Section

@@ -63,6 +63,9 @@ const SECTION_TYPES = [
   // Forms
   { value: 'form_embed', label: 'Forms: Embed Universal Form' },
 
+  // Widgets
+  { value: 'sidebar_widget', label: 'Widget: Sidebar (Benefits/Stats/Badge/HTML)' },
+
   // Warranty
   { value: 'limited_warranty_details', label: 'Warranty: Limited Details' },
   { value: 'magnusson_moss_act', label: 'Warranty: Magnusson-Moss Act' },

@@ -78,6 +78,7 @@ enum SectionType {
   contact_form_info
   form_embed
   industry_showcase
+  sidebar_widget
 }
 
 model Page {

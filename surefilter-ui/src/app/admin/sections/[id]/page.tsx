@@ -43,6 +43,7 @@ import PageHeroReverseForm from '@/app/admin/pages/[slug]/sections/PageHeroRever
 import MagnussonMossActForm from '@/app/admin/pages/[slug]/sections/MagnussonMossActForm';
 import LimitedWarrantyDetailsForm from '@/app/admin/pages/[slug]/sections/LimitedWarrantyDetailsForm';
 import WarrantyContactForm from '@/app/admin/pages/[slug]/sections/WarrantyContactForm';
+import SidebarWidgetForm from '@/app/admin/pages/[slug]/sections/SidebarWidgetForm';
 import AdminContainer from '@/components/admin/AdminContainer';
 import IndustryShowcaseOverrideForm from './IndustryShowcaseOverrideForm';
 
@@ -288,6 +289,9 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         )}
         {section.type === 'warranty_contact' && (
           <WarrantyContactForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'sidebar_widget' && (
+          <SidebarWidgetForm sectionId={section.id} initialData={section.data as any} />
         )}
     </AdminContainer>
   );
