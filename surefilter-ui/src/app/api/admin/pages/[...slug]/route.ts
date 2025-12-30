@@ -194,10 +194,10 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ slug
       return NextResponse.json({ error: 'Page not found' }, { status: 404 });
     }
 
-    // Clear pageSlug references in FilterType before deleting the page
-    await prisma.filterType.updateMany({
-      where: { pageSlug: slug },
-      data: { pageSlug: null },
+    // Delete FilterTypes that reference this page
+    // Since pageSlug is required, we must delete FilterTypes when their page is deleted
+    await prisma.filterType.deleteMany({
+      where: { pageSlug: slug }
     });
 
     // Delete the page (PageSection will be deleted automatically due to cascade)
@@ -221,20 +221,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ slug
           }
         }
       });
-    }
-
-    // Cleanup orphaned FilterTypes (those with pageSlug: null)
-    // This happens automatically after page deletion
-    const orphanedFilterTypes = await prisma.filterType.findMany({
-      where: { pageSlug: null },
-      select: { id: true, name: true, category: true }
-    });
-
-    if (orphanedFilterTypes.length > 0) {
-      await prisma.filterType.deleteMany({
-        where: { pageSlug: null }
-      });
-      console.log(`Cleaned up ${orphanedFilterTypes.length} orphaned filter types after page deletion`);
     }
 
     try {
