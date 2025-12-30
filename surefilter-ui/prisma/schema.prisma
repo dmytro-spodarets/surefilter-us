@@ -602,11 +602,12 @@ model Resource {
   shortDescription String?          // For cards/previews
   
   // Files
-  thumbnailImage   String?          // Preview image (S3 key)
-  file             String           // Main file (S3 key) - can be PDF, video, etc.
-  fileType         String           // "PDF", "Video", "Document"
-  fileSize         String?          // "15.2 MB"
-  fileMeta         String?          // "124 pages" or "24 min" or "MP4"
+  thumbnailImage      String?          // Preview image (S3 key)
+  file                String           // Main file (S3 key) - can be PDF, video, etc.
+  fileType            String           // "PDF", "Video", "Document"
+  fileSize            String?          // "15.2 MB"
+  fileMeta            String?          // "124 pages" or "24 min" or "MP4"
+  allowDirectDownload Boolean          @default(false) // Allow direct download without viewing details page
   
   // Category
   categoryId       String

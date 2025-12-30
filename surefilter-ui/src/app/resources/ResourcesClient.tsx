@@ -3,8 +3,10 @@
 import Icon from '@/components/ui/Icon';
 import { ManagedImage } from '@/components/ui/ManagedImage';
 import Link from 'next/link';
-import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewdriverIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { getAssetUrl } from '@/lib/assets';
 
 // Icon mapping for categories
 const iconMap: Record<string, any> = {
@@ -38,9 +40,11 @@ interface Resource {
   slug: string;
   shortDescription?: string;
   thumbnailImage?: string;
+  file: string;
   fileType: string;
   fileSize?: string;
   fileMeta?: string;
+  allowDirectDownload: boolean;
   publishedAt: string;
   category: {
     id: string;
@@ -54,18 +58,46 @@ interface Resource {
 interface ResourcesClientProps {
   initialResources: Resource[];
   initialCategories: Category[];
+  initialCategory?: string; // Pre-selected category from URL route
 }
 
-export default function ResourcesClient({ initialResources, initialCategories }: ResourcesClientProps) {
-  const [activeFilter, setActiveFilter] = useState('all');
+export default function ResourcesClient({ initialResources, initialCategories, initialCategory }: ResourcesClientProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const categoryParam = searchParams.get('category');
+  
+  const [activeFilter, setActiveFilter] = useState(initialCategory || 'all');
   const [viewMode, setViewMode] = useState<'gallery' | 'list'>('gallery');
   const [categories] = useState<Category[]>(initialCategories);
   const [allResources] = useState<Resource[]>(initialResources);
+
+  // Set initial filter from URL parameter
+  useEffect(() => {
+    if (categoryParam) {
+      // Check if category exists
+      const categoryExists = initialCategories.some(cat => cat.slug === categoryParam);
+      if (categoryExists) {
+        setActiveFilter(categoryParam);
+      }
+    }
+  }, [categoryParam, initialCategories]);
 
   // Filter resources based on active filter
   const filteredResources = activeFilter === 'all' 
     ? allResources 
     : allResources.filter(r => r.category.slug === activeFilter);
+
+  // Update URL when filter changes
+  const handleFilterChange = (categorySlug: string) => {
+    setActiveFilter(categorySlug);
+    
+    // Update URL - use clean routes
+    if (categorySlug === 'all') {
+      router.push('/resources');
+    } else {
+      router.push(`/resources/${categorySlug}`);
+    }
+  };
 
   return (
     <section className="py-16">
@@ -73,7 +105,7 @@ export default function ResourcesClient({ initialResources, initialCategories }:
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 md:mb-8">
           {/* All Resources button */}
           <button
-            onClick={() => setActiveFilter('all')}
+            onClick={() => handleFilterChange('all')}
             className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
               activeFilter === 'all'
                 ? 'border-sure-blue-500 bg-sure-blue-50'
@@ -102,7 +134,7 @@ export default function ResourcesClient({ initialResources, initialCategories }:
             return (
               <button
                 key={category.id}
-                onClick={() => setActiveFilter(category.slug)}
+                onClick={() => handleFilterChange(category.slug)}
                 className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
                   activeFilter === category.slug
                     ? 'border-sure-blue-500 bg-sure-blue-50'
@@ -169,12 +201,8 @@ export default function ResourcesClient({ initialResources, initialCategories }:
               {filteredResources.map((resource, index) => {
                 const imageUrl = resource.thumbnailImage || getGalleryImageByIndex(index);
                 
-                return (
-                  <Link
-                    key={resource.id}
-                    href={`/resources/${resource.slug}`}
-                    className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-                  >
+                const cardContent = (
+                  <>
                     <div className="relative aspect-[4/3] bg-gray-100">
                       <ManagedImage 
                         src={imageUrl} 
@@ -193,10 +221,39 @@ export default function ResourcesClient({ initialResources, initialCategories }:
                         {resource.fileSize && <span>{resource.fileSize}</span>}
                         {resource.fileMeta && <span>{resource.fileMeta}</span>}
                       </div>
-                      <div className="mt-3 text-sure-blue-600 group-hover:text-sure-blue-700 text-sm font-medium">
-                        Download →
-                      </div>
+                      {resource.allowDirectDownload ? (
+                        <a
+                          href={getAssetUrl(resource.file)}
+                          download
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-3 inline-flex items-center gap-1 text-sure-blue-600 hover:text-sure-blue-700 text-sm font-medium"
+                        >
+                          <ArrowDownTrayIcon className="w-4 h-4" />
+                          Download
+                        </a>
+                      ) : (
+                        <div className="mt-3 text-sure-blue-600 group-hover:text-sure-blue-700 text-sm font-medium">
+                          View Details →
+                        </div>
+                      )}
                     </div>
+                  </>
+                );
+                
+                return resource.allowDirectDownload ? (
+                  <div
+                    key={resource.id}
+                    className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+                  >
+                    {cardContent}
+                  </div>
+                ) : (
+                  <Link
+                    key={resource.id}
+                    href={`/resources/${resource.category.slug}/${resource.slug}`}
+                    className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+                  >
+                    {cardContent}
                   </Link>
                 );
               })}
@@ -232,12 +289,23 @@ export default function ResourcesClient({ initialResources, initialCategories }:
                       {resource.shortDescription || ''}
                     </p>
                   </div>
-                  <a 
-                    href={`/resources/${resource.slug}`} 
-                    className="text-sure-blue-500 font-semibold hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0"
-                  >
-                    Download →
-                  </a>
+                  {resource.allowDirectDownload ? (
+                    <a 
+                      href={getAssetUrl(resource.file)}
+                      download
+                      className="text-sure-blue-500 font-semibold hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0 inline-flex items-center gap-2"
+                    >
+                      <ArrowDownTrayIcon className="w-5 h-5" />
+                      Download
+                    </a>
+                  ) : (
+                    <a 
+                      href={`/resources/${resource.category.slug}/${resource.slug}`} 
+                      className="text-sure-blue-500 font-semibold hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0"
+                    >
+                      View Details →
+                    </a>
+                  )}
                 </div>
               </div>
             ))}

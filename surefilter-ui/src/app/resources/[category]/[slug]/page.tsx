@@ -8,17 +8,20 @@ import { getAssetUrl } from '@/lib/assets';
 import ResourceDownloadForm from './ResourceDownloadForm';
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ category: string; slug: string }>;
 }
 
 export default async function ResourceDetailPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { category, slug } = await params;
 
   // Fetch resource from database (Server-side)
-  const resource = await prisma.resource.findUnique({
+  const resource = await prisma.resource.findFirst({
     where: { 
       slug,
       status: 'PUBLISHED',
+      category: {
+        slug: category,
+      },
     },
     include: {
       category: {
@@ -65,11 +68,11 @@ export default async function ResourceDetailPage({ params }: PageProps) {
           {/* Back Navigation */}
           <div className="mb-8">
             <a
-              href="/resources"
+              href={`/resources/${category}`}
               className="inline-flex items-center text-sure-blue-500 hover:text-sure-blue-600 font-medium transition-colors"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-2" />
-              Back to Resources
+              Back to {resource.category.name}
             </a>
           </div>
 
@@ -112,6 +115,7 @@ export default async function ResourceDetailPage({ params }: PageProps) {
                   id: resource.id,
                   title: resource.title,
                   slug: resource.slug,
+                  file: resource.file,
                   fileType: resource.fileType,
                   fileSize: resource.fileSize,
                   fileMeta: resource.fileMeta,

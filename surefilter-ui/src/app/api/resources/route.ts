@@ -45,9 +45,11 @@ export async function GET(request: NextRequest) {
         slug: true,
         shortDescription: true,
         thumbnailImage: true,
+        file: true,
         fileType: true,
         fileSize: true,
         fileMeta: true,
+        allowDirectDownload: true,
         publishedAt: true,
         category: {
           select: {

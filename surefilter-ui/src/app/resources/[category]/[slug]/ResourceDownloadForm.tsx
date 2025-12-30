@@ -10,6 +10,7 @@ interface ResourceDownloadFormProps {
     id: string;
     title: string;
     slug: string;
+    file: string;
     fileType: string;
     fileSize: string | null;
     fileMeta: string | null;

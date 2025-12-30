@@ -13,6 +13,7 @@ interface ResourceFormData {
   fileType: string;
   fileSize: string;
   fileMeta: string;
+  allowDirectDownload: boolean;
   categoryId: string;
   formId: string;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
@@ -49,6 +50,7 @@ export default function ResourceForm({ initialData, onSubmit, onCancel }: Resour
     fileType: initialData?.fileType || 'PDF',
     fileSize: initialData?.fileSize || '',
     fileMeta: initialData?.fileMeta || '',
+    allowDirectDownload: initialData?.allowDirectDownload || false,
     categoryId: initialData?.categoryId || '',
     formId: initialData?.formId || '',
     status: initialData?.status || 'DRAFT',
@@ -275,6 +277,22 @@ export default function ResourceForm({ initialData, onSubmit, onCancel }: Resour
                 placeholder="124 pages, 24 min, etc."
               />
             </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <input
+              type="checkbox"
+              id="allowDirectDownload"
+              checked={formData.allowDirectDownload}
+              onChange={(e) => setFormData({ ...formData, allowDirectDownload: e.target.checked })}
+              className="w-4 h-4 text-sure-blue-600 border-gray-300 rounded focus:ring-sure-blue-500"
+            />
+            <label htmlFor="allowDirectDownload" className="text-sm font-medium text-gray-900 cursor-pointer">
+              Allow Direct Download
+              <span className="block text-xs text-gray-600 font-normal mt-0.5">
+                Users can download this resource directly from the listing page without viewing details
+              </span>
+            </label>
           </div>
         </div>
       </div>

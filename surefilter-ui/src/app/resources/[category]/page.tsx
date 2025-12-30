@@ -1,27 +1,43 @@
+import { notFound } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicResourcesHero from '@/components/sections/DynamicResourcesHero';
-import ResourcesClient from './ResourcesClient';
+import ResourcesClient from '../ResourcesClient';
+import { prisma } from '@/lib/prisma';
+
+interface PageProps {
+  params: Promise<{ category: string }>;
+}
 
 // Server Component - SEO оптимизирован ✅
-// Все данные загружаются на сервере
-export default async function ResourcesPage() {
+export default async function ResourcesCategoryPage({ params }: PageProps) {
+  const { category } = await params;
+  
   // Загружаем данные на сервере
-  // В dev режиме используем localhost, в production - полный URL
   const baseUrl = process.env.NODE_ENV === 'development' 
     ? 'http://localhost:3000'
     : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
   
+  // Проверяем существует ли категория
+  const categoryData = await prisma.resourceCategory.findFirst({
+    where: {
+      slug: category,
+      isActive: true,
+    },
+  });
+
+  if (!categoryData) {
+    notFound();
+  }
+
   const [resourcesRes, categoriesRes] = await Promise.all([
-    fetch(`${baseUrl}/api/resources`, { cache: 'no-store' }),
+    fetch(`${baseUrl}/api/resources?category=${category}`, { cache: 'no-store' }),
     fetch(`${baseUrl}/api/resources/categories`, { cache: 'no-store' })
   ]);
   
   const resourcesData = await resourcesRes.json();
   const categoriesData = await categoriesRes.json();
   
-  // /api/resources возвращает { resources: [], pagination: {} }
-  // /api/resources/categories возвращает массив напрямую
   const resources = resourcesData.resources || [];
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
   
@@ -36,9 +52,22 @@ export default async function ResourcesPage() {
       <ResourcesClient 
         initialResources={resources}
         initialCategories={categories}
+        initialCategory={category}
       />
       
       <Footer />
     </main>
   );
+}
+
+// Generate static params for known categories (optional, for build optimization)
+export async function generateStaticParams() {
+  const categories = await prisma.resourceCategory.findMany({
+    where: { isActive: true },
+    select: { slug: true },
+  });
+
+  return categories.map((cat) => ({
+    category: cat.slug,
+  }));
 }
