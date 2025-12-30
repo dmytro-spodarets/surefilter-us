@@ -13,7 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
-- 2025-12-29 — Синхронизация fullSlug с pageSlug в FilterType: fullSlug теперь автоматически обновляется при изменении pageSlug, исправлены неправильные ссылки в related_filters, добавлен скрипт миграции данных (scripts/sync-fullslug.ts)
+- 2025-12-29 — Удаление fullSlug из FilterType: теперь используется только pageSlug (обязательное, уникальное поле), упрощена архитектура, все ссылки в related_filters работают корректно, создана миграция БД для удаления fullSlug
 - 2025-12-28 — Очистка RESERVED_SLUGS: удалены warranty, about-us, contact-us, catalog, filters, test-colors из резерва, теперь можно создавать CMS страницы для этих URL
 - 2025-12-28 — Удалены статичные страницы /warranty, /about-us, /contact-us: все страницы теперь управляются через CMS (динамический роут (site)/[...slug]), улучшена консистентность архитектуры, все контент редактируется через админку
 - 2025-12-28 — Новый тип секции sidebar_widget: переиспользуемые sidebar виджеты с множественными блоками (Benefits, Stats, Badge, Custom HTML), интеграция с ContentWithImages для двухколоночного layout, динамическая форма с add/remove/reorder блоков, автоматическая загрузка данных из shared sections

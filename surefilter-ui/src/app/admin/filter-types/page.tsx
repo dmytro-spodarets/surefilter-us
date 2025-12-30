@@ -19,7 +19,6 @@ export default async function FilterTypesPage() {
       id: true,
       name: true,
       pageSlug: true,
-      fullSlug: true,
       // category: true, // TODO: Update to relation
       position: true,
       parentId: true
@@ -28,10 +27,10 @@ export default async function FilterTypesPage() {
 
   // Temporary: filter by slug pattern since we can't use category enum
   const hd = allFilterTypes.filter(ft => 
-    ft.fullSlug?.startsWith('heavy-duty') || ft.pageSlug?.startsWith('heavy-duty')
+    ft.pageSlug?.startsWith('heavy-duty')
   );
   const auto = allFilterTypes.filter(ft => 
-    ft.fullSlug?.startsWith('automotive') || ft.pageSlug?.startsWith('automotive')
+    ft.pageSlug?.startsWith('automotive')
   );
 
   // Get page titles for all filter types that have pageSlug
@@ -65,7 +64,7 @@ export default async function FilterTypesPage() {
               <div className="text-sm text-gray-600">/{it.pageSlug || 'No page linked'}</div>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <Link href={`/admin/pages/${it.pageSlug || it.fullSlug}`} className="text-sure-blue-600 hover:underline">Edit page content</Link>
+              <Link href={`/admin/pages/${it.pageSlug}`} className="text-sure-blue-600 hover:underline">Edit page content</Link>
             </div>
           </li>
         ))}

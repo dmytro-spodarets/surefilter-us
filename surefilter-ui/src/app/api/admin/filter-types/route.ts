@@ -3,12 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-function buildFullSlug(category: 'HEAVY_DUTY' | 'AUTOMOTIVE', parentFull?: string, slug?: string) {
-  const root = category === 'HEAVY_DUTY' ? 'heavy-duty' : 'automotive';
-  if (parentFull) return `${parentFull}/${slug}`;
-  return `${root}/${slug}`;
-}
-
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -30,7 +24,6 @@ export async function GET(req: Request) {
       heroImage: true,
       position: true,
       pageSlug: true,
-      fullSlug: true,
       isActive: true,
       createdAt: true,
       updatedAt: true
@@ -45,17 +38,12 @@ export async function POST(req: Request) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json();
   const { category, parentId, slug, name, description, icon, heroImage, position, pageSlug } = body ?? {};
-  if (!category || !slug || !name) return NextResponse.json({ error: 'category, slug, name required' }, { status: 400 });
+  if (!category || !slug || !name || !pageSlug) return NextResponse.json({ error: 'category, slug, name, pageSlug required' }, { status: 400 });
   if (!/^[a-z0-9-]+$/.test(slug)) return NextResponse.json({ error: 'Invalid slug' }, { status: 400 });
-  const parent = parentId ? await prisma.filterType.findUnique({ where: { id: parentId } }) : null;
-  
-  // Use pageSlug if provided, otherwise build from category + slug
-  const autoFullSlug = buildFullSlug(category, parent?.fullSlug, slug);
-  const fullSlug = pageSlug || autoFullSlug;
   
   try {
     const created = await prisma.filterType.create({
-      data: { category, parentId: parentId || null, slug, name, description: description || null, icon: icon || null, heroImage: heroImage || null, position: position || 0, fullSlug, pageSlug: pageSlug || null },
+      data: { category, parentId: parentId || null, slug, name, description: description || null, icon: icon || null, heroImage: heroImage || null, position: position || 0, pageSlug },
     });
     return NextResponse.json({ ok: true, item: created });
   } catch (e: any) {
@@ -70,15 +58,9 @@ export async function PUT(req: Request) {
   const { id, pageSlug } = body ?? {};
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
   try {
-    // Sync fullSlug with pageSlug when updating
-    const updateData: any = { pageSlug: pageSlug || null };
-    if (pageSlug) {
-      updateData.fullSlug = pageSlug;
-    }
-    
     const updated = await prisma.filterType.update({
       where: { id },
-      data: updateData,
+      data: { pageSlug: pageSlug || null },
     });
     return NextResponse.json({ ok: true, item: updated });
   } catch (e: any) {

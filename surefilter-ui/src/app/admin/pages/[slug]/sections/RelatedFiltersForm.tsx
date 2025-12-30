@@ -96,7 +96,7 @@ export default function RelatedFiltersForm({ sectionId, initialData }: { section
               <div key={ft.id} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900">{ft.name}</p>
-                  <p className="text-xs text-gray-500">{ft.fullSlug}</p>
+                  <p className="text-xs text-gray-500">{ft.pageSlug}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -147,7 +147,7 @@ export default function RelatedFiltersForm({ sectionId, initialData }: { section
               >
                 <div>
                   <p className="text-sm font-medium text-gray-900">{ft.name}</p>
-                  <p className="text-xs text-gray-500">{ft.fullSlug}</p>
+                  <p className="text-xs text-gray-500">{ft.pageSlug}</p>
                 </div>
                 <button
                   type="button"

@@ -3,12 +3,6 @@
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 
-function buildFullSlug(category: 'HEAVY_DUTY' | 'AUTOMOTIVE', parentFull?: string, slug?: string) {
-  const root = category === 'HEAVY_DUTY' ? 'heavy-duty' : 'automotive';
-  if (parentFull) return `${parentFull}/${slug}`;
-  return `${root}/${slug}`;
-}
-
 export type CreateFilterTypeState = { error?: string };
 
 function normalizeSlug(input: string) {
@@ -38,8 +32,8 @@ export async function submitCreateFilterType(
   if (!/^[a-z0-9-]+$/.test(normalized)) return { error: 'Invalid slug (allowed: a-z, 0-9, -)' };
 
   const parent = parentId ? await prisma.filterType.findUnique({ where: { id: parentId } }) : null;
-  const fullSlug = buildFullSlug(category, parent?.fullSlug, normalized);
-  const pageSlug = fullSlug;
+  const root = category === 'HEAVY_DUTY' ? 'heavy-duty' : 'automotive';
+  const pageSlug = parent?.pageSlug ? `${parent.pageSlug}/${normalized}` : `${root}/${normalized}`;
 
   try {
     await prisma.page.create({
@@ -58,7 +52,6 @@ export async function submitCreateFilterType(
         slug: normalized,
         name: pageTitle,
         description: description || null,
-        fullSlug,
         pageSlug,
       },
     });
