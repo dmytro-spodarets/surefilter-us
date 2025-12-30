@@ -44,6 +44,7 @@ export default async function FilterTypesCms({
   }
 
   // Build filters array with metadata
+  // Note: fullSlug is now synced with pageSlug, so we can use it directly
   const filters = sortedItems.map((it) => {
     const meta = it.pageSlug ? metaBySlug.get(it.pageSlug) : undefined;
     return {

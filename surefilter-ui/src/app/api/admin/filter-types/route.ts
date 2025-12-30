@@ -48,7 +48,11 @@ export async function POST(req: Request) {
   if (!category || !slug || !name) return NextResponse.json({ error: 'category, slug, name required' }, { status: 400 });
   if (!/^[a-z0-9-]+$/.test(slug)) return NextResponse.json({ error: 'Invalid slug' }, { status: 400 });
   const parent = parentId ? await prisma.filterType.findUnique({ where: { id: parentId } }) : null;
-  const fullSlug = buildFullSlug(category, parent?.fullSlug, slug);
+  
+  // Use pageSlug if provided, otherwise build from category + slug
+  const autoFullSlug = buildFullSlug(category, parent?.fullSlug, slug);
+  const fullSlug = pageSlug || autoFullSlug;
+  
   try {
     const created = await prisma.filterType.create({
       data: { category, parentId: parentId || null, slug, name, description: description || null, icon: icon || null, heroImage: heroImage || null, position: position || 0, fullSlug, pageSlug: pageSlug || null },
@@ -66,9 +70,15 @@ export async function PUT(req: Request) {
   const { id, pageSlug } = body ?? {};
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
   try {
+    // Sync fullSlug with pageSlug when updating
+    const updateData: any = { pageSlug: pageSlug || null };
+    if (pageSlug) {
+      updateData.fullSlug = pageSlug;
+    }
+    
     const updated = await prisma.filterType.update({
       where: { id },
-      data: { pageSlug: pageSlug || null },
+      data: updateData,
     });
     return NextResponse.json({ ok: true, item: updated });
   } catch (e: any) {
