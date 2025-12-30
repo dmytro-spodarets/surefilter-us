@@ -11,8 +11,8 @@ function getCdnBaseUrl(): string {
     return `http://localhost:9000/${bucketName}`;
   }
   
-  // In production, use CloudFront CDN
-  return process.env.NEXT_PUBLIC_CDN_URL || 'https://new.surefilter.us';
+  // In production, use CloudFront CDN (with fallback)
+  return process.env.NEXT_PUBLIC_CDN_URL || 'https://assets.surefilter.us';
 }
 
 const CDN_BASE_URL = getCdnBaseUrl();

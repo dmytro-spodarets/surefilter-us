@@ -1,16 +1,24 @@
-import CompactHero from '@/components/sections/CompactHero';
-import CatalogClient from './CatalogClient';
-import CatalogPasswordGate from '@/components/catalog/CatalogPasswordGate';
+// TEMPORARY REDIRECT - uncomment when catalog is ready
+import { redirect } from 'next/navigation';
 
 export default function CatalogPage() {
-  return (
-    <CatalogPasswordGate>
-      <CompactHero
-        title="Filters Catalog"
-        description="Browse Sure Filter® products by type, industry, and vehicle make. Use filters to quickly find the right part."
-        backgroundImage="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
-      />
-      <CatalogClient />
-    </CatalogPasswordGate>
-  );
+  redirect('/resources/catalogs');
 }
+
+// ORIGINAL CODE - restore when catalog is ready
+// import CompactHero from '@/components/sections/CompactHero';
+// import CatalogClient from './CatalogClient';
+// import CatalogPasswordGate from '@/components/catalog/CatalogPasswordGate';
+// 
+// export default function CatalogPage() {
+//   return (
+//     <CatalogPasswordGate>
+//       <CompactHero
+//         title="Filters Catalog"
+//         description="Browse Sure Filter® products by type, industry, and vehicle make. Use filters to quickly find the right part."
+//         backgroundImage="https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+//       />
+//       <CatalogClient />
+//     </CatalogPasswordGate>
+//   );
+// }
