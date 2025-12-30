@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { RESERVED_SLUGS } from '@/lib/pages';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 function isValidSlugForType(slug: string, type?: 'CUSTOM' | 'INDUSTRY') {
   // allow multi-segment slugs like industries/agriculture or heavy-duty/oil
@@ -34,6 +35,18 @@ export async function POST(req: Request) {
 
     const page = await prisma.page.create({
       data: { slug, title, description: description || null, ogImage: ogImage || null, type: type === 'INDUSTRY' ? 'INDUSTRY' : 'CUSTOM' },
+    });
+
+    // Log action
+    const metadata = getRequestMetadata(req);
+    await logAdminAction({
+      userId: (session as any).userId,
+      action: 'CREATE',
+      entityType: 'Page',
+      entityId: page.id,
+      entityName: page.title,
+      details: { slug: page.slug, type: page.type },
+      ...metadata,
     });
 
     try {

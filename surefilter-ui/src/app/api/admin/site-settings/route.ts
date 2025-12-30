@@ -2,23 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { clearSiteSettingsCache } from '@/lib/site-settings';
 import { z } from 'zod';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 const UpdateSettingsSchema = z.object({
   // Newsroom
-  newsroomTitle: z.string().optional(),
-  newsroomDescription: z.string().optional(),
-  newsroomHeroImage: z.string().optional(),
-  newsroomMetaTitle: z.string().optional(),
-  newsroomMetaDesc: z.string().optional(),
-  newsroomOgImage: z.string().optional(),
+  newsroomTitle: z.string().nullable().optional(),
+  newsroomDescription: z.string().nullable().optional(),
+  newsroomHeroImage: z.string().nullable().optional(),
+  newsroomMetaTitle: z.string().nullable().optional(),
+  newsroomMetaDesc: z.string().nullable().optional(),
+  newsroomOgImage: z.string().nullable().optional(),
   
   // Resources
-  resourcesTitle: z.string().optional(),
-  resourcesDescription: z.string().optional(),
-  resourcesHeroImage: z.string().optional(),
-  resourcesMetaTitle: z.string().optional(),
-  resourcesMetaDesc: z.string().optional(),
-  resourcesOgImage: z.string().optional(),
+  resourcesTitle: z.string().nullable().optional(),
+  resourcesDescription: z.string().nullable().optional(),
+  resourcesHeroImage: z.string().nullable().optional(),
+  resourcesMetaTitle: z.string().nullable().optional(),
+  resourcesMetaDesc: z.string().nullable().optional(),
+  resourcesOgImage: z.string().nullable().optional(),
   
   // Navigation
   headerNavigation: z.array(z.object({
@@ -30,13 +33,13 @@ const UpdateSettingsSchema = z.object({
   
   // Footer
   footerContent: z.object({
-    description: z.string().optional(),
+    description: z.string().nullable().optional(),
     address: z.array(z.string()).optional(),
-    phone: z.string().optional(),
-    fax: z.string().optional(),
-    phoneTollFree: z.string().optional(),
-    aiAgent: z.string().optional(),
-    email: z.string().optional(),
+    phone: z.string().nullable().optional(),
+    fax: z.string().nullable().optional(),
+    phoneTollFree: z.string().nullable().optional(),
+    aiAgent: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
     companyLinks: z.array(z.object({
       name: z.string(),
       href: z.string(),
@@ -46,16 +49,20 @@ const UpdateSettingsSchema = z.object({
       href: z.string(),
     })).optional(),
     appLinks: z.object({
-      appStore: z.string().optional(),
-      googlePlay: z.string().optional(),
+      appStore: z.string().nullable().optional(),
+      googlePlay: z.string().nullable().optional(),
     }).optional(),
-    copyright: z.string().optional(),
+    copyright: z.string().nullable().optional(),
     legalLinks: z.array(z.object({
       name: z.string(),
       href: z.string(),
     })).optional(),
   }).optional(),
-});
+  
+  // Security
+  catalogPassword: z.string().nullable().optional(),
+  catalogPasswordEnabled: z.boolean().optional(),
+}).passthrough(); // Allow extra fields
 
 // GET /api/admin/site-settings - Get current settings
 export async function GET(request: NextRequest) {
@@ -131,8 +138,16 @@ export async function GET(request: NextRequest) {
 // PUT /api/admin/site-settings - Update settings
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
+    console.log('Received body:', JSON.stringify(body, null, 2));
+    
     const data = UpdateSettingsSchema.parse(body);
+    console.log('Validated data:', JSON.stringify(data, null, 2));
 
     const settings = await prisma.siteSettings.upsert({
       where: { id: 'site_settings' },
@@ -143,12 +158,25 @@ export async function PUT(request: NextRequest) {
       },
     });
 
+    // Log action
+    const metadata = getRequestMetadata(request);
+    await logAdminAction({
+      userId: (session as any).userId,
+      action: 'UPDATE',
+      entityType: 'Settings',
+      entityId: 'site_settings',
+      entityName: 'Site Settings',
+      details: { changedFields: Object.keys(data) },
+      ...metadata,
+    });
+
     // Clear cache after updating settings
     clearSiteSettingsCache();
 
     return NextResponse.json(settings);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Zod validation error:', JSON.stringify(error.issues, null, 2));
       return NextResponse.json(
         { error: 'Validation error', details: error.issues },
         { status: 400 }

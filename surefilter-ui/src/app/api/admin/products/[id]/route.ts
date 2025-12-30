@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 // Using shared prisma instance from lib/prisma
 
@@ -263,6 +266,21 @@ export async function PUT(
       });
     });
 
+    // Log action
+    const session = await getServerSession(authOptions);
+    if (session && product) {
+      const metadata = getRequestMetadata(request);
+      await logAdminAction({
+        userId: (session as any).userId,
+        action: 'UPDATE',
+        entityType: 'Product',
+        entityId: product.id,
+        entityName: product.code,
+        details: { name: product.name, changes: Object.keys(body) },
+        ...metadata,
+      });
+    }
+
     return NextResponse.json(product);
   } catch (error: any) {
     console.error('Error updating product:', error);
@@ -304,6 +322,21 @@ export async function DELETE(
     await prisma.product.delete({
       where: { id: id },
     });
+
+    // Log action
+    const session = await getServerSession(authOptions);
+    if (session) {
+      const metadata = getRequestMetadata(request);
+      await logAdminAction({
+        userId: (session as any).userId,
+        action: 'DELETE',
+        entityType: 'Product',
+        entityId: product.id,
+        entityName: product.code,
+        details: { name: product.name },
+        ...metadata,
+      });
+    }
 
     return NextResponse.json({ 
       success: true, 

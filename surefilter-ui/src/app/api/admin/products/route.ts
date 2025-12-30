@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 // Using shared prisma instance from lib/prisma
 
@@ -306,6 +309,21 @@ export async function POST(request: NextRequest) {
         },
       });
     });
+
+    // Log action
+    const session = await getServerSession(authOptions);
+    if (session) {
+      const metadata = getRequestMetadata(request);
+      await logAdminAction({
+        userId: (session as any).userId,
+        action: 'CREATE',
+        entityType: 'Product',
+        entityId: product.id,
+        entityName: product.code,
+        details: { name: product.name },
+        ...metadata,
+      });
+    }
 
     return NextResponse.json(product, { status: 201 });
   } catch (error: any) {

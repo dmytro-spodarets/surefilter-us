@@ -12,6 +12,18 @@ const settingsNavigation = [
     description: 'Pages, navigation, SEO',
   },
   {
+    name: 'Users',
+    href: '/admin/users',
+    icon: '👥',
+    description: 'Manage admin users',
+  },
+  {
+    name: 'Activity Logs',
+    href: '/admin/logs',
+    icon: '📋',
+    description: 'View admin actions',
+  },
+  {
     name: 'System Health',
     href: '/admin/settings/system-health',
     icon: '🏥',

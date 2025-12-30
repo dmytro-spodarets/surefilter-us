@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 // GET /api/admin/news - Get all articles with filters
 export async function GET(request: NextRequest) {

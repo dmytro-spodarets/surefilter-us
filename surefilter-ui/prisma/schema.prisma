@@ -21,13 +21,17 @@ enum Role {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String     @id @default(cuid())
+  email        String     @unique
   passwordHash String
   name         String?
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role       @default(USER)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // Relations
+  adminLogs    AdminLog[]
 }
 
 // CMS primitives
@@ -663,6 +667,37 @@ model SiteSettings {
   // Footer Settings (JSON object)
   footerContent        Json?   // { description, address[], phone, fax, phoneTollFree, aiAgent, email, companyLinks[], socialLinks[], appLinks{ appStore, googlePlay }, copyright, legalLinks[] }
   
+  // Catalog Password Protection
+  catalogPassword      String? // Password to access catalog page (plain text for simplicity)
+  catalogPasswordEnabled Boolean @default(false) // Enable/disable password protection
+  
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// Admin Activity Log
+enum AdminAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+}
+
+model AdminLog {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      AdminAction
+  entityType  String      // e.g., "Page", "Product", "User", "Settings"
+  entityId    String?     // ID of the affected entity
+  entityName  String?     // Name/title of the affected entity for display
+  details     Json?       // Additional details about the action
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([entityType])
 }

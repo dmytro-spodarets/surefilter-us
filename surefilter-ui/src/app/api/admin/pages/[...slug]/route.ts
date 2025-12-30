@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { isProtectedSlug, RESERVED_SLUGS } from '@/lib/pages';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 function joinSlug(parts: string[]) {
   return (parts || []).join('/');
@@ -73,6 +74,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
       data: { pageSlug: newSlug },
     });
   }
+
+  // Log action
+  const metadata = getRequestMetadata(req);
+  await logAdminAction({
+    userId: (session as any).userId,
+    action: 'UPDATE',
+    entityType: 'Page',
+    entityId: updated.id,
+    entityName: updated.title,
+    details: { slug: updated.slug, changes: Object.keys(body) },
+    ...metadata,
+  });
 
   try {
     const { revalidateTag } = await import('next/cache');
@@ -180,7 +193,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   return NextResponse.json({ ok: true, id: sec.id });
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ slug: string[] }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { slug: parts } = await params;
@@ -202,6 +215,18 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ slug
 
     // Delete the page (PageSection will be deleted automatically due to cascade)
     await prisma.page.delete({ where: { slug } });
+
+    // Log action
+    const metadata = getRequestMetadata(req);
+    await logAdminAction({
+      userId: (session as any).userId,
+      action: 'DELETE',
+      entityType: 'Page',
+      entityId: page.id,
+      entityName: page.title,
+      details: { slug: page.slug },
+      ...metadata,
+    });
 
     // Also delete any orphaned sections that were only used by this page
     // This is a cleanup step in case there are sections that were only used by this page
