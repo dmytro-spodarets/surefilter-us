@@ -17,6 +17,7 @@ import {
   PageHeroSchema,
   SingleImageHeroSchema,
   SearchHeroSchema,
+  CompactSearchHeroSchema,
   AboutWithStatsSchema,
   ContentWithImagesSchema,
   QualityAssuranceSchema,
@@ -113,6 +114,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'search_hero') {
     const parsed = SearchHeroSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'compact_search_hero') {
+    const parsed = CompactSearchHeroSchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'about_with_stats') {

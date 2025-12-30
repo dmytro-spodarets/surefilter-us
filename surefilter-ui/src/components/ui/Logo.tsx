@@ -27,8 +27,6 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 'md' }) => {
       height={sizes[size]}
       className={`${pxSizes[size]} ${className}`}
       priority={true}
-      showPlaceholder={false}
-      silentRetry={true}
     />
   );
 };

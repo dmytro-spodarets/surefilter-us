@@ -165,6 +165,14 @@ export const SearchHeroSchema = z.object({
 });
 export type SearchHeroInput = z.infer<typeof SearchHeroSchema>;
 
+// CompactSearchHero (compact hero with search)
+export const CompactSearchHeroSchema = z.object({
+  title: z.string(),
+  description: z.string().optional().default(''),
+  image: z.string().optional().default(''),
+});
+export type CompactSearchHeroInput = z.infer<typeof CompactSearchHeroSchema>;
+
 // AboutWithStats
 export const AboutWithStatsFeatureSchema = z.object({ icon: z.string(), text: z.string() });
 export const AboutWithStatsStatSchema = z.object({ icon: z.string(), title: z.string(), subtitle: z.string() });

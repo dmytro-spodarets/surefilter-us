@@ -13,6 +13,9 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2025-12-29 — ManagedImage максимально упрощён: убрана вся обработка ошибок, только конвертация S3→CDN и показ изображения, максимальная скорость загрузки
+- 2025-12-29 — Исправлено сохранение compact_search_hero: добавлена схема CompactSearchHeroSchema и обработка в API sections
+- 2025-12-29 — Убран generateStaticParams для resources: страницы теперь полностью dynamic, build без ошибок TLS
 - 2025-12-29 — Исправлен критический баг логирования: userId теперь берётся из session.userId вместо session.user.id, логирование работает корректно
 - 2025-12-29 — Документация логирования: созданы ADMIN_LOGGING_README.md (quick guide) и обновлён LOGGING_IMPLEMENTATION.md с финальным статусом v0.0.94
 - 2025-12-29 — Логирование Products завершено: добавлены UPDATE/DELETE, теперь Products полностью логируются (CREATE/UPDATE/DELETE), осталось News и Resources
