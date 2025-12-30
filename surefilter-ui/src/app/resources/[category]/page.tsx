@@ -60,14 +60,4 @@ export default async function ResourcesCategoryPage({ params }: PageProps) {
   );
 }
 
-// Generate static params for known categories (optional, for build optimization)
-export async function generateStaticParams() {
-  const categories = await prisma.resourceCategory.findMany({
-    where: { isActive: true },
-    select: { slug: true },
-  });
-
-  return categories.map((cat) => ({
-    category: cat.slug,
-  }));
-}
+// Generate metadata for SEO
