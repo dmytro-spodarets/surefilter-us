@@ -29,7 +29,6 @@ const CompactHero: React.FC<CompactHeroProps> = ({
           alt="Hero Background"
           fill
           className="object-cover"
-          priority
         />
         {/* Темный оверлей для читаемости текста */}
         <div className="absolute inset-0 bg-black/40" />

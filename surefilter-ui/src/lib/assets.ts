@@ -62,7 +62,7 @@ export function isAssetPath(path: string): boolean {
     return false;
   }
   
-  // Remove leading slash for checking
+  // Remove leading slash for checking (все изображения теперь в S3)
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   
   // If path doesn't contain a slash, it's not a valid asset path
@@ -81,7 +81,7 @@ export function isAssetPath(path: string): boolean {
   ];
   const ext = getFileExtension(cleanPath);
   
-  // Any folder structure with media files is treated as an asset
+  // Все пути с медиа-расширениями это S3
   return mediaExtensions.includes(ext);
 }
 

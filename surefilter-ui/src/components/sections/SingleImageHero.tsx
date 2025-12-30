@@ -49,7 +49,6 @@ const SingleImageHero: React.FC<SingleImageHeroProps> = ({
                 alt={imageAlt}
                 fill
                 className="object-cover hover:scale-105 transition-transform duration-700"
-                priority
               />
             </div>
             

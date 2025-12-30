@@ -20,7 +20,6 @@ export default function ContactHero({ title, description, image }: { title: stri
                 alt="Outer space view showing global connectivity and limitless reach" 
                 fill 
                 className="object-cover" 
-                priority 
               />
             </div>
           </div>
