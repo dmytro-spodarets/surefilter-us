@@ -14,8 +14,10 @@ interface ManagedImageProps {
   priority?: boolean;
   quality?: number;
   className?: string;
-  fallback?: string;    // Fallback image URL
-  showPlaceholder?: boolean; // Show placeholder instead of "Image not found"
+  fallback?: string;    // Custom fallback image
+  showPlaceholder?: boolean; // Show placeholder on error (default: true)
+  disableRetry?: boolean; // Disable retry logic (default: false)
+  silentRetry?: boolean; // Retry without showing shimmer (default: false)
   onError?: () => void;
 }
 
@@ -48,12 +50,15 @@ export function ManagedImage({
   sizes,
   fallback,
   showPlaceholder = true,
+  disableRetry = false,
+  silentRetry = false,
   onError,
   ...props 
 }: ManagedImageProps) {
   const [hasError, setHasError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [currentSrc, setCurrentSrc] = useState(src);
+  const [isRetrying, setIsRetrying] = useState(false);
   const MAX_RETRIES = 2;
 
   // Reset error state when src changes
@@ -61,12 +66,20 @@ export function ManagedImage({
     setHasError(false);
     setRetryCount(0);
     setCurrentSrc(src);
+    setIsRetrying(false);
   }, [src]);
 
   // Convert S3 path to full URL using our utility
   const imageUrl = isAssetPath(currentSrc) ? getAssetUrl(currentSrc) : currentSrc;
 
   const handleError = () => {
+    // If retry is disabled, just set error and return
+    if (disableRetry) {
+      setHasError(true);
+      onError?.();
+      return;
+    }
+
     // Try fallback first
     if (fallback && !hasError) {
       setCurrentSrc(fallback);
@@ -76,18 +89,33 @@ export function ManagedImage({
 
     // Retry loading the original image
     if (retryCount < MAX_RETRIES) {
+      // Only show shimmer if not silent retry
+      if (!silentRetry) {
+        setIsRetrying(true);
+      }
       setTimeout(() => {
         setRetryCount(prev => prev + 1);
         // Force reload by adding cache-busting parameter
         const separator = imageUrl.includes('?') ? '&' : '?';
         setCurrentSrc(`${src}${separator}retry=${retryCount + 1}`);
+        setIsRetrying(false);
       }, 1000 * (retryCount + 1)); // Exponential backoff
       return;
     }
 
     setHasError(true);
+    setIsRetrying(false);
     onError?.();
   };
+
+  // Show shimmer during retry
+  if (isRetrying) {
+    return (
+      <div className={`relative bg-gray-200 animate-pulse ${props.className || ''}`}>
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer" />
+      </div>
+    );
+  }
 
   // Fallback if src is empty or error occurs after retries
   if (!src || !imageUrl || (hasError && retryCount >= MAX_RETRIES)) {

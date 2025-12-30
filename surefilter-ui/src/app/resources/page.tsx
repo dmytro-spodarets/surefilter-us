@@ -20,6 +20,10 @@ export default async function ResourcesPage() {
   const resourcesData = await resourcesRes.json();
   const categoriesData = await categoriesRes.json();
   
+  // API возвращает массивы напрямую, не обернутые в объект
+  const resources = Array.isArray(resourcesData) ? resourcesData : (resourcesData.resources || []);
+  const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.categories || []);
+  
   return (
     <main>
       <Header />
@@ -29,8 +33,8 @@ export default async function ResourcesPage() {
       
       {/* Interactive Content - Client Component с server data */}
       <ResourcesClient 
-        initialResources={resourcesData.resources || []}
-        initialCategories={categoriesData.categories || []}
+        initialResources={resources}
+        initialCategories={categories}
       />
       
       <Footer />
