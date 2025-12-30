@@ -1,6 +1,6 @@
 "use client";
 
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +24,7 @@ export default function ProductGallery({ images, className = '' }: ProductGaller
             <span className="text-white/90 text-sm font-medium">Image not available</span>
           </div>
         ) : (
-          <Image
+          <ManagedImage
             src={current.src}
             alt={current.alt || 'Product image'}
             fill
@@ -32,6 +32,7 @@ export default function ProductGallery({ images, className = '' }: ProductGaller
             className="object-contain"
             onError={() => setErrorMap(prev => ({ ...prev, [index]: true }))}
             priority
+            showPlaceholder={false}
           />
         )}
       </div>
@@ -48,12 +49,13 @@ export default function ProductGallery({ images, className = '' }: ProductGaller
               onClick={() => setIndex(i)}
               aria-label={`Show image ${i + 1}`}
             >
-              <Image
+              <ManagedImage
                 src={img.src}
                 alt={img.alt || `Thumbnail ${i + 1}`}
                 fill
                 sizes="(max-width: 768px) 20vw, 120px"
                 className="object-cover"
+                showPlaceholder={false}
               />
             </button>
           ))}

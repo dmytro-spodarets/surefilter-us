@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getAssetUrl, isAssetPath } from '@/lib/assets';
 
 interface ManagedImageProps {
@@ -14,6 +14,8 @@ interface ManagedImageProps {
   priority?: boolean;
   quality?: number;
   className?: string;
+  fallback?: string;    // Fallback image URL
+  showPlaceholder?: boolean; // Show placeholder instead of "Image not found"
   onError?: () => void;
 }
 
@@ -44,24 +46,66 @@ export function ManagedImage({
   quality = 85,
   priority = false,
   sizes,
+  fallback,
+  showPlaceholder = true,
   onError,
   ...props 
 }: ManagedImageProps) {
   const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const MAX_RETRIES = 2;
+
+  // Reset error state when src changes
+  useEffect(() => {
+    setHasError(false);
+    setRetryCount(0);
+    setCurrentSrc(src);
+  }, [src]);
 
   // Convert S3 path to full URL using our utility
-  const imageUrl = isAssetPath(src) ? getAssetUrl(src) : src;
+  const imageUrl = isAssetPath(currentSrc) ? getAssetUrl(currentSrc) : currentSrc;
 
   const handleError = () => {
+    // Try fallback first
+    if (fallback && !hasError) {
+      setCurrentSrc(fallback);
+      setHasError(false);
+      return;
+    }
+
+    // Retry loading the original image
+    if (retryCount < MAX_RETRIES) {
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        // Force reload by adding cache-busting parameter
+        const separator = imageUrl.includes('?') ? '&' : '?';
+        setCurrentSrc(`${src}${separator}retry=${retryCount + 1}`);
+      }, 1000 * (retryCount + 1)); // Exponential backoff
+      return;
+    }
+
     setHasError(true);
     onError?.();
   };
 
-  // Fallback if src is empty or error occurs
-  if (!src || !imageUrl || hasError) {
+  // Fallback if src is empty or error occurs after retries
+  if (!src || !imageUrl || (hasError && retryCount >= MAX_RETRIES)) {
+    if (!showPlaceholder) {
+      return null;
+    }
     return (
-      <div className={`bg-gray-200 flex items-center justify-center ${props.className || ''}`}>
-        <span className="text-gray-500 text-sm">Image not found</span>
+      <div className={`relative bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center ${props.className || ''}`}>
+        {/* Logo */}
+        <div className="w-16 h-16 mb-2 opacity-30 grayscale flex items-center justify-center">
+          <img
+            src="/images/sf-logo.png"
+            alt="Sure Filter"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        {/* Text */}
+        <span className="text-xs text-gray-400 font-medium">Loading image...</span>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Icon from '@/components/ui/Icon';
 import { getAssetUrl } from '@/lib/assets';
 
@@ -49,12 +49,12 @@ export default function PopularFilters({
             <Link key={index} href={targetHref} className="group">
               <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 hover:-translate-y-1">
                 <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
-                  <Image
-                    src={getAssetUrl(filter.image)}
+                  <ManagedImage
+                    src={filter.image}
                     alt={filter.name}
                     fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 text-center group-hover:text-sure-blue-600 transition-colors duration-200">

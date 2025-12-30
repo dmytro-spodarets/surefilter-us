@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { ShieldCheckIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const filterTypes = [
@@ -58,12 +58,12 @@ export default function WarrantyPromise() {
           {/* Right side - Image */}
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-xl">
-              <Image
+              <ManagedImage
                 src="https://images.unsplash.com/photo-1580048915913-4f8f5cb481c4?w=600&h=400&fit=crop&crop=center"
                 alt="Quality control and testing laboratory"
                 width={600}
                 height={400}
-                className="w-full h-auto object-cover"
+                className="w-full h-auto"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               

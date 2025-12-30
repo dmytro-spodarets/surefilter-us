@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface LogoProps {
   className?: string;
@@ -20,15 +20,16 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 'md' }) => {
     xl: 'w-16 h-16',
   };
   return (
-    <Image
+    <ManagedImage
       src="/images/sf-logo.png"
       alt="Sure Filter Logo"
       width={sizes[size]}
       height={sizes[size]}
       className={`${pxSizes[size]} ${className}`}
       priority={size === 'lg' || size === 'xl'}
+      showPlaceholder={false}
     />
   );
 };
 
-export default Logo; 
+export default Logo;

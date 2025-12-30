@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Icon from '@/components/ui/Icon';
-import { getAssetUrl } from '@/lib/assets';
 
 interface AwardItem { title: string; subtitle: string; year: string; image?: string; description?: string }
 
@@ -27,8 +26,8 @@ export default function AwardsCarousel({ title, subtitle, items = [] as AwardIte
                   <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-3xl mx-auto">
                     <div className="relative h-80 overflow-hidden">
                       {award.image ? (
-                        <Image 
-                          src={getAssetUrl(award.image)} 
+                        <ManagedImage 
+                          src={award.image} 
                           alt={award.title} 
                           fill 
                           sizes="(max-width: 768px) 100vw, 768px"

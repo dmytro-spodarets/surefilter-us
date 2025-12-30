@@ -61,7 +61,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   
-  // Оптимизация изображений
+  // Оптимизация изображений (Best practices December 2025)
   images: {
     remotePatterns: [
       {
@@ -72,6 +72,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'surefilter-static-prod.s3.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'surefilter-static-prod.s3.us-east-1.amazonaws.com',
       },
       // CloudFront CDN - main site
       {
@@ -97,14 +101,18 @@ const nextConfig: NextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 512],
-    // Настройка качества изображений (требуется для Next.js 16+)
+    // Настройка качества изображений
     qualities: [75, 85, 90, 100],
     // Разрешаем SVG изображения
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Увеличиваем минимальный cache TTL для лучшей производительности
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    // Отключаем статическую оптимизацию для динамических изображений
+    unoptimized: false,
   },
 };
 

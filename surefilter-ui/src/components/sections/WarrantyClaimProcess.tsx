@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { PhoneIcon, EnvelopeIcon, DocumentTextIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const claimSteps = [
@@ -154,12 +154,12 @@ export default function WarrantyClaimProcess() {
           {/* Right side - Image and Tips */}
           <div>
             <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6">
-              <Image
+              <ManagedImage
                 src="https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=600&h=400&fit=crop&crop=center"
                 alt="Customer service representative"
                 width={600}
                 height={400}
-                className="w-full h-auto object-cover"
+                className="w-full h-auto"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               

@@ -1,7 +1,6 @@
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
-import { getAssetUrl } from '@/lib/assets';
 
 export default async function IndustriesCms({ title, description }: { title?: string; description?: string }) {
   const pages = await prisma.page.findMany({
@@ -33,8 +32,8 @@ export default async function IndustriesCms({ title, description }: { title?: st
             <Link key={it.href} href={it.href || '#'} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group border border-gray-100 hover:border-sure-blue-200">
               <div className="relative h-48 bg-gray-100 overflow-hidden">
                 {it.image && (
-                  <Image 
-                    src={getAssetUrl(it.image)} 
+                  <ManagedImage 
+                    src={it.image} 
                     alt={it.name} 
                     fill 
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

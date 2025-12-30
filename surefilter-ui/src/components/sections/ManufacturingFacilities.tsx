@@ -1,6 +1,5 @@
 import Icon from '@/components/ui/Icon';
-import Image from 'next/image';
-import { getAssetUrl } from '@/lib/assets';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface FacilityItem {
   title: string;
@@ -26,15 +25,15 @@ export default function ManufacturingFacilities({ title, description, items = []
             <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
               <div className="h-48 overflow-hidden relative">
                 {facility.image ? (
-                  <Image 
-                    src={getAssetUrl(facility.image)} 
+                  <ManagedImage 
+                    src={facility.image} 
                     alt={facility.title} 
                     fill 
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover" 
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-100" />
+                  <div className="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300" />
                 )}
               </div>
               <div className="p-8">

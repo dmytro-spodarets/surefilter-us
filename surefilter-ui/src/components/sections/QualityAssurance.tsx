@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { CheckBadgeIcon, BeakerIcon } from '@heroicons/react/24/outline';
 
 interface TestingProcedure {
@@ -55,12 +55,12 @@ export default function QualityAssurance({
           <div>
             {manufacturingImage && (
               <div className="relative rounded-2xl overflow-hidden shadow-xl mb-6">
-                <Image
+                <ManagedImage
                   src={manufacturingImage}
                   alt="Manufacturing facility"
                   width={600}
-                  height={300}
-                  className="w-full h-auto object-cover"
+                  height={400}
+                  className="w-full h-auto"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               </div>

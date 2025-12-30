@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import { getAssetUrl } from '@/lib/assets';
 
 interface FilterType {
@@ -91,8 +91,8 @@ export default function FilterTypesImageGrid({
                     }} />
                     
                     {filterType.image ? (
-                      <Image
-                        src={getAssetUrl(filterType.image)}
+                      <ManagedImage
+                        src={filterType.image}
                         alt={filterType.name}
                         fill
                         className="object-contain p-3 sm:p-4 group-hover:scale-110 transition-transform duration-300 relative z-10"
@@ -118,8 +118,8 @@ export default function FilterTypesImageGrid({
                   {/* Image container - horizontal 16:9 ratio, aligned to bottom */}
                   <div className="relative w-full aspect-[16/9] flex items-end justify-center mb-3">
                     {filterType.image ? (
-                      <Image
-                        src={getAssetUrl(filterType.image)}
+                      <ManagedImage
+                        src={filterType.image}
                         alt={filterType.name}
                         fill
                         className="object-contain object-bottom"

@@ -1,6 +1,6 @@
 /**
  * Asset management utilities for S3-based file storage
- * Best practices for September 2025
+ * Best practices for December 2025
  */
 
 // Get CDN URL based on environment

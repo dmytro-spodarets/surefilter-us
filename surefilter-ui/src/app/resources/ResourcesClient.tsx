@@ -1,11 +1,10 @@
 "use client";
 
 import Icon from '@/components/ui/Icon';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Link from 'next/link';
 import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import { getAssetUrl } from '@/lib/assets';
 
 // Icon mapping for categories
 const iconMap: Record<string, any> = {
@@ -167,10 +166,8 @@ export default function ResourcesClient({ initialResources, initialCategories }:
           </div>
         ) : viewMode === 'gallery' ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredResources.map((resource, idx) => {
-                const imageUrl = resource.thumbnailImage 
-                  ? getAssetUrl(resource.thumbnailImage)
-                  : getGalleryImageByIndex(idx);
+              {filteredResources.map((resource, index) => {
+                const imageUrl = resource.thumbnailImage || getGalleryImageByIndex(index);
                 
                 return (
                   <Link
@@ -179,7 +176,7 @@ export default function ResourcesClient({ initialResources, initialCategories }:
                     className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
                   >
                     <div className="relative aspect-[4/3] bg-gray-100">
-                      <Image 
+                      <ManagedImage 
                         src={imageUrl} 
                         alt={resource.title}
                         fill

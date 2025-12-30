@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Icon from '@/components/ui/Icon';
 import { prisma } from '@/lib/prisma';
 
@@ -107,7 +107,7 @@ export default async function PopularFiltersCatalogCms({
             <Link key={product.id} href={catalogHref} className="group">
               <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 hover:-translate-y-1">
                 <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
-                  <Image
+                  <ManagedImage
                     src={getProductImage(product)}
                     alt={product.name || product.code}
                     fill

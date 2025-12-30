@@ -1,7 +1,6 @@
-import Image from 'next/image';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
-import { getAssetUrl } from '@/lib/assets';
 
 export default async function IndustriesList({ title = 'Our Industries', description = 'Specialized filtration solutions tailored to the unique challenges of each industry' }: { title?: string; description?: string }) {
   const industryPages = await prisma.page.findMany({
@@ -38,8 +37,8 @@ export default async function IndustriesList({ title = 'Our Industries', descrip
             >
               <div className="relative h-64 bg-gray-100 overflow-hidden">
                 {industry.image ? (
-                  <Image 
-                    src={getAssetUrl(industry.image)} 
+                  <ManagedImage 
+                    src={industry.image} 
                     alt={industry.title} 
                     fill 
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
