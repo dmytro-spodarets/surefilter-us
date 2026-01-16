@@ -8,6 +8,7 @@ interface Product {
   code: string;
   name?: string | null;
   status?: string | null;
+  manufacturerCatalogUrl?: string | null;
   brand: {
     id: string;
     name: string;
@@ -27,8 +28,21 @@ interface Product {
   };
 }
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [brandFilter, setBrandFilter] = useState('');
@@ -37,7 +51,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [search, brandFilter, categoryFilter, statusFilter]);
+  }, [search, brandFilter, categoryFilter, statusFilter, pagination.page]);
 
   const fetchProducts = async () => {
     try {
@@ -47,12 +61,17 @@ export default function ProductsPage() {
       if (brandFilter) params.append('brandId', brandFilter);
       if (categoryFilter) params.append('categoryId', categoryFilter);
       if (statusFilter) params.append('status', statusFilter);
+      params.append('page', pagination.page.toString());
+      params.append('limit', pagination.limit.toString());
 
       const response = await fetch(`/api/admin/products?${params}`);
       const data = await response.json();
       
       if (response.ok) {
         setProducts(data.products || []);
+        if (data.pagination) {
+          setPagination(data.pagination);
+        }
       } else {
         console.error('Failed to fetch products:', data.error);
       }
@@ -61,6 +80,11 @@ export default function ProductsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const getPrimaryCategory = (product: Product) => {
@@ -193,6 +217,9 @@ export default function ProductsPage() {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Catalog
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Details
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -248,6 +275,23 @@ export default function ProductsPage() {
                       {product.status || 'Active'}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {product.manufacturerCatalogUrl ? (
+                      <span className="inline-flex items-center text-xs text-green-600">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Linked
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center text-xs text-gray-400">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        No Link
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex gap-3">
                       <span title="Specifications">
@@ -276,10 +320,62 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Summary */}
+      {/* Summary and Pagination */}
       {!loading && products.length > 0 && (
-        <div className="mt-4 text-sm text-gray-600">
-          Showing {products.length} {products.length === 1 ? 'product' : 'products'}
+        <div className="mt-6 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} products
+          </div>
+          
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (pagination.totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (pagination.page <= 3) {
+                    pageNum = i + 1;
+                  } else if (pagination.page >= pagination.totalPages - 2) {
+                    pageNum = pagination.totalPages - 4 + i;
+                  } else {
+                    pageNum = pagination.page - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        pagination.page === pageNum
+                          ? 'bg-sure-blue-600 text-white'
+                          : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

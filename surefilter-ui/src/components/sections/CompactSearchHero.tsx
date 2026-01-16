@@ -47,7 +47,7 @@ const CompactSearchHero: React.FC<CompactSearchHeroProps> = ({
           className="object-cover"
         />
         {/* Темный оверлей для читаемости текста */}
-        <div className="absolute inset-0 bg-black/65" />
+        <div className="absolute inset-0 bg-black/45" />
       </div>
       
       {/* Контент по центру */}
