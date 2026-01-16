@@ -19,6 +19,8 @@ export const HeroSlideSchema = z.object({
   titleHighlight: z.string().optional().default(''),
   subtitle: z.string().optional().default(''),
   image: z.string().optional().default(''),
+  ctaText: z.string().optional().default(''),
+  ctaHref: z.string().optional().default(''),
 });
 
 export const HeroCarouselSchema = z.object({
@@ -145,6 +147,14 @@ export type AboutNewsInput = z.infer<typeof AboutNewsSchema>;
 export const PageHeroSchema = z.object({
   title: z.string(),
   description: z.string().optional().default(''),
+  image1: z.string().optional().default('/images/image.jpg'),
+  image1Alt: z.string().optional().default('Filter manufacturing'),
+  image2: z.string().optional().default('/images/image-2.jpg'),
+  image2Alt: z.string().optional().default('Quality control'),
+  image3: z.string().optional().default('/images/image-3.jpg'),
+  image3Alt: z.string().optional().default('Industrial equipment'),
+  image4: z.string().optional().default('/images/image-4.jpg'),
+  image4Alt: z.string().optional().default('Heavy duty machinery'),
 });
 
 export type PageHeroInput = z.infer<typeof PageHeroSchema>;
@@ -464,8 +474,30 @@ export type ContactOptionsInput = z.infer<typeof ContactOptionsSchema>;
 
 // Combined Contact Form + Info
 export const ContactFormInfoSchema = z.object({
-  form: ContactFormSchema,
-  info: ContactInfoSchema,
+  formId: z.string().optional().nullable(), // Select from universal form system
+  formSlug: z.string().optional().nullable(), // Alternative: use slug instead of ID
+  formTitle: z.string().optional().default('Send Us a Message'), // Title above form
+  formDescription: z.string().optional().default(''), // Description/warning text above form
+  
+  // Info blocks
+  generalTitle: z.string().optional().default('General Inquiries'),
+  generalEmail: z.string().optional().default(''),
+  generalPhone: z.string().optional().default(''),
+  generalFax: z.string().optional().default(''),
+  
+  supportTitle: z.string().optional().default('Technical Support'),
+  supportEmail: z.string().optional().default(''),
+  supportPhone: z.string().optional().default(''),
+  supportHours: z.string().optional().default(''),
+  
+  addressTitle: z.string().optional().default('Office Address'),
+  addressName: z.string().optional().default(''),
+  addressLine1: z.string().optional().default(''),
+  addressLine2: z.string().optional().default(''),
+  addressCity: z.string().optional().default(''),
+  addressRegion: z.string().optional().default(''),
+  addressPostal: z.string().optional().default(''),
+  addressCountry: z.string().optional().default(''),
 });
 export type ContactFormInfoInput = z.infer<typeof ContactFormInfoSchema>;
 

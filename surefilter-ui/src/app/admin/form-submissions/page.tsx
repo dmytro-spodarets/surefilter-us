@@ -43,7 +43,7 @@ export default function AllSubmissionsPage() {
       const response = await fetch('/api/admin/forms');
       if (!response.ok) throw new Error('Failed to fetch forms');
       const data = await response.json();
-      setForms(data);
+      setForms(data.forms || data);
     } catch (error) {
       console.error('Error fetching forms:', error);
     }

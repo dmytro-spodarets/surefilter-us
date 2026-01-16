@@ -3,10 +3,11 @@
 import Icon from '@/components/ui/Icon';
 import { ManagedImage } from '@/components/ui/ManagedImage';
 import Link from 'next/link';
-import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewdriverIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewdriverIcon, ArrowDownTrayIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getAssetUrl } from '@/lib/assets';
+import ResourcePreviewModal from '@/components/ResourcePreviewModal';
 
 // Icon mapping for categories
 const iconMap: Record<string, any> = {
@@ -45,6 +46,7 @@ interface Resource {
   fileSize?: string;
   fileMeta?: string;
   allowDirectDownload: boolean;
+  allowPreview: boolean;
   publishedAt: string;
   category: {
     id: string;
@@ -70,6 +72,7 @@ export default function ResourcesClient({ initialResources, initialCategories, i
   const [viewMode, setViewMode] = useState<'gallery' | 'list'>('gallery');
   const [categories] = useState<Category[]>(initialCategories);
   const [allResources] = useState<Resource[]>(initialResources);
+  const [previewResource, setPreviewResource] = useState<Resource | null>(null);
 
   // Set initial filter from URL parameter
   useEffect(() => {
@@ -203,7 +206,7 @@ export default function ResourcesClient({ initialResources, initialCategories, i
                 
                 const cardContent = (
                   <>
-                    <div className="relative aspect-[4/3] bg-gray-100">
+                    <div className="relative aspect-[10/13] bg-gray-100">
                       <ManagedImage 
                         src={imageUrl} 
                         alt={resource.title}
@@ -216,31 +219,49 @@ export default function ResourcesClient({ initialResources, initialCategories, i
                     </div>
                     <div className="p-3">
                       <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-sure-blue-600 transition-colors">{resource.title}</h3>
-                      <div className="text-xs text-gray-500 flex items-center gap-3">
+                      <div className="text-xs text-gray-500 flex items-center gap-3 mb-3">
                         <span>{resource.fileType}</span>
                         {resource.fileSize && <span>{resource.fileSize}</span>}
                         {resource.fileMeta && <span>{resource.fileMeta}</span>}
                       </div>
-                      {resource.allowDirectDownload ? (
-                        <a
-                          href={getAssetUrl(resource.file)}
-                          download
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-3 inline-flex items-center gap-1 text-sure-blue-600 hover:text-sure-blue-700 text-sm font-medium"
-                        >
-                          <ArrowDownTrayIcon className="w-4 h-4" />
-                          Download
-                        </a>
-                      ) : (
-                        <div className="mt-3 text-sure-blue-600 group-hover:text-sure-blue-700 text-sm font-medium">
-                          View Details →
-                        </div>
-                      )}
+                      
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 mt-3">
+                        {resource.allowPreview && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setPreviewResource(resource);
+                            }}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white text-sure-blue-600 text-sm font-semibold rounded-lg border border-sure-blue-300 hover:bg-sure-blue-50 hover:border-sure-blue-400 transition-all duration-200"
+                          >
+                            <EyeIcon className="w-4 h-4" />
+                            Preview
+                          </button>
+                        )}
+                        {resource.allowDirectDownload && (
+                          <a
+                            href={getAssetUrl(resource.file)}
+                            download
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white text-sure-blue-600 text-sm font-semibold rounded-lg border border-sure-blue-300 hover:bg-sure-blue-50 hover:border-sure-blue-400 transition-all duration-200"
+                          >
+                            <ArrowDownTrayIcon className="w-4 h-4" />
+                            Download
+                          </a>
+                        )}
+                        {!resource.allowDirectDownload && !resource.allowPreview && (
+                          <div className="text-sure-blue-600 group-hover:text-sure-blue-700 text-sm font-medium">
+                            View Details →
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </>
                 );
                 
-                return resource.allowDirectDownload ? (
+                return resource.allowDirectDownload || resource.allowPreview ? (
                   <div
                     key={resource.id}
                     className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
@@ -289,29 +310,58 @@ export default function ResourcesClient({ initialResources, initialCategories, i
                       {resource.shortDescription || ''}
                     </p>
                   </div>
-                  {resource.allowDirectDownload ? (
-                    <a 
-                      href={getAssetUrl(resource.file)}
-                      download
-                      className="text-sure-blue-500 font-semibold hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0 inline-flex items-center gap-2"
-                    >
-                      <ArrowDownTrayIcon className="w-5 h-5" />
-                      Download
-                    </a>
-                  ) : (
-                    <a 
-                      href={`/resources/${resource.category.slug}/${resource.slug}`} 
-                      className="text-sure-blue-500 font-semibold hover:text-sure-blue-600 transition-colors ml-4 flex-shrink-0"
-                    >
-                      View Details →
-                    </a>
-                  )}
+                  
+                  {/* Action buttons for list view */}
+                  <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                    {resource.allowPreview && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPreviewResource(resource);
+                        }}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-sure-blue-600 font-semibold rounded-lg border border-sure-blue-300 hover:bg-sure-blue-50 hover:border-sure-blue-400 transition-all duration-200"
+                      >
+                        <EyeIcon className="w-5 h-5" />
+                        Preview
+                      </button>
+                    )}
+                    {resource.allowDirectDownload && (
+                      <a 
+                        href={getAssetUrl(resource.file)}
+                        download
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-sure-blue-600 font-semibold rounded-lg border border-sure-blue-300 hover:bg-sure-blue-50 hover:border-sure-blue-400 transition-all duration-200"
+                      >
+                        <ArrowDownTrayIcon className="w-5 h-5" />
+                        Download
+                      </a>
+                    )}
+                    {!resource.allowDirectDownload && !resource.allowPreview && (
+                      <a 
+                        href={`/resources/${resource.category.slug}/${resource.slug}`} 
+                        className="text-sure-blue-600 font-semibold hover:text-sure-blue-700 transition-colors"
+                      >
+                        View Details →
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Preview Modal */}
+      {previewResource && (
+        <ResourcePreviewModal
+          isOpen={!!previewResource}
+          onClose={() => setPreviewResource(null)}
+          fileUrl={getAssetUrl(previewResource.file)}
+          fileName={previewResource.title}
+          fileType={previewResource.fileType}
+          mimeType={previewResource.file.includes('.pdf') ? 'application/pdf' : previewResource.file.includes('.mp4') ? 'video/mp4' : undefined}
+        />
+      )}
     </section>
   );
 }

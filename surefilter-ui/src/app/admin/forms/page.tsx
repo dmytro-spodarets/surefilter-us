@@ -43,7 +43,7 @@ export default function FormsPage() {
       if (!response.ok) throw new Error('Failed to fetch forms');
       
       const data = await response.json();
-      setForms(data);
+      setForms(data.forms || data); // Handle both formats for backwards compatibility
     } catch (error) {
       console.error('Error fetching forms:', error);
       alert('Failed to load forms');

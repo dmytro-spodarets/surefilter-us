@@ -6,20 +6,36 @@ import { cn } from '@/lib/utils';
 interface PageHeroProps {
   title: string;
   description?: string;
+  image1?: string;
+  image1Alt?: string;
+  image2?: string;
+  image2Alt?: string;
+  image3?: string;
+  image3Alt?: string;
+  image4?: string;
+  image4Alt?: string;
   className?: string;
 }
 
 const PageHero: React.FC<PageHeroProps> = ({
   title,
   description,
+  image1 = '/images/image.jpg',
+  image1Alt = 'Filter manufacturing',
+  image2 = '/images/image-2.jpg',
+  image2Alt = 'Quality control',
+  image3 = '/images/image-3.jpg',
+  image3Alt = 'Industrial equipment',
+  image4 = '/images/image-4.jpg',
+  image4Alt = 'Heavy duty machinery',
   className,
 }) => {
   // Изображения для сетки 2x2 с offset'ами
   const gridImages = [
-    { src: '/images/image.jpg', alt: 'Filter manufacturing', offset: false },
-    { src: '/images/image-2.jpg', alt: 'Quality control', offset: true },
-    { src: '/images/image-3.jpg', alt: 'Industrial equipment', offset: false },
-    { src: '/images/image-4.jpg', alt: 'Heavy duty machinery', offset: true },
+    { src: image1, alt: image1Alt, offset: false },
+    { src: image2, alt: image2Alt, offset: true },
+    { src: image3, alt: image3Alt, offset: false },
+    { src: image4, alt: image4Alt, offset: true },
   ];
 
   return (

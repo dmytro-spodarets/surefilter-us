@@ -190,7 +190,20 @@ export function renderSection(section: CmsSection) {
     }
     case 'page_hero': {
       const d = sectionData as any;
-      return <PageHero title={d?.title || ''} description={d?.description || ''} />;
+      return (
+        <PageHero 
+          title={d?.title || ''} 
+          description={d?.description || ''}
+          image1={d?.image1}
+          image1Alt={d?.image1Alt}
+          image2={d?.image2}
+          image2Alt={d?.image2Alt}
+          image3={d?.image3}
+          image3Alt={d?.image3Alt}
+          image4={d?.image4}
+          image4Alt={d?.image4Alt}
+        />
+      );
     }
     case 'single_image_hero': {
       const d = sectionData as any;
@@ -286,7 +299,7 @@ export function renderSection(section: CmsSection) {
     }
     case 'contact_form_info': {
       const d = sectionData as any;
-      return <ContactFormInfo form={d?.form || {}} info={d?.info || {}} />;
+      return <ContactFormInfo {...d} />;
     }
     case 'contact_options': {
       const d = sectionData as any;

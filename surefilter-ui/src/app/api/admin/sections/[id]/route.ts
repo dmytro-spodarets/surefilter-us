@@ -232,11 +232,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     // Revalidate all pages containing this section
     const pages = await prisma.pageSection.findMany({ where: { sectionId: id }, include: { page: true } });
-    const { revalidateTag } = await import('next/cache');
+    const { revalidateTag, revalidatePath } = await import('next/cache');
     for (const ps of pages) {
       revalidateTag(`page:${ps.page.slug}`);
+      // Also revalidate the page path directly
+      if (ps.page.slug === 'home') {
+        revalidatePath('/', 'page');
+      } else {
+        revalidatePath(`/${ps.page.slug}`, 'page');
+      }
     }
-  } catch {}
+  } catch (e) {
+    console.error('Revalidation error:', e);
+  }
   return NextResponse.json({ ok: true });
 }
 

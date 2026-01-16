@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         fileSize: true,
         fileMeta: true,
         allowDirectDownload: true,
+        allowPreview: true,
         publishedAt: true,
         category: {
           select: {

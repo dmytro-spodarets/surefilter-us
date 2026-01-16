@@ -8,6 +8,8 @@ interface HeroSlide {
   titleHighlight?: string;
   subtitle?: string;
   image?: string;
+  ctaText?: string;
+  ctaHref?: string;
 }
 
 interface HeroCarouselFormData {
@@ -21,7 +23,7 @@ export default function HeroCarouselForm({ sectionId, initialData }: { sectionId
   const [form, setForm] = useState<HeroCarouselFormData>({
     slides: Array.isArray(initialData?.slides) && initialData.slides.length > 0 
       ? initialData.slides 
-      : [{ badge: '', titlePrefix: '', titleHighlight: '', subtitle: '', image: '' }],
+      : [{ badge: '', titlePrefix: '', titleHighlight: '', subtitle: '', image: '', ctaText: '', ctaHref: '' }],
     autoplayDelay: initialData?.autoplayDelay || 3000,
     showNavigation: initialData?.showNavigation !== false,
     showPagination: initialData?.showPagination !== false,
@@ -39,7 +41,7 @@ export default function HeroCarouselForm({ sectionId, initialData }: { sectionId
 
   const addSlide = () => setForm((f) => ({ 
     ...f, 
-    slides: [...f.slides, { badge: '', titlePrefix: '', titleHighlight: '', subtitle: '', image: '' }] 
+    slides: [...f.slides, { badge: '', titlePrefix: '', titleHighlight: '', subtitle: '', image: '', ctaText: '', ctaHref: '' }] 
   }));
 
   const removeSlide = (idx: number) => setForm((f) => ({ 
@@ -235,6 +237,36 @@ export default function HeroCarouselForm({ sectionId, initialData }: { sectionId
                     Use File Manager to upload and copy CDN URL, or use /images/* path
                   </p>
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      CTA Button Text
+                      <span className="text-gray-400 font-normal ml-2">(Optional)</span>
+                    </label>
+                    <input 
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2" 
+                      value={slide.ctaText || ''} 
+                      onChange={(e) => updateSlide(idx, 'ctaText', e.target.value)}
+                      placeholder="e.g., Browse our complete catalog"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-1">
+                      CTA Link URL
+                      <span className="text-gray-400 font-normal ml-2">(Optional)</span>
+                    </label>
+                    <input 
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2" 
+                      value={slide.ctaHref || ''} 
+                      onChange={(e) => updateSlide(idx, 'ctaHref', e.target.value)}
+                      placeholder="e.g., /catalog or #products"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Default: "Browse our complete catalog" → "#products"
+                </p>
               </div>
             </div>
           ))}

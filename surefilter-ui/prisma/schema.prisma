@@ -615,6 +615,7 @@ model Resource {
   fileSize            String?          // "15.2 MB"
   fileMeta            String?          // "124 pages" or "24 min" or "MP4"
   allowDirectDownload Boolean          @default(false) // Allow direct download without viewing details page
+  allowPreview        Boolean          @default(false) // Allow preview in modal (PDF/Video/Image)
   
   // Category
   categoryId       String

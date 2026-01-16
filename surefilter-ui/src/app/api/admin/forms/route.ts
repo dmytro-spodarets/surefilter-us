@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(forms);
+    return NextResponse.json({ forms });
   } catch (error) {
     console.error('Error fetching forms:', error);
     return NextResponse.json(

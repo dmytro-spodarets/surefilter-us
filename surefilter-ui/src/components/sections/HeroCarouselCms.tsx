@@ -16,6 +16,8 @@ interface HeroSlide {
   titleHighlight?: string;
   subtitle?: string;
   image?: string;
+  ctaText?: string;
+  ctaHref?: string;
 }
 
 interface HeroCarouselCmsProps {
@@ -145,14 +147,17 @@ export default function HeroCarouselCms({
                       </p>
                     ) : null}
 
-                    <div className="text-center sm:text-left">
-                      <a
-                        href="#products"
-                        className="text-sure-blue-600 hover:text-sure-blue-700 hover:underline font-medium transition-colors duration-200"
-                      >
-                        Browse our complete catalog →
-                      </a>
-                    </div>
+                    {/* CTA Link - customizable */}
+                    {(slide.ctaText || slide.ctaHref) && (
+                      <div className="text-center sm:text-left">
+                        <a
+                          href={slide.ctaHref || '#products'}
+                          className="text-sure-blue-600 hover:text-sure-blue-700 hover:underline font-medium transition-colors duration-200"
+                        >
+                          {slide.ctaText || 'Browse our complete catalog'} →
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

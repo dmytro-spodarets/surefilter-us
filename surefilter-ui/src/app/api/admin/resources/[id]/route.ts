@@ -13,6 +13,7 @@ const UpdateResourceSchema = z.object({
   fileSize: z.string().optional(),
   fileMeta: z.string().optional(),
   allowDirectDownload: z.boolean().optional(),
+  allowPreview: z.boolean().optional(),
   categoryId: z.string().optional(),
   formId: z.string().optional().nullable(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
@@ -117,6 +118,7 @@ export async function PUT(
     if (data.fileSize !== undefined) resourceData.fileSize = data.fileSize || undefined;
     if (data.fileMeta !== undefined) resourceData.fileMeta = data.fileMeta || undefined;
     if (data.allowDirectDownload !== undefined) resourceData.allowDirectDownload = data.allowDirectDownload;
+    if (data.allowPreview !== undefined) resourceData.allowPreview = data.allowPreview;
     if (data.categoryId !== undefined) resourceData.categoryId = data.categoryId;
     if (data.formId !== undefined) resourceData.formId = data.formId || null;
     if (data.metaTitle !== undefined) resourceData.metaTitle = data.metaTitle || undefined;

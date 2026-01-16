@@ -14,6 +14,7 @@ interface ResourceFormData {
   fileSize: string;
   fileMeta: string;
   allowDirectDownload: boolean;
+  allowPreview: boolean;
   categoryId: string;
   formId: string;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
@@ -51,6 +52,7 @@ export default function ResourceForm({ initialData, onSubmit, onCancel }: Resour
     fileSize: initialData?.fileSize || '',
     fileMeta: initialData?.fileMeta || '',
     allowDirectDownload: initialData?.allowDirectDownload || false,
+    allowPreview: initialData?.allowPreview || false,
     categoryId: initialData?.categoryId || '',
     formId: initialData?.formId || '',
     status: initialData?.status || 'DRAFT',
@@ -88,7 +90,7 @@ export default function ResourceForm({ initialData, onSubmit, onCancel }: Resour
       const response = await fetch('/api/admin/forms');
       if (response.ok) {
         const data = await response.json();
-        setForms(data);
+        setForms(data.forms || data);
       }
     } catch (error) {
       console.error('Error fetching forms:', error);
@@ -291,6 +293,22 @@ export default function ResourceForm({ initialData, onSubmit, onCancel }: Resour
               Allow Direct Download
               <span className="block text-xs text-gray-600 font-normal mt-0.5">
                 Users can download this resource directly from the listing page without viewing details
+              </span>
+            </label>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <input
+              type="checkbox"
+              id="allowPreview"
+              checked={formData.allowPreview}
+              onChange={(e) => setFormData({ ...formData, allowPreview: e.target.checked })}
+              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+            />
+            <label htmlFor="allowPreview" className="text-sm font-medium text-gray-900 cursor-pointer">
+              Allow Preview
+              <span className="block text-xs text-gray-600 font-normal mt-0.5">
+                Users can preview this resource in a modal (PDF, Video, Image)
               </span>
             </label>
           </div>
