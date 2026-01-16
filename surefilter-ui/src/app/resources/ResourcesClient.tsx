@@ -213,20 +213,23 @@ export default function ResourcesClient({ initialResources, initialCategories, i
                         fill
                         className="object-cover"
                       />
-                      <span className="absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium bg-black/60 text-white">
-                        {resource.category.name}
-                      </span>
                     </div>
-                    <div className="p-3">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-sure-blue-600 transition-colors">{resource.title}</h3>
-                      <div className="text-xs text-gray-500 flex items-center gap-3 mb-3">
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem] group-hover:text-sure-blue-600 transition-colors">
+                        {resource.title}
+                      </h3>
+                      <div className="text-xs text-gray-500 flex items-center gap-2 mb-3">
                         <span>{resource.fileType}</span>
-                        {resource.fileSize && <span>{resource.fileSize}</span>}
-                        {resource.fileMeta && <span>{resource.fileMeta}</span>}
+                        {resource.fileSize && (
+                          <>
+                            <span>•</span>
+                            <span>{resource.fileSize}</span>
+                          </>
+                        )}
                       </div>
                       
                       {/* Action buttons */}
-                      <div className="flex items-center gap-2 mt-3">
+                      <div className="flex items-center gap-2">
                         {resource.allowPreview && (
                           <button
                             onClick={(e) => {
@@ -264,7 +267,7 @@ export default function ResourcesClient({ initialResources, initialCategories, i
                 return resource.allowDirectDownload || resource.allowPreview ? (
                   <div
                     key={resource.id}
-                    className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+                    className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-sure-blue-300 hover:bg-gray-50 transition-all"
                   >
                     {cardContent}
                   </div>
@@ -272,7 +275,7 @@ export default function ResourcesClient({ initialResources, initialCategories, i
                   <Link
                     key={resource.id}
                     href={`/resources/${resource.category.slug}/${resource.slug}`}
-                    className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+                    className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-sure-blue-300 hover:bg-gray-50 transition-all"
                   >
                     {cardContent}
                   </Link>
@@ -280,9 +283,9 @@ export default function ResourcesClient({ initialResources, initialCategories, i
               })}
             </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {filteredResources.map((resource) => (
-              <div key={resource.id} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+              <div key={resource.id} className="bg-white rounded-lg p-6 border border-gray-200 hover:border-sure-blue-300 hover:bg-gray-50 transition-all">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-3">

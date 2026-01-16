@@ -41,6 +41,11 @@ export default function ResourcePreviewModal({
   const isVideo = mimeType?.startsWith('video/') || fileType === 'Video';
   const isImage = mimeType?.startsWith('image/');
 
+  // Use proxy for PDF to avoid CORS issues with Range requests
+  const pdfUrl = isPdf 
+    ? `/api/proxy-file?url=${encodeURIComponent(fileUrl)}`
+    : fileUrl;
+
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
     setLoading(false);
@@ -176,7 +181,7 @@ export default function ResourcePreviewModal({
               
               {!error && (
                 <Document
-                  file={fileUrl}
+                  file={pdfUrl}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={onDocumentLoadError}
                   loading={null}
