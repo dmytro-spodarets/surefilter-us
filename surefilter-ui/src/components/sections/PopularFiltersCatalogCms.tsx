@@ -30,7 +30,10 @@ export default async function PopularFiltersCatalogCms({
         in: productIds,
       },
     },
-    include: {
+    select: {
+      id: true,
+      code: true,
+      manufacturerCatalogUrl: true,
       media: {
         where: { isPrimary: true },
         include: {
@@ -80,8 +83,17 @@ export default async function PopularFiltersCatalogCms({
     return product.media?.[0]?.asset?.cdnUrl || '/images/placeholder-product.jpg';
   };
 
-  const getProductFilterType = (product: any) => {
-    return product.filterType?.name || 'Filter';
+  const getProductHref = (product: any) => {
+    // If product has manufacturer catalog URL, link to product page
+    if (product.manufacturerCatalogUrl) {
+      return `/products/${product.code}`;
+    }
+    // Otherwise fallback to catalog
+    return catalogHref;
+  };
+
+  const hasManufacturerUrl = (product: any) => {
+    return Boolean(product.manufacturerCatalogUrl);
   };
 
   // Grid columns logic like original PopularFilters
@@ -103,13 +115,14 @@ export default async function PopularFiltersCatalogCms({
 
         {/* Filters Grid */}
         <div className={`grid ${gridCols} gap-6 mb-12`}>
-          {displayProducts.map((product: any) => (
-            <Link key={product.id} href={catalogHref} className="group">
+          {displayProducts.map((product: any) => {
+            const hasUrl = hasManufacturerUrl(product);
+            const CardContent = () => (
               <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-sure-blue-200 transition-all duration-200 hover:-translate-y-1">
                 <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
                   <ManagedImage
                     src={getProductImage(product)}
-                    alt={product.name || product.code}
+                    alt={product.code}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -119,8 +132,18 @@ export default async function PopularFiltersCatalogCms({
                   {product.code}
                 </h3>
               </div>
-            </Link>
-          ))}
+            );
+
+            return hasUrl ? (
+              <Link key={product.id} href={getProductHref(product)} className="group">
+                <CardContent />
+              </Link>
+            ) : (
+              <div key={product.id} className="group cursor-default">
+                <CardContent />
+              </div>
+            );
+          })}
         </div>
 
         {/* Catalog Button */}

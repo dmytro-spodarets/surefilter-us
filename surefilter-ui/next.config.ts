@@ -87,6 +87,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'assets.surefilter.us',
       },
+      // Sure Filter manufacturer catalog images
+      {
+        protocol: 'https',
+        hostname: 'www.surefilter.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'surefilter.com',
+      },
       // Local MinIO for development
       {
         protocol: 'http',

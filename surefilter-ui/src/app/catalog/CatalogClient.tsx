@@ -16,6 +16,7 @@ interface CatalogItem {
   make: 'HYUNDAI' | 'CAT' | 'VOLVO' | 'FORD' | 'KOMATSU' | 'CUMMINS';
   heightMm: number;
   image: string;
+  manufacturerCatalogUrl?: string; // Added field
 }
 
 const DATA: CatalogItem[] = [
@@ -112,40 +113,70 @@ export default function CatalogClient() {
     setPage(1);
   };
 
-  const GalleryCard = ({ item }: { item: CatalogItem }) => (
-    <Link href={`/filters/${item.code}`} className="group block bg-white rounded-lg border border-gray-200 hover:border-sure-blue-300 transition-all overflow-hidden">
-      <div className="relative aspect-[4/3] bg-gray-50">
-        <ManagedImage src={item.image} alt={`${item.code}`} fill className="object-cover group-hover:scale-105 transition-transform" />
-        <span className="absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium bg-black/60 text-white">{item.type}</span>
-      </div>
-      <div className="p-4">
-        <h3 className="text-base font-semibold text-gray-900 group-hover:text-sure-blue-600 mb-1">{item.code}</h3>
-        <div className="text-xs text-gray-500 flex items-center gap-2 flex-wrap">
-          <span>{item.type}</span>
-          <span>•</span>
-          <span>{item.industry}</span>
+  const GalleryCard = ({ item }: { item: CatalogItem }) => {
+    const hasManufacturerUrl = Boolean(item.manufacturerCatalogUrl);
+    const CardContent = () => (
+      <>
+        <div className="relative aspect-[4/3] bg-gray-50">
+          <ManagedImage src={item.image} alt={`${item.code}`} fill className="object-cover group-hover:scale-105 transition-transform" />
+          <span className="absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium bg-black/60 text-white">{item.type}</span>
         </div>
-      </div>
-    </Link>
-  );
+        <div className="p-4">
+          <h3 className="text-base font-semibold text-gray-900 group-hover:text-sure-blue-600 mb-1">
+            {item.code}
+          </h3>
+          <div className="text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+            <span>{item.type}</span>
+            <span>•</span>
+            <span>{item.industry}</span>
+          </div>
+        </div>
+      </>
+    );
 
-  const ListRow = ({ item }: { item: CatalogItem }) => (
-    <Link href={`/filters/${item.code}`} className="group flex items-center gap-4 bg-white rounded-lg border border-gray-200 p-3 hover:border-sure-blue-300 transition-all">
-      <div className="relative w-24 h-16 bg-gray-50 rounded overflow-hidden">
-        <ManagedImage src={item.image} alt={`${item.code}`} fill className="object-cover" />
+    return hasManufacturerUrl ? (
+      <Link href={`/products/${item.code}`} className="group block bg-white rounded-lg border border-gray-200 hover:border-sure-blue-300 transition-all overflow-hidden">
+        <CardContent />
+      </Link>
+    ) : (
+      <div className="group block bg-white rounded-lg border border-gray-200 cursor-default overflow-hidden">
+        <CardContent />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-gray-900 group-hover:text-sure-blue-600 truncate">{item.code}</h3>
+    );
+  };
+
+  const ListRow = ({ item }: { item: CatalogItem }) => {
+    const hasManufacturerUrl = Boolean(item.manufacturerCatalogUrl);
+    const RowContent = () => (
+      <>
+        <div className="relative w-24 h-16 bg-gray-50 rounded overflow-hidden">
+          <ManagedImage src={item.image} alt={`${item.code}`} fill className="object-cover" />
         </div>
-        <div className="mt-1 text-xs text-gray-500 flex items-center gap-2 flex-wrap">
-          <span>{item.type}</span>
-          <span>•</span>
-          <span>{item.industry}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold text-gray-900 group-hover:text-sure-blue-600 truncate">
+              {item.code}
+            </h3>
+          </div>
+          <div className="mt-1 text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+            <span>{item.type}</span>
+            <span>•</span>
+            <span>{item.industry}</span>
+          </div>
         </div>
+      </>
+    );
+
+    return hasManufacturerUrl ? (
+      <Link href={`/products/${item.code}`} className="group flex items-center gap-4 bg-white rounded-lg border border-gray-200 p-3 hover:border-sure-blue-300 transition-all">
+        <RowContent />
+      </Link>
+    ) : (
+      <div className="group flex items-center gap-4 bg-white rounded-lg border border-gray-200 p-3 cursor-default">
+        <RowContent />
       </div>
-    </Link>
-  );
+    );
+  };
 
   return (
     <section className="py-8 bg-white">

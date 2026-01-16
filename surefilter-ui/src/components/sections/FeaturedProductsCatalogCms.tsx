@@ -23,7 +23,11 @@ export default async function FeaturedProductsCatalogCms({
         in: productIds,
       },
     },
-    include: {
+    select: {
+      id: true,
+      code: true,
+      description: true,
+      manufacturerCatalogUrl: true,
       media: {
         where: { isPrimary: true },
         include: {
@@ -73,8 +77,17 @@ export default async function FeaturedProductsCatalogCms({
     return product.media?.[0]?.asset?.cdnUrl || '/images/placeholder-product.jpg';
   };
 
-  const getProductFilterType = (product: any) => {
-    return product.filterType?.name || 'Filter';
+  const getProductHref = (product: any) => {
+    // If product has manufacturer catalog URL, link to product page
+    if (product.manufacturerCatalogUrl) {
+      return `/products/${product.code}`;
+    }
+    // Otherwise fallback to catalog
+    return fallbackHref;
+  };
+
+  const hasManufacturerUrl = (product: any) => {
+    return Boolean(product.manufacturerCatalogUrl);
   };
 
   return (
@@ -90,45 +103,50 @@ export default async function FeaturedProductsCatalogCms({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-          {displayProducts.map((product: any) => (
-            <Link
-              key={product.id}
-              href={fallbackHref}
-              className="block bg-white rounded-lg border border-gray-100 overflow-hidden hover:border-sure-blue-200 transition-all duration-200 group"
-            >
-              <div className="relative h-40 bg-gray-100">
-                <ManagedImage
-                  src={getProductImage(product)}
-                  alt={product.name || product.code}
-                  fill
-                  className="object-contain p-2 group-hover:scale-105 transition-transform duration-200"
-                />
-                
-                {/* Filter Type badge - top right corner */}
-                <div className="absolute top-2 right-2 z-10">
-                  <span className="inline-block px-3 py-1 bg-sure-blue-600 text-white text-xs font-semibold rounded-full shadow-lg">
-                    {getProductFilterType(product)}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-sure-blue-600 transition-colors">
-                    {product.code}
-                  </h3>
+          {displayProducts.map((product: any) => {
+            const hasUrl = hasManufacturerUrl(product);
+            const CardContent = () => (
+              <>
+                <div className="relative h-40 bg-gray-100">
+                  <ManagedImage
+                    src={getProductImage(product)}
+                    alt={product.code}
+                    fill
+                    className="object-contain p-2 group-hover:scale-105 transition-transform duration-200"
+                  />
                 </div>
                 
-                {product.name && (
-                  <p className="text-gray-600 text-sm mb-2">{product.name}</p>
-                )}
-                
-                {product.description && (
-                  <p className="text-gray-500 text-xs line-clamp-2">{product.description}</p>
-                )}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-sure-blue-600 transition-colors">
+                      {product.code}
+                    </h3>
+                  </div>
+                  
+                  {product.description && (
+                    <p className="text-gray-500 text-xs line-clamp-2">{product.description}</p>
+                  )}
+                </div>
+              </>
+            );
+
+            return hasUrl ? (
+              <Link
+                key={product.id}
+                href={getProductHref(product)}
+                className="block bg-white rounded-lg border border-gray-100 overflow-hidden hover:border-sure-blue-200 transition-all duration-200 group"
+              >
+                <CardContent />
+              </Link>
+            ) : (
+              <div
+                key={product.id}
+                className="block bg-white rounded-lg border border-gray-100 overflow-hidden cursor-default group"
+              >
+                <CardContent />
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
 
         <div className="text-center">

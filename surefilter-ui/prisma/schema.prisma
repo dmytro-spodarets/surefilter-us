@@ -241,8 +241,11 @@ model FilterType {
 model Product {
   id          String  @id @default(cuid())
   code        String  @unique // Product code (e.g., "SFO241")
-  name        String
+  name        String? // Optional product name (code is primary identifier)
   description String?
+  
+  // Manufacturer catalog link
+  manufacturerCatalogUrl String? // Link to manufacturer's catalog page (e.g., https://www.surefilter.com/products/CODE/export)
 
   // Brand relationship (required)
   brandId String

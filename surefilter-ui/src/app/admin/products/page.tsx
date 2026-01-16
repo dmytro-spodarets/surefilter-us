@@ -6,7 +6,7 @@ import Link from 'next/link';
 interface Product {
   id: string;
   code: string;
-  name: string;
+  name?: string | null;
   status?: string | null;
   brand: {
     id: string;
@@ -110,7 +110,7 @@ export default function ProductsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by code, name, or manufacturer..."
+              placeholder="Search by code or manufacturer..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
             />
           </div>
@@ -208,9 +208,11 @@ export default function ProductsPage() {
                       <div className="text-sm font-medium text-gray-900">
                         {product.code}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {product.name}
-                      </div>
+                      {product.name && (
+                        <div className="text-sm text-gray-500">
+                          {product.name}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

@@ -46,8 +46,8 @@ interface MediaAsset {
 
 interface ProductFormData {
   code: string;
-  name: string;
   description: string;
+  manufacturerCatalogUrl: string;
   brandId: string;
   filterTypeId: string;
   status: string;
@@ -113,8 +113,8 @@ export default function ProductFormNew({
   
   const [formData, setFormData] = useState<ProductFormData>({
     code: '',
-    name: '',
     description: '',
+    manufacturerCatalogUrl: '',
     brandId: '',
     filterTypeId: '',
     status: 'Active',
@@ -143,14 +143,14 @@ export default function ProductFormNew({
       if (response.ok) {
         setFormData({
           code: data.code,
-          name: data.name,
           description: data.description || '',
+          manufacturerCatalogUrl: data.manufacturerCatalogUrl || '',
           brandId: data.brandId,
           filterTypeId: data.filterTypeId || '',
           status: data.status || 'Active',
           tags: data.tags || [],
           manufacturer: data.manufacturer || '',
-          industries: data.industries || [],
+          industries: data.industries || '',
           categoryAssignments: data.categories?.map((c: any) => ({
             categoryId: c.categoryId,
             isPrimary: c.isPrimary,
@@ -446,20 +446,6 @@ export default function ProductFormNew({
 
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
-                placeholder="e.g., Heavy Duty Oil Filter"
-              />
-            </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
               <textarea
@@ -469,6 +455,39 @@ export default function ProductFormNew({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
                 placeholder="Product description..."
               />
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Manufacturer Catalog URL
+                <span className="text-gray-400 font-normal ml-2">(Optional)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={formData.manufacturerCatalogUrl}
+                  onChange={(e) => setFormData({ ...formData, manufacturerCatalogUrl: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-sure-blue-500 focus:border-sure-blue-500"
+                  placeholder="https://www.surefilter.com/products/CODE/export"
+                />
+                {formData.manufacturerCatalogUrl && (
+                  <a
+                    href={`/catalog-viewer?url=${encodeURIComponent(formData.manufacturerCatalogUrl)}${productId ? `&productId=${productId}` : ''}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-sure-blue-600 text-white rounded-md hover:bg-sure-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Preview
+                  </a>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Link to manufacturer's catalog export page (e.g., https://www.surefilter.com/products/CODE/export)
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

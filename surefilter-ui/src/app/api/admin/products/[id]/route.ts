@@ -38,8 +38,9 @@ const CrossReferenceSchema = z.object({
 
 const ProductSchema = z.object({
   code: z.string().min(1, 'Product code is required'),
-  name: z.string().min(1, 'Product name is required'),
+  name: z.string().optional().nullable(), // Product name is optional (code is primary identifier)
   description: z.string().optional().nullable(),
+  manufacturerCatalogUrl: z.string().url().optional().nullable().or(z.literal('')),
   brandId: z.string().min(1, 'Brand is required'),
   filterTypeId: z.string().optional().nullable(),
   status: z.string().optional().nullable(),
@@ -167,8 +168,9 @@ export async function PUT(
         where: { id: id },
         data: {
           code: validatedData.code,
-          name: validatedData.name,
+          name: validatedData.name || null,
           description: validatedData.description || null,
+          manufacturerCatalogUrl: validatedData.manufacturerCatalogUrl || null,
           brandId: validatedData.brandId,
           filterTypeId: validatedData.filterTypeId || null,
           status: validatedData.status || null,
