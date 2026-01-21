@@ -1,141 +1,130 @@
-# TODO & Roadmap - Sure Filter US
+# TODO — Sure Filter US
 
-## 🚀 High Priority
+> **Единый документ** для задач, техдолга и планов развития.
+> Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-### FilterType.category Migration to ProductCategory Relation
-**Проблема:** `FilterType` модель использует старый enum `category` вместо relation к `ProductCategory`. Это вызывает TypeScript ошибки и несовместимо с новой нормализованной схемой.
-
-**Текущее состояние:**
-- ✅ Временно закомментирована фильтрация по `category` в 3 файлах
-- ✅ Используется фильтрация по `fullSlug`/`pageSlug` pattern
-- ⚠️ `typescript.ignoreBuildErrors: true` в `next.config.ts`
-
-**Решение:**
-- [ ] Добавить `categoryId String?` в модель `FilterType`
-- [ ] Создать relation `category ProductCategory? @relation(fields: [categoryId], references: [id])`
-- [ ] Создать миграцию для конвертации данных (enum → relation)
-- [ ] Обновить 3 файла для использования relation:
-  - `src/app/api/admin/filter-types/route.ts`
-  - `src/components/sections/FilterTypesCms.tsx`
-  - `src/app/admin/filter-types/page.tsx`
-- [ ] Убрать `typescript.ignoreBuildErrors` из `next.config.ts`
-
-**Файлы с TODO комментариями:**
-```typescript
-// TODO: Update to use ProductCategory relation instead of enum
-```
-
-**Приоритет:** High (блокирует чистый build)
-**Оценка:** 2-3 часа
+**Последнее обновление:** 21 января 2026
 
 ---
 
-### Image Optimization
-**Проблема:** Next.js оптимизирует изображения динамически при каждом запросе, что может вызывать медленную загрузку при первом обращении и иногда показывать "Image not found".
+## Активные задачи
 
-**Решение:** Предварительная оптимизация изображений при загрузке в File Manager
-- [ ] Установить `sharp` для обработки изображений
-- [ ] Создать утилиту `/src/lib/image-optimizer.ts` для оптимизации
-- [ ] Генерировать несколько размеров при загрузке:
-  - Thumbnail: 320px
-  - Medium: 768px
-  - Large: 1920px
-  - Original: без изменений
-- [ ] Конвертировать в WebP для лучшего сжатия
-- [ ] Интегрировать в File Manager API (`/api/admin/file-manager/upload`)
-- [ ] Обновить `ManagedImage` компонент для использования оптимизированных версий
-- [ ] Добавить `unoptimized: true` в `next.config.ts` для отключения динамической оптимизации
-- [ ] Обновить CloudFront cache policy для оптимизированных изображений
+### Критично (блокирует релиз)
 
-**Преимущества:**
-- ✅ Быстрая загрузка (изображения уже оптимизированы)
-- ✅ Меньше нагрузки на App Runner
-- ✅ Предсказуемый размер файлов
-- ✅ Нет "Image not found" из-за timeout оптимизации
+- [ ] **FilterType.category Migration** — использует старый enum вместо relation к `ProductCategory`
+  - Временно: `typescript.ignoreBuildErrors: true` в `next.config.ts`
+  - Файлы: `api/admin/filter-types/route.ts`, `FilterTypesCms.tsx`, `admin/filter-types/page.tsx`
 
-**Приоритет:** High
-**Оценка:** 4-6 часов
+### Высокий приоритет
+
+- [ ] **Image Optimization при загрузке** — предварительная оптимизация вместо динамической
+  - Sharp для resize/WebP
+  - Размеры: 320px, 768px, 1920px, original
+  - Интеграция в File Manager API
+
+- [ ] **Активация поиска** — временно отключен для Phase 1
+  - Компоненты: Header, HeroCms, SearchHero, CompactSearchHero, QuickSearchCms, SimpleSearch
+  - TODO-маркер: `TODO: Uncomment when catalog is ready`
 
 ---
 
-## 📝 Medium Priority
+## Техдолг
 
-### Site Settings Cache Improvements
-- [x] Уменьшен кэш с 5 минут до 1 минуты
-- [x] Добавлена функция `clearSiteSettingsCache()` для сброса кэша
-- [x] Кэш автоматически сбрасывается при обновлении настроек через API
+### Swiper Migration (карусели)
+- [x] HeroCarouselCms — завершено
+- [ ] AwardsCarousel — кастомная реализация (medium priority)
+- [ ] NewsroomClient Events — кастомная реализация (medium priority)
+- [ ] RelatedFilters — оценить после миграции других (low priority)
 
-### CloudFront Error Caching
-- [x] Добавлен `custom_error_response` для 404/403 ошибок (кэш 10 секунд)
-- [ ] Мониторинг 404 ошибок для выявления проблем с отсутствующими файлами
+### CMS Forms (секции без редакторов)
+- [ ] `hero_compact`, `page_hero_reverse`, `products`, `news_carousel`
+- [ ] `product_gallery`, `product_specs`
+- [ ] Warranty секции (5 штук) — low priority
+
+### Database Cleanup
+- [x] ~~fullSlug~~ — удалено, используется pageSlug
+- [ ] FilterType.name — дублирует Page.title, рассмотреть удаление
+
+### UI/UX
+- [ ] ManagedImage: error boundary, retry логика
+- [ ] Admin: drag-and-drop для секций, bulk operations, preview mode
+- [ ] Lazy load секций (dynamic imports)
 
 ---
 
-## 🔧 Low Priority / Future Improvements
+## Инфраструктура
 
-### Performance
-- [ ] Добавить Service Worker для offline поддержки
-- [ ] Реализовать Progressive Web App (PWA)
-- [ ] Оптимизация bundle size (code splitting)
+### Завершено
+- [x] CI/CD (GitHub Actions)
+- [x] CloudFront + ACM для `new.surefilter.us`
+- [x] Static Upload Workflow
+- [x] Image optimization pipeline
+- [x] Admin action logging (`/admin/logs`)
 
-### SEO
-- [ ] Добавить structured data (JSON-LD) для продуктов
-- [ ] Улучшить meta-теги для социальных сетей
-- [ ] Добавить sitemap.xml генерацию
+### В планах
+- [ ] S3 OAC вместо OAI (SigV4)
+- [ ] VPC Connector для App Runner (закрыть публичный RDS)
+- [ ] WAF и логи CloudFront
+- [ ] Rate limiting для admin API
+
+---
+
+## Мониторинг и качество
+
+### Тестирование
+- [ ] E2E тесты (Playwright)
+- [ ] Unit tests для утилит
+- [ ] Visual regression tests
+- [ ] Accessibility audit (axe-core)
 
 ### Analytics
-- [ ] Интеграция Google Analytics 4
-- [ ] Отслеживание конверсий
-- [ ] Heat maps для UX анализа
+- [ ] Google Analytics / Plausible
+- [ ] Error tracking (Sentry)
+- [ ] Web Vitals мониторинг
 
 ### Security
-- [ ] Добавить rate limiting для API
-- [ ] Улучшить CORS политику
-- [ ] Регулярный аудит зависимостей
+- [ ] CSRF protection review
+- [ ] Input sanitization audit
+- [ ] npm audit регулярный
 
 ---
 
-## ✅ Completed
+## Бэклог (когда-нибудь)
 
-### Refactoring & Cleanup
-- [x] Убрали статические дефолтные данные из кода
-- [x] Все данные теперь берутся из БД
-- [x] Добавили `dynamic = 'force-dynamic'` в root layout
-- [x] Убрали дублирование `export const dynamic` из 9 страниц
-- [x] Удалили дублирование `/app/(public)/page.tsx`
-- [x] Убрали статические fallback данные из Footer.tsx
-- [x] Исправили иконки социальных сетей в Footer
-- [x] Добавили TikTok в список доступных соц сетей в админке
-
-### Build & Deployment
-- [x] Исправили Docker build без DATABASE_URL
-- [x] Убрали placeholder DATABASE_URL из Dockerfile
-- [x] Build проходит чисто без warnings
-
-### Prisma 7 Migration (2025-12-07)
-- [x] Обновили Node.js до v20.19.6 (latest LTS 20.x)
-- [x] Обновили Prisma до 7.1.0
-- [x] Установили @prisma/adapter-pg и pg
-- [x] Создали prisma.config.ts в корне проекта для CLI операций
-- [x] Убрали url из schema.prisma datasource
-- [x] Переписали lib/prisma.ts с PrismaPg adapter
-- [x] Обновили next.config.ts (serverExternalPackages, webpack)
-- [x] Обновили 8 API routes для использования shared prisma instance
-- [x] Исправили TypeScript ошибки (Next.js 15 params Promise)
-- [x] Обновили Dockerfile для Prisma 7 (копирует prisma.config.ts из корня)
-- [x] Обновили GitHub Actions workflow (db-migrate.yml)
-- [x] Исправили расположение prisma.config.ts (должен быть в корне!)
-- [x] Создали документацию PRISMA_7_MIGRATION.md с troubleshooting
-- [x] Обновили README.md и CHANGELOG.md
+- Интеграция live chat
+- PWA / Service Worker
+- Переключение единиц (mm ↔ in)
+- Structured data (JSON-LD) для продуктов
+- sitemap.xml генерация
 
 ---
 
-## 📚 Documentation Needed
-- [ ] API документация для File Manager
-- [ ] Руководство по добавлению новых секций в CMS
-- [ ] Deployment guide для production
-- [ ] Environment variables документация
+## Завершено (архив)
 
----
+<details>
+<summary>Декабрь 2025 - Январь 2026</summary>
 
-**Последнее обновление:** 7 декабря 2025
+### Image Optimization
+- ✅ Shimmer placeholders (ManagedImage)
+- ✅ Priority loading для hero (LCP -28%)
+- ✅ Responsive sizes (трафик -40-50%)
+- ✅ Auto compression при загрузке
+- ✅ CloudFront cache (1 год TTL)
+
+### CMS & Components
+- ✅ FilterTypesImageGrid (16:9, Flexbox)
+- ✅ WhyChooseCms (центрирование)
+- ✅ FeaturedProductsCatalogCms
+- ✅ PopularFiltersCatalogCms
+- ✅ Product Pages (`/products/[code]`)
+- ✅ Resource Preview System
+- ✅ HeroCarouselCms (Swiper.js)
+- ✅ Shared Sections система
+- ✅ Industry Showcase overrides
+
+### Infrastructure
+- ✅ Prisma 7 Migration
+- ✅ Catalog Integration
+- ✅ Admin Logging System
+
+</details>

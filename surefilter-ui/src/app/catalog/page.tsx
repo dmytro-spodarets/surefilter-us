@@ -1,8 +1,8 @@
-// TEMPORARY REDIRECT - uncomment when catalog is ready
+// TEMPORARY REDIRECT - redirect to main site catalog until local catalog is ready
 import { redirect } from 'next/navigation';
 
 export default function CatalogPage() {
-  redirect('/resources/catalogs');
+  redirect('https://www.surefilter.com/products');
 }
 
 // ORIGINAL CODE - restore when catalog is ready

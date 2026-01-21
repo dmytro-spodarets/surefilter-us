@@ -231,8 +231,8 @@ export default function FileGrid({
             </div>
 
             {/* File Preview */}
-            <div 
-              className="aspect-square flex items-center justify-center mb-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden p-3"
+            <div
+              className="aspect-square mb-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden relative"
               onClick={() => onPreviewFile(file)}
             >
               {isImage(mimeType) && file.metadata?.cdnUrl ? (
@@ -240,11 +240,13 @@ export default function FileGrid({
                   src={file.metadata.cdnUrl}
                   alt={file.metadata?.altText || filename}
                   fill
-                  className="object-contain rounded p-2"
+                  className="object-cover"
                   sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
                 />
               ) : (
-                <FileIconComponent className="h-12 w-12 text-gray-400" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <FileIconComponent className="h-12 w-12 text-gray-400" />
+                </div>
               )}
             </div>
 

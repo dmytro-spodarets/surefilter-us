@@ -2,6 +2,8 @@
 
 Коротко: фронтенд на Next.js (App Router) для сайта Sure Filter US. Минималистичный, быстрый, доступный интерфейс с современным стеком и акцентом на переиспользование готовых решений.
 
+> **🤖 Для AI Ассистентов:** См. [CLAUDE.md](./CLAUDE.md) — Quick Reference для быстрой ориентации в проекте.
+
 ## ✨ Последние обновления (January 16, 2026)
 
 ### 🆕 Публичные страницы продуктов
@@ -29,12 +31,12 @@
 ---
 
 ### Состав и версии
-- Next.js 15.5.9 (App Router)
-- React 19
+- Next.js 15.5.7 (App Router)
+- React 19.0.0
 - Tailwind CSS 4.1.11
-- Node.js 22.13.1 (LTS)
-- Prisma 7.2.0 (с PostgreSQL driver adapter)
-- JSDOM 25.x (HTML parsing)
+- Node.js 20.x (LTS)
+- Prisma 7.1.0 (с PostgreSQL driver adapter)
+- JSDOM 27.x (HTML parsing)
 - Библиотеки: `@heroicons/react`, `react-icons`, `clsx` + `tailwind-merge` (утилита `cn`)
 
 ### Страницы и навигация (актуально)
@@ -83,7 +85,7 @@
   - News: `NewsCarousel`, `NewsroomClient` (события + новости с фильтрацией)
   - Resources: `ResourcesClient` (список ресурсов с фильтрацией), `ResourceDownloadForm` (форма загрузки)
 - `forms/`: `DynamicForm` (универсальный компонент для рендера форм), `FormBuilder` (drag-and-drop редактор полей)
-- `ui/`: `Button`, `Card`, `Icon`, `Input`, `Logo`, `Pagination`, `Collapsible`, `ManagedImage` (с shimmer placeholder)
+- `ui/`: `Button`, `Card`, `Icon`, `Input`, `Logo`, `Pagination`, `ManagedImage` (с shimmer placeholder)
 - `admin/`: компоненты админ-панели (AdminNav, Breadcrumbs, форм-редакторы)
 - `seo/`: `SEO`
 - `lib/`: 
