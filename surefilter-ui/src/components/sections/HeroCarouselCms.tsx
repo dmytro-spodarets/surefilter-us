@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from 'react';
 import { ManagedImage } from '@/components/ui/ManagedImage';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation, Keyboard } from 'swiper/modules';
+import { getAssetUrl, isAssetPath } from '@/lib/assets';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -27,18 +29,36 @@ interface HeroCarouselCmsProps {
   showPagination?: boolean;
 }
 
-export default function HeroCarouselCms({ 
-  slides = [], 
+export default function HeroCarouselCms({
+  slides = [],
   autoplayDelay = 3000,
   showNavigation = true,
-  showPagination = true 
+  showPagination = true
 }: HeroCarouselCmsProps) {
-  
+
   // Если только один слайд, показываем как статичный hero без навигации
   const isSingleSlide = slides.length === 1;
   // Loop работает корректно только с 3+ слайдами
   const enableLoop = slides.length >= 3;
-  
+
+  // Preload images for subsequent slides after component mounts
+  useEffect(() => {
+    if (slides.length <= 1) return;
+
+    // Preload remaining slide images after a short delay (let first slide load first)
+    const preloadTimeout = setTimeout(() => {
+      slides.slice(1).forEach((slide) => {
+        if (slide.image) {
+          const imageUrl = isAssetPath(slide.image) ? getAssetUrl(slide.image) : slide.image;
+          const img = new window.Image();
+          img.src = imageUrl;
+        }
+      });
+    }, 100);
+
+    return () => clearTimeout(preloadTimeout);
+  }, [slides]);
+
   // Если нет слайдов, показываем fallback
   if (slides.length === 0) {
     return (
@@ -53,6 +73,20 @@ export default function HeroCarouselCms({
 
   return (
     <section className="relative h-screen overflow-hidden bg-white">
+      {/* Preload hints for next slides - helps browser prioritize these images */}
+      {slides.slice(1, 3).map((slide, index) => {
+        if (!slide.image) return null;
+        const imageUrl = isAssetPath(slide.image) ? getAssetUrl(slide.image) : slide.image;
+        return (
+          <link
+            key={`preload-${index}`}
+            rel="preload"
+            as="image"
+            href={imageUrl}
+          />
+        );
+      })}
+
       <Swiper
         modules={[Autoplay, Pagination, Navigation, Keyboard]}
         spaceBetween={0}
