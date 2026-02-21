@@ -39,6 +39,25 @@ resource "aws_cloudfront_cache_policy" "no_cache_compressed" {
   }
 }
 
+# Cache policy for /_next/image: query strings (url, w, q) MUST be in the cache key.
+# Without this, CloudFront serves the same cached image for all different ?url= params.
+resource "aws_cloudfront_cache_policy" "image_optimizer" {
+  name        = "surefilter-image-optimizer"
+  default_ttl = 86400
+  max_ttl     = 31536000
+  min_ttl     = 0
+  parameters_in_cache_key_and_forwarded_to_origin {
+    enable_accept_encoding_gzip   = true
+    enable_accept_encoding_brotli = true
+    headers_config { header_behavior = "none" }
+    cookies_config { cookie_behavior = "none" }
+    query_strings_config {
+      query_string_behavior = "whitelist"
+      query_strings { items = ["url", "w", "q"] }
+    }
+  }
+}
+
 resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
   name    = "surefilter-app-runner-min"
   comment = "Forward essential headers, all cookies and query strings to App Runner"
@@ -148,12 +167,13 @@ resource "aws_cloudfront_distribution" "site" {
     cached_methods         = ["GET", "HEAD"]
   }
 
-  // route image optimizer to App Runner
+  // route image optimizer to App Runner — uses dedicated cache policy with query strings
   ordered_cache_behavior {
     path_pattern                 = "/_next/image*"
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
-    cache_policy_id              = aws_cloudfront_cache_policy.no_cache_compressed.id
+    compress                     = true
+    cache_policy_id              = aws_cloudfront_cache_policy.image_optimizer.id
     origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS"]
     cached_methods               = ["GET", "HEAD"]
