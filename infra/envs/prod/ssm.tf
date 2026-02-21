@@ -39,3 +39,25 @@ resource "aws_ssm_parameter" "tinymce_api_key" {
   value = var.tinymce_api_key
 }
 
+# CloudFront Distribution ID for on-demand cache invalidation
+# Created with placeholder to break App Runner ↔ CloudFront dependency cycle.
+# Updated by terraform_data after CloudFront distribution is created.
+resource "aws_ssm_parameter" "cloudfront_distribution_id" {
+  name  = "/surefilter/CLOUDFRONT_DISTRIBUTION_ID"
+  type  = "String"
+  value = "pending"
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+# Populate the SSM parameter with the actual CloudFront distribution ID
+resource "terraform_data" "set_cloudfront_dist_id" {
+  input = aws_cloudfront_distribution.site.id
+
+  provisioner "local-exec" {
+    command = "aws ssm put-parameter --name '/surefilter/CLOUDFRONT_DISTRIBUTION_ID' --value '${self.input}' --type String --overwrite --region ${var.aws_region}"
+  }
+}
+
