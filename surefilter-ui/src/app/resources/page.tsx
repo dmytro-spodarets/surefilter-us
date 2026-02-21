@@ -5,7 +5,7 @@ import DynamicResourcesHero from '@/components/sections/DynamicResourcesHero';
 import ResourcesClient from './ResourcesClient';
 import { prisma } from '@/lib/prisma';
 
-export const revalidate = 300;
+export const revalidate = 86400;
 export default async function ResourcesPage() {
   let resources: any[] = [];
   let categories: any[] = [];

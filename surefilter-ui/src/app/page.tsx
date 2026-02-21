@@ -4,7 +4,7 @@ import { renderSection } from '@/cms/renderer';
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   let page: any = null;

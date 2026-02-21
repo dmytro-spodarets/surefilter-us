@@ -12,7 +12,6 @@ interface PageProps {
   params: Promise<{ code: string }>;
 }
 
-// Revalidate every 24 hours
 export const revalidate = 86400;
 
 export function generateStaticParams() {

@@ -5,7 +5,7 @@ import CompactHero from '@/components/sections/CompactHero';
 import { DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export function generateStaticParams() {
   return [];

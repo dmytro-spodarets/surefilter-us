@@ -262,14 +262,13 @@ npm run seed:content:force  # С перезаписью
 1. **Prisma 7**: `prisma.config.ts` должен быть в корне surefilter-ui/, не в prisma/
 2. **Поиск отключен**: Временно закомментирован для Phase 1 (TODO в компонентах)
 3. **ISR + CloudFront кэширование**: двухуровневый кэш (Next.js ISR + CloudFront edge)
-   - Listing pages (`/newsroom`, `/resources`): `revalidate = 300` (5 мин)
-   - CMS/detail pages: `revalidate = 3600` (1 час)
-   - Product pages: `revalidate = 86400` (24 часа)
+   - **Все публичные страницы**: `revalidate = 86400` (24 часа) — единое значение, fallback-страховка
    - Admin pages: `force-dynamic` (через server component layout)
-   - On-demand invalidation: `invalidatePages()` из `src/lib/revalidate.ts`
+   - On-demand invalidation: `invalidatePages()` из `src/lib/revalidate.ts` — мгновенное обновление при редактировании в админке
    - **Cache key включает `RSC` + `Next-Router-Prefetch`** — HTML и RSC payload кэшируются отдельно
    - **Параметрические роуты**: обязательно `generateStaticParams()` (даже `return []`) — без него Next.js не включает ISR
    - **Re-export**: `[slug]/page.tsx` должен экспортировать `revalidate` вместе с `default` и `generateMetadata`
+   - **`revalidate` = только литерал** — Next.js AST-анализ не поддерживает импорт из общего файла
 4. **Docker build**: `NEXT_BUILD_SKIP_DB=1` — Prisma stub, нет подключения к БД при сборке
 5. **Post-deploy warm-up**: `scripts/warm-up.sh` вызывает `/api/warm-up` после старта сервера — обновляет ISR кэш реальными данными из БД (build-time страницы пустые)
 6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)

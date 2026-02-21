@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 // Enable ISR for catch-all dynamic routes (e.g. /heavy-duty/air-filters).
 // Returning [] means no pages pre-rendered at build; all rendered on-demand and cached.

@@ -13,6 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-02-21 — Unified revalidate = 86400 (24ч) на все публичные страницы — on-demand invalidation обновляет контент мгновенно, revalidate только как fallback-страховка
 - 2026-02-21 — ISR fix для параметрических роутов: добавлен generateStaticParams() на все публичные [slug] страницы + исправлен re-export revalidate в [slug]/page.tsx — все CMS/news/resources/product страницы теперь кэшируются (были force-dynamic)
 - 2026-02-21 — CloudFront RSC cache key fix: RSC и Next-Router-Prefetch добавлены в cache policy headers — HTML и RSC flight payload кэшируются раздельно, исправлена проблема с отображением сырого JSON в браузере
 - 2026-02-21 — Post-deploy warm-up: /api/warm-up endpoint + scripts/warm-up.sh автоматически обновляет ISR кэш после старта сервера, пустые build-time страницы заменяются реальным контентом за секунды

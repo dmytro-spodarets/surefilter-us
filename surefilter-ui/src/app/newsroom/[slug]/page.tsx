@@ -5,7 +5,7 @@ import { ArrowLeftIcon, CalendarDaysIcon, TagIcon, MapPinIcon, LinkIcon } from '
 import { prisma } from '@/lib/prisma';
 import { getNewsArticlePageSettings } from '@/lib/site-settings';
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export function generateStaticParams() {
   return [];
