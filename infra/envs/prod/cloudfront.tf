@@ -112,6 +112,7 @@ resource "aws_cloudfront_distribution" "site" {
   default_cache_behavior {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
+    compress               = true
     cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
@@ -129,6 +130,7 @@ resource "aws_cloudfront_distribution" "site" {
     path_pattern           = "/_next/static/*"
     target_origin_id       = "static-origin"
     viewer_protocol_policy = "redirect-to-https"
+    compress               = true
     cache_policy_id        = aws_cloudfront_cache_policy.static_long.id
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
@@ -139,6 +141,7 @@ resource "aws_cloudfront_distribution" "site" {
     path_pattern                 = "/_next/image*"
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
+    compress                     = true
     cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS"]
@@ -150,6 +153,7 @@ resource "aws_cloudfront_distribution" "site" {
     path_pattern                 = "/api/*"
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
+    compress                     = true
     cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
     origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
