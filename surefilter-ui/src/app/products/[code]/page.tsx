@@ -15,6 +15,10 @@ interface PageProps {
 // Revalidate every 24 hours
 export const revalidate = 86400;
 
+export function generateStaticParams() {
+  return [];
+}
+
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { code } = await params;

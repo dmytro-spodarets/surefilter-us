@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 21 февраля 2026
+> Последнее обновление: 21 февраля 2026 (ISR parametric routes fix)
 
 ---
 
@@ -267,6 +267,9 @@ npm run seed:content:force  # С перезаписью
    - Product pages: `revalidate = 86400` (24 часа)
    - Admin pages: `force-dynamic` (через server component layout)
    - On-demand invalidation: `invalidatePages()` из `src/lib/revalidate.ts`
+   - **Cache key включает `RSC` + `Next-Router-Prefetch`** — HTML и RSC payload кэшируются отдельно
+   - **Параметрические роуты**: обязательно `generateStaticParams()` (даже `return []`) — без него Next.js не включает ISR
+   - **Re-export**: `[slug]/page.tsx` должен экспортировать `revalidate` вместе с `default` и `generateMetadata`
 4. **Docker build**: `NEXT_BUILD_SKIP_DB=1` — Prisma stub, нет подключения к БД при сборке
 5. **Post-deploy warm-up**: `scripts/warm-up.sh` вызывает `/api/warm-up` после старта сервера — обновляет ISR кэш реальными данными из БД (build-time страницы пустые)
 6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)

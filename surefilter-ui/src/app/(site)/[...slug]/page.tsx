@@ -8,6 +8,12 @@ import { notFound } from 'next/navigation';
 
 export const revalidate = 3600;
 
+// Enable ISR for catch-all dynamic routes (e.g. /heavy-duty/air-filters).
+// Returning [] means no pages pre-rendered at build; all rendered on-demand and cached.
+export function generateStaticParams() {
+  return [];
+}
+
 function joinSlug(segments: string[] | string | undefined) {
   if (Array.isArray(segments)) return segments.join('/');
   if (typeof segments === 'string') return segments;

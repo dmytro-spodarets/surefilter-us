@@ -61,6 +61,7 @@
 - [x] Image optimization pipeline
 - [x] Admin action logging (`/admin/logs`)
 - [x] ISR + CloudFront кэширование (on-demand invalidation)
+- [x] ISR для параметрических роутов (`generateStaticParams` + revalidate re-export)
 - [x] CloudFront gzip/brotli compression
 - [x] Чистые Docker билды (Prisma build-time stub)
 
@@ -148,5 +149,6 @@
 - ✅ IAM cloudfront:CreateInvalidation permission
 - ✅ Post-deploy warm-up (/api/warm-up + scripts/warm-up.sh)
 - ✅ Terraform cycle fix (CLOUDFRONT_DISTRIBUTION_ID → SSM parameter)
+- ✅ CloudFront RSC cache key (RSC + Next-Router-Prefetch в cache policy)
 
 </details>

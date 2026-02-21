@@ -6,6 +6,11 @@ import { prisma } from '@/lib/prisma';
 import { getNewsArticlePageSettings } from '@/lib/site-settings';
 
 export const revalidate = 3600;
+
+export function generateStaticParams() {
+  return [];
+}
+
 import { getAssetUrl } from '@/lib/assets';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';

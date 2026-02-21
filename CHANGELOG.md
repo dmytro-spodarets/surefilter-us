@@ -13,6 +13,8 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-02-21 — ISR fix для параметрических роутов: добавлен generateStaticParams() на все публичные [slug] страницы + исправлен re-export revalidate в [slug]/page.tsx — все CMS/news/resources/product страницы теперь кэшируются (были force-dynamic)
+- 2026-02-21 — CloudFront RSC cache key fix: RSC и Next-Router-Prefetch добавлены в cache policy headers — HTML и RSC flight payload кэшируются раздельно, исправлена проблема с отображением сырого JSON в браузере
 - 2026-02-21 — Post-deploy warm-up: /api/warm-up endpoint + scripts/warm-up.sh автоматически обновляет ISR кэш после старта сервера, пустые build-time страницы заменяются реальным контентом за секунды
 - 2026-02-21 — Terraform cycle fix: CLOUDFRONT_DISTRIBUTION_ID перенесён из env vars в SSM parameter (runtime_environment_secrets), terraform_data + local-exec обновляет SSM после создания CloudFront
 - 2026-02-21 — ISR + CloudFront кэширование: убран force-dynamic из root layout, добавлен revalidate на публичные страницы (5мин/1ч/24ч), on-demand инвалидация CloudFront + ISR при редактировании в админке (src/lib/revalidate.ts), CloudFront max_ttl увеличен до 86400

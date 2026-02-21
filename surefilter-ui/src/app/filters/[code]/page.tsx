@@ -4,6 +4,12 @@ import CompactHero from '@/components/sections/CompactHero';
 import ProductGallery from '@/components/sections/ProductGallery';
 import ProductSpecs from '@/components/sections/ProductSpecs';
 
+export const revalidate = 86400;
+
+export function generateStaticParams() {
+  return [];
+}
+
 interface PageProps {
   params: Promise<{ code: string }>;
 }

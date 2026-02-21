@@ -6,6 +6,11 @@ import { DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
 
 export const revalidate = 3600;
+
+export function generateStaticParams() {
+  return [];
+}
+
 import { getAssetUrl } from '@/lib/assets';
 import ResourceDownloadForm from './ResourceDownloadForm';
 import RelatedResources from '@/components/sections/RelatedResources';

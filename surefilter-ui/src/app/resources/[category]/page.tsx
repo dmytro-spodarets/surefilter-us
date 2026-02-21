@@ -8,6 +8,10 @@ import { prisma } from '@/lib/prisma';
 
 export const revalidate = 300;
 
+export function generateStaticParams() {
+  return [];
+}
+
 interface PageProps {
   params: Promise<{ category: string }>;
 }

@@ -27,7 +27,13 @@ resource "aws_cloudfront_cache_policy" "no_cache_compressed" {
   parameters_in_cache_key_and_forwarded_to_origin {
     enable_accept_encoding_gzip   = true
     enable_accept_encoding_brotli = true
-    headers_config { header_behavior = "none" }
+    headers_config {
+      # RSC and Next-Router-Prefetch MUST be in the cache key so CloudFront
+      # caches HTML and RSC flight payloads separately. Without this,
+      # a prefetch (RSC:1) response can be served for normal HTML requests.
+      header_behavior = "whitelist"
+      headers { items = ["RSC", "Next-Router-Prefetch"] }
+    }
     cookies_config { cookie_behavior = "none" }
     query_strings_config { query_string_behavior = "none" }
   }
