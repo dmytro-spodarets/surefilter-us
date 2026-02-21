@@ -2,10 +2,6 @@ locals {
   origin_domain = replace(replace(aws_apprunner_service.surefilter.service_url, "https://", ""), "/", "")
 }
 
-data "aws_cloudfront_cache_policy" "caching_disabled" {
-  name = "Managed-CachingDisabled"
-}
-
 resource "aws_cloudfront_cache_policy" "static_long" {
   name        = "surefilter-static-long"
   default_ttl = 31536000
@@ -20,22 +16,45 @@ resource "aws_cloudfront_cache_policy" "static_long" {
   }
 }
 
-// Removed image optimizer specific policies to fully passthrough to App Runner
-
-data "aws_cloudfront_origin_request_policy" "all_viewer" {
-  name = "Managed-AllViewer"
+# Custom cache policy that forwards Accept-Encoding to the origin.
+# Managed-CachingDisabled has enable_accept_encoding_* = false so the origin
+# never sees Accept-Encoding and can't compress streaming responses.
+# max_ttl must be > 0 for CloudFront to allow enable_accept_encoding_*.
+# Next.js sends Cache-Control: no-store for dynamic pages, so no actual caching occurs.
+resource "aws_cloudfront_cache_policy" "no_cache_compressed" {
+  name        = "surefilter-no-cache-compressed"
+  default_ttl = 0
+  max_ttl     = 1
+  min_ttl     = 0
+  parameters_in_cache_key_and_forwarded_to_origin {
+    enable_accept_encoding_gzip   = true
+    enable_accept_encoding_brotli = true
+    headers_config { header_behavior = "none" }
+    cookies_config { cookie_behavior = "none" }
+    query_strings_config { query_string_behavior = "none" }
+  }
 }
 
 resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
   name    = "surefilter-app-runner-min"
-  comment = "Forward all viewer headers, cookies and query strings to App Runner origin"
+  comment = "Forward essential headers, all cookies and query strings to App Runner"
   headers_config {
-    # allViewer forwards ALL viewer headers including Accept-Encoding, Origin, X-Forwarded-Host, RSC headers, etc.
-    # For custom origins, CloudFront automatically sets Host to the origin domain name (not the viewer Host),
-    # so App Runner routing is not affected.
-    # This enables Next.js to handle compression for streaming responses
-    # (CloudFront compress can't work without Content-Length in origin response).
-    header_behavior = "allViewer"
+    # Whitelist headers needed by Next.js App Router.
+    # Accept-Encoding is forwarded via the cache policy (enable_accept_encoding_*).
+    # Host is NOT included — CloudFront sends origin domain to App Runner by default.
+    header_behavior = "whitelist"
+    headers {
+      items = [
+        "X-Forwarded-Host",      # Set by CF Function — Next.js Server Actions origin check
+        "RSC",                    # React Server Components streaming
+        "Next-Router-State-Tree", # Next.js client-side navigation
+        "Next-Router-Prefetch",   # Next.js prefetch
+        "Next-Url",               # Next.js middleware
+        "Accept",                 # Content negotiation
+        "Origin",                 # CORS
+        "Referer",                # Analytics / CSRF
+      ]
+    }
   }
   cookies_config {
     cookie_behavior = "all"
@@ -102,7 +121,7 @@ resource "aws_cloudfront_distribution" "site" {
   default_cache_behavior {
     target_origin_id       = "apprunner-origin"
     viewer_protocol_policy = "redirect-to-https"
-    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_disabled.id
+    cache_policy_id          = aws_cloudfront_cache_policy.no_cache_compressed.id
     origin_request_policy_id = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
@@ -125,12 +144,12 @@ resource "aws_cloudfront_distribution" "site" {
     cached_methods         = ["GET", "HEAD"]
   }
 
-  // route image optimizer to App Runner without special policies
+  // route image optimizer to App Runner
   ordered_cache_behavior {
     path_pattern                 = "/_next/image*"
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
-    cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
+    cache_policy_id              = aws_cloudfront_cache_policy.no_cache_compressed.id
     origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS"]
     cached_methods               = ["GET", "HEAD"]
@@ -141,7 +160,7 @@ resource "aws_cloudfront_distribution" "site" {
     path_pattern                 = "/api/*"
     target_origin_id             = "apprunner-origin"
     viewer_protocol_policy       = "redirect-to-https"
-    cache_policy_id              = data.aws_cloudfront_cache_policy.caching_disabled.id
+    cache_policy_id              = aws_cloudfront_cache_policy.no_cache_compressed.id
     origin_request_policy_id     = aws_cloudfront_origin_request_policy.app_runner_min.id
     allowed_methods              = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods               = ["GET", "HEAD"]
