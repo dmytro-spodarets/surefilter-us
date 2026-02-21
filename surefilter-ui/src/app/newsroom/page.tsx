@@ -2,37 +2,61 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicNewsroomHero from '@/components/sections/DynamicNewsroomHero';
 import NewsroomClient from './NewsroomClient';
+import { prisma } from '@/lib/prisma';
 
 // Server Component - SEO оптимизирован ✅
-// Все данные загружаются на сервере
+// Все данные загружаются на сервере напрямую из БД
 export default async function NewsroomPage() {
-  // Загружаем данные на сервере
-  // В dev режиме используем localhost, в production - полный URL
-  const baseUrl = process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3000'
-    : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
-  
-  const [eventsRes, newsRes] = await Promise.all([
-    fetch(`${baseUrl}/api/news?type=EVENT&featured=true&limit=10`, { cache: 'no-store' }),
-    fetch(`${baseUrl}/api/news?type=NEWS&limit=10`, { cache: 'no-store' })
+  const now = new Date();
+
+  const [events, news] = await Promise.all([
+    // Featured future events, sorted by soonest first
+    prisma.newsArticle.findMany({
+      where: {
+        status: 'PUBLISHED',
+        publishedAt: { lte: now },
+        type: 'EVENT',
+        isFeatured: true,
+        eventStartDate: { gte: now },
+      },
+      include: {
+        category: {
+          select: { id: true, name: true, slug: true, color: true, icon: true },
+        },
+      },
+      orderBy: { eventStartDate: 'asc' },
+      take: 10,
+    }),
+    // Latest news, sorted by newest first
+    prisma.newsArticle.findMany({
+      where: {
+        status: 'PUBLISHED',
+        publishedAt: { lte: now },
+        type: 'NEWS',
+      },
+      include: {
+        category: {
+          select: { id: true, name: true, slug: true, color: true, icon: true },
+        },
+      },
+      orderBy: { publishedAt: 'desc' },
+      take: 10,
+    }),
   ]);
-  
-  const eventsData = await eventsRes.json();
-  const newsData = await newsRes.json();
-  
+
   return (
     <main>
       <Header />
-      
+
       {/* Hero Section - Server Component, данные в HTML */}
       <DynamicNewsroomHero />
-      
+
       {/* Interactive Content - Client Component с server data */}
-      <NewsroomClient 
-        initialEvents={eventsData.articles || []}
-        initialNews={newsData.articles || []}
+      <NewsroomClient
+        initialEvents={JSON.parse(JSON.stringify(events))}
+        initialNews={JSON.parse(JSON.stringify(news))}
       />
-      
+
       <Footer />
     </main>
   );

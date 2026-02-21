@@ -12,12 +12,7 @@ interface PageProps {
 // Server Component - SEO оптимизирован ✅
 export default async function ResourcesCategoryPage({ params }: PageProps) {
   const { category } = await params;
-  
-  // Загружаем данные на сервере
-  const baseUrl = process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3000'
-    : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
-  
+
   // Проверяем существует ли категория
   const categoryData = await prisma.resourceCategory.findFirst({
     where: {
@@ -30,34 +25,71 @@ export default async function ResourcesCategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  const [resourcesRes, categoriesRes] = await Promise.all([
-    fetch(`${baseUrl}/api/resources?category=${category}`, { cache: 'no-store' }),
-    fetch(`${baseUrl}/api/resources/categories`, { cache: 'no-store' })
+  const [resources, categories] = await Promise.all([
+    prisma.resource.findMany({
+      where: {
+        status: 'PUBLISHED',
+        publishedAt: { lte: new Date() },
+        category: { slug: category, isActive: true },
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        shortDescription: true,
+        thumbnailImage: true,
+        file: true,
+        fileType: true,
+        fileSize: true,
+        fileMeta: true,
+        allowDirectDownload: true,
+        allowPreview: true,
+        publishedAt: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            icon: true,
+            color: true,
+          },
+        },
+      },
+      orderBy: { publishedAt: 'desc' },
+    }),
+    prisma.resourceCategory.findMany({
+      where: { isActive: true },
+      include: {
+        _count: {
+          select: {
+            resources: {
+              where: {
+                status: 'PUBLISHED',
+                publishedAt: { lte: new Date() },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { position: 'asc' },
+    }),
   ]);
-  
-  const resourcesData = await resourcesRes.json();
-  const categoriesData = await categoriesRes.json();
-  
-  const resources = resourcesData.resources || [];
-  const categories = Array.isArray(categoriesData) ? categoriesData : [];
-  
+
   return (
     <main>
       <Header />
-      
+
       {/* Hero Section - Server Component, данные в HTML */}
       <DynamicResourcesHero />
-      
+
       {/* Interactive Content - Client Component с server data */}
-      <ResourcesClient 
-        initialResources={resources}
-        initialCategories={categories}
+      <ResourcesClient
+        initialResources={JSON.parse(JSON.stringify(resources))}
+        initialCategories={JSON.parse(JSON.stringify(categories))}
         initialCategory={category}
       />
-      
+
       <Footer />
     </main>
   );
 }
-
-// Generate metadata for SEO
