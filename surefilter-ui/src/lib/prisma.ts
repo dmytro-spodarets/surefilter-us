@@ -10,20 +10,13 @@ const globalForPrisma = globalThis as unknown as {
 
 // Build-time stub: returns a Proxy that throws on any model method call
 // without attempting a real DB connection (no TLS errors in build logs).
-// Calls unstable_noStore() before throwing so Next.js won't cache
-// the empty prerender — ISR generates fresh content on first real request.
+// Pages catch these errors and render with empty data during build.
+// Post-deploy warm-up (/api/warm-up) calls revalidatePath to refresh ISR cache.
 function createBuildTimeStub(): PrismaClient {
   const buildError = new Error('Database not available during build');
   const modelProxy = new Proxy({}, {
     get() {
-      return () => {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const { unstable_noStore } = require('next/cache');
-          unstable_noStore();
-        } catch { /* outside of request context (e.g. generateStaticParams) */ }
-        throw buildError;
-      };
+      return () => { throw buildError; };
     },
   });
   return new Proxy({} as PrismaClient, {

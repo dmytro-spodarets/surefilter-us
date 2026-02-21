@@ -146,5 +146,7 @@
 - ✅ Admin layout isolation (force-dynamic via server wrapper)
 - ✅ Build-time Prisma stub (NEXT_BUILD_SKIP_DB)
 - ✅ IAM cloudfront:CreateInvalidation permission
+- ✅ Post-deploy warm-up (/api/warm-up + scripts/warm-up.sh)
+- ✅ Terraform cycle fix (CLOUDFRONT_DISTRIBUTION_ID → SSM parameter)
 
 </details>

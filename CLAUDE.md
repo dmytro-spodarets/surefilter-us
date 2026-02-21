@@ -160,6 +160,7 @@ surefilter-us/
 
 ### Публичные
 - `GET /api/health` — health check
+- `GET /api/warm-up` — post-deploy ISR warm-up (localhost only)
 - `POST /api/forms/[slug]/submit` — отправка формы
 - `GET /api/news`, `GET /api/resources`
 - `GET /robots.txt` — динамический robots.txt
@@ -267,9 +268,10 @@ npm run seed:content:force  # С перезаписью
    - Admin pages: `force-dynamic` (через server component layout)
    - On-demand invalidation: `invalidatePages()` из `src/lib/revalidate.ts`
 4. **Docker build**: `NEXT_BUILD_SKIP_DB=1` — Prisma stub, нет подключения к БД при сборке
-5. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)
-6. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
-7. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД
+5. **Post-deploy warm-up**: `scripts/warm-up.sh` вызывает `/api/warm-up` после старта сервера — обновляет ISR кэш реальными данными из БД (build-time страницы пустые)
+6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)
+7. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
+8. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД
 
 ---
 

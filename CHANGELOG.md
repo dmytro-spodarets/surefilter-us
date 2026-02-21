@@ -13,6 +13,8 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-02-21 — Post-deploy warm-up: /api/warm-up endpoint + scripts/warm-up.sh автоматически обновляет ISR кэш после старта сервера, пустые build-time страницы заменяются реальным контентом за секунды
+- 2026-02-21 — Terraform cycle fix: CLOUDFRONT_DISTRIBUTION_ID перенесён из env vars в SSM parameter (runtime_environment_secrets), terraform_data + local-exec обновляет SSM после создания CloudFront
 - 2026-02-21 — ISR + CloudFront кэширование: убран force-dynamic из root layout, добавлен revalidate на публичные страницы (5мин/1ч/24ч), on-demand инвалидация CloudFront + ISR при редактировании в админке (src/lib/revalidate.ts), CloudFront max_ttl увеличен до 86400
 - 2026-02-21 — Чистые Docker билды: Prisma build-time stub (NEXT_BUILD_SKIP_DB=1) — нет подключения к БД при сборке контейнера, нет prisma:error в логах
 - 2026-02-21 — Admin layout refactoring: разделён на server component (force-dynamic) + client component (AdminClientLayout.tsx), убраны дублирующие html/body теги

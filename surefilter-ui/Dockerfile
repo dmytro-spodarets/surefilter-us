@@ -67,5 +67,10 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000', r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
-# Start the Next.js server (standalone)
-CMD ["node", "server.js"]
+# Copy warm-up script that refreshes ISR cache after server start.
+# Build prerender produces empty pages (no DB); warm-up calls revalidatePath
+# so ISR regenerates with real data before the first user request.
+COPY --chown=nextjs:nodejs --from=build /app/scripts/warm-up.sh ./scripts/warm-up.sh
+
+# Start the Next.js server and run warm-up in background
+CMD node server.js & SERVER_PID=$! && sh scripts/warm-up.sh && wait $SERVER_PID
