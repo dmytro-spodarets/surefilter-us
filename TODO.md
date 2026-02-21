@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 21 января 2026
+**Последнее обновление:** 20 февраля 2026
 
 ---
 
@@ -78,7 +78,8 @@
 - [ ] Accessibility audit (axe-core)
 
 ### Analytics
-- [ ] Google Analytics / Plausible
+- [x] Google Analytics 4 (GA Measurement ID из админки, @next/third-parties/google)
+- [x] Google Tag Manager (GTM Container ID из админки)
 - [ ] Error tracking (Sentry)
 - [ ] Web Vitals мониторинг
 
@@ -95,7 +96,7 @@
 - PWA / Service Worker
 - Переключение единиц (mm ↔ in)
 - Structured data (JSON-LD) для продуктов
-- sitemap.xml генерация
+- Per-page SEO meta tags (отдельная задача)
 
 ---
 
@@ -126,5 +127,13 @@
 - ✅ Prisma 7 Migration
 - ✅ Catalog Integration
 - ✅ Admin Logging System
+
+### Analytics & SEO (February 2026)
+- ✅ Google Analytics 4 (@next/third-parties/google)
+- ✅ Google Tag Manager
+- ✅ Dynamic robots.txt (seoRobotsBlock toggle)
+- ✅ Dynamic sitemap.xml (pages, products, news, resources)
+- ✅ llms.txt + llms-full.txt (llmstxt.org format)
+- ✅ News Article Page Settings (configurable hero)
 
 </details>

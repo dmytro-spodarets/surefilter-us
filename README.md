@@ -4,40 +4,36 @@
 
 > **🤖 Для AI Ассистентов:** См. [CLAUDE.md](./CLAUDE.md) — Quick Reference для быстрой ориентации в проекте.
 
-## ✨ Последние обновления (January 16, 2026)
+## ✨ Последние обновления (February 20, 2026)
 
-### 🆕 Публичные страницы продуктов
-- ✅ **`/products/[code]`** - индивидуальная страница для каждого продукта
-- ✅ Интеграция с каталогом производителя SURE FILTER
-- ✅ Парсинг HTML → структурированные данные
-- ✅ ISR кэширование (24 часа)
-- ✅ SEO оптимизация с Open Graph
-- ✅ Graceful degradation (Coming Soon / Error pages)
+### 📊 Analytics & Tag Manager
+- ✅ **Google Analytics 4** — `@next/third-parties/google`, GA Measurement ID из админки
+- ✅ **Google Tag Manager** — GTM Container ID из админки
+- ✅ Автоматический трекинг SPA-навигаций (GA4 Enhanced Measurement)
+- ✅ Клиентские хелперы для кастомных событий (`src/lib/analytics.ts`)
+- ✅ Только публичные страницы (admin layout изолирован)
 
-### 🔗 Условные ссылки в каталоге
-- ✅ Автоматическая проверка `manufacturerCatalogUrl`
-- ✅ Кликабельные карточки только для продуктов с данными
-- ✅ Disabled состояние без визуальных индикаторов
+### 🔍 SEO/GEO Dynamic Files
+- ✅ **`/robots.txt`** — динамический из БД, toggle блокировки в админке
+- ✅ **`/sitemap.xml`** — все страницы, продукты, новости, ресурсы из БД
+- ✅ **`/llms.txt`** — формат llmstxt.org для LLM-краулеров (ChatGPT, Claude, Perplexity)
+- ✅ **`/llms-full.txt`** — расширенная версия с деталями продуктов и новостей
+- ✅ Секция "SEO & LLM" в админке с описанием для LLM и блокировкой краулеров
 
-### 🗄️ База данных
-- ✅ Поле `Product.name` теперь опциональное
-- ✅ `Product.manufacturerCatalogUrl` для интеграции
-- ✅ Миграции применены
-
-📚 **Подробная документация:**
-- [CATALOG_INTEGRATION.md](./CATALOG_INTEGRATION.md) - Интеграция каталога
-- [PRODUCT_PAGES.md](./PRODUCT_PAGES.md) - Публичные страницы продуктов
+### 📰 News Article Page Settings
+- ✅ Настраиваемые hero title, description, image для `/newsroom/[slug]`
+- ✅ Отдельные настройки для новостей и событий в админке
 
 ---
 
 ### Состав и версии
-- Next.js 15.5.7 (App Router)
+- Next.js 15.5.9 (App Router)
 - React 19.0.0
 - Tailwind CSS 4.1.11
 - Node.js 20.x (LTS)
 - Prisma 7.1.0 (с PostgreSQL driver adapter)
 - JSDOM 27.x (HTML parsing)
-- Библиотеки: `@heroicons/react`, `react-icons`, `clsx` + `tailwind-merge` (утилита `cn`)
+- Библиотеки: `@heroicons/react`, `react-icons`, `clsx` + `tailwind-merge` (утилита `cn`), `@next/third-parties` (GA4/GTM)
 
 ### Страницы и навигация (актуально)
 - Главные разделы: `/` (home), `/about-us`, `/heavy-duty`, `/automotive`, `/industries`, `/resources`, `/newsroom`, `/warranty`, `/contact-us`, `/test-colors`
@@ -57,7 +53,7 @@
   - `/admin/resources` — управление ресурсами и категориями
   - `/admin/forms` — конструктор форм и просмотр submissions
   - `/admin/files` — файл-менеджер (S3/MinIO)
-  - `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages)
+  - `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages, Analytics, SEO & LLM)
   - **✨ `/admin/products`** — **ОБНОВЛЕНО!** Управление каталогом продуктов:
     - `/admin/products` — список продуктов с поиском и фильтрами
     - `/admin/products/new` — создание продукта
@@ -88,12 +84,13 @@
 - `ui/`: `Button`, `Card`, `Icon`, `Input`, `Logo`, `Pagination`, `ManagedImage` (с shimmer placeholder)
 - `admin/`: компоненты админ-панели (AdminNav, Breadcrumbs, форм-редакторы)
 - `seo/`: `SEO`
-- `lib/`: 
+- `lib/`:
   - `utils.ts` — `cn(...classes)`
   - `assets.ts` — `getAssetUrl`, `getOptimizedImageUrl`, `isAssetPath`
-  - `site-settings.ts` — `getHeaderNavigation`, `getFooterContent` (Server-side)
+  - `site-settings.ts` — `getHeaderNavigation`, `getFooterContent`, `getGaMeasurementId`, `getGtmId` (Server-side)
+  - `analytics.ts` — `sendGAEvent`, `trackFormSubmit`, `trackButtonClick` (Client-side)
   - `prisma.ts` — глобальный Prisma client
-  - **✨ `catalog-parser.ts`** — **НОВОЕ!** парсинг HTML каталогов производителя (JSDOM)
+  - `catalog-parser.ts` — парсинг HTML каталогов производителя (JSDOM)
 
 ### Иконки
 - Компонент `Icon` принимает: `name`, `variant: 'outline' | 'solid'`, `size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'`, `color: 'sure-blue' | 'sure-orange' | 'gray' | 'white' | 'current'`.
@@ -118,8 +115,19 @@
   - Client Components только где необходима интерактивность
   - Lazy loading изображений с shimmer placeholder
 
-### SEO
-- Базовые метаданные и `metadataBase` задаются в `app/layout.tsx` через переменную окружения `NEXT_PUBLIC_SITE_URL`.
+### SEO & GEO
+- Базовые метаданные и `metadataBase` задаются в `app/layout.tsx` через переменную окружения `NEXT_PUBLIC_SITE_URL`
+- **Dynamic robots.txt** (`src/app/robots.ts`): Next.js Metadata API, блокировка через админку (`seoRobotsBlock`)
+- **Dynamic sitemap.xml** (`src/app/sitemap.ts`): CMS pages, products, news, resources
+- **llms.txt / llms-full.txt** (`src/app/llms.txt/route.ts`, `src/app/llms-full.txt/route.ts`): формат llmstxt.org для LLM-краулеров
+- Все SEO-файлы `force-dynamic` (генерируются из БД на каждый запрос)
+
+### Analytics
+- **Google Analytics 4**: `@next/third-parties/google` `GoogleAnalytics` в root layout
+- **Google Tag Manager**: `@next/third-parties/google` `GoogleTagManager` в root layout
+- GA Measurement ID и GTM Container ID хранятся в БД (`SiteSettings`), настраиваются через админку
+- Применяются только к публичным страницам (admin layout имеет собственный `<html>`)
+- Client-side хелперы: `src/lib/analytics.ts` (`trackFormSubmit`, `trackButtonClick`, `trackEvent`)
 
 ### Изображения и файлы
 - **Next.js Image оптимизация** (все компоненты используют `next/image` для автоматической WebP/AVIF конвертации):
@@ -614,6 +622,35 @@ docker compose -f docker/docker-compose.yml down
 - **Документация**:
   - ✅ Создан `TODO.md` с roadmap
   - ✅ Обновлен `README.md`
+
+### Обновления (February 20, 2026) - Analytics, SEO/GEO, News Settings
+
+- **📊 Google Analytics 4 & Tag Manager**:
+  - ✅ `@next/third-parties/google` — GA4 + GTM в root layout
+  - ✅ GA Measurement ID и GTM Container ID из админки (не env)
+  - ✅ Секция "Analytics & Tag Manager" в Site Settings
+  - ✅ Client-side хелперы в `src/lib/analytics.ts`
+  - ✅ Предупреждение о дублировании при одновременном использовании GA + GTM
+
+- **🔍 Dynamic SEO/GEO Files**:
+  - ✅ `src/app/robots.ts` — динамический robots.txt (Next.js Metadata API)
+  - ✅ `src/app/sitemap.ts` — sitemap.xml из БД (pages, products, news, resources)
+  - ✅ `src/app/llms.txt/route.ts` — llms.txt (формат llmstxt.org)
+  - ✅ `src/app/llms-full.txt/route.ts` — расширенная версия с продуктами/новостями
+  - ✅ Удален статический `public/robots.txt`
+  - ✅ Секция "SEO & LLM" в админке (блокировка краулеров + описание для LLM)
+
+- **📰 News Article Page Settings**:
+  - ✅ Настраиваемые hero для `/newsroom/[slug]` (title, description, image)
+  - ✅ Отдельные настройки для News Articles и Events
+
+- **🗄️ Новые поля SiteSettings**:
+  - `gaMeasurementId`, `gtmId` — Analytics
+  - `seoRobotsBlock`, `llmsSiteDescription` — SEO
+  - `newsArticleTitle`, `newsArticleDescription`, `newsArticleHeroImage` — News
+  - `eventArticleTitle`, `eventArticleDescription`, `eventArticleHeroImage` — Events
+
+---
 
 ### Обновления (January 16, 2026) - Product Pages Integration
 

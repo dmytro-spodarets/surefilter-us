@@ -2,7 +2,7 @@
 
 Технические руководства по настройке и работе с проектом Sure Filter US.
 
-**Последнее обновление:** 21 января 2026
+**Последнее обновление:** 20 февраля 2026
 
 ---
 
@@ -14,8 +14,10 @@
 4. [File Manager (S3/MinIO)](#-file-manager-s3minio)
 5. [Universal Forms System](#-universal-forms-system)
 6. [Admin Logging](#-admin-logging)
-7. [Deployment](#-deployment)
-8. [Component Guides](#-component-guides)
+7. [Analytics (GA4 + GTM)](#-analytics-ga4--gtm)
+8. [SEO/GEO Dynamic Files](#-seogeo-dynamic-files)
+9. [Deployment](#-deployment)
+10. [Component Guides](#-component-guides)
 
 ---
 
@@ -259,6 +261,92 @@ await logAdminAction({
   ...metadata,
 });
 ```
+
+---
+
+## 📊 Analytics (GA4 + GTM)
+
+### Настройка
+
+GA Measurement ID и GTM Container ID хранятся **только в БД** (не в env), настраиваются через:
+`/admin/settings/site` → Special Pages → Analytics & Tag Manager
+
+### Архитектура
+
+```
+root layout (src/app/layout.tsx)
+├── GoogleTagManager (перед <head>)
+├── <head> ... </head>
+├── <body> {children} </body>
+└── GoogleAnalytics (после <body>)
+```
+
+- Библиотека: `@next/third-parties/google`
+- Применяется только к публичным страницам (admin layout изолирован)
+- GA4 Enhanced Measurement автоматически трекает SPA-навигации
+
+### Client-side Events
+
+```typescript
+import { trackFormSubmit, trackButtonClick, trackEvent } from '@/lib/analytics';
+
+// Трекинг формы
+trackFormSubmit('contact-form');
+
+// Трекинг клика
+trackButtonClick('cta-button', '/catalog');
+
+// Произвольное событие
+trackEvent('popup_open', { popup_name: 'warranty' });
+```
+
+### Добавление нового трекинга
+
+1. Импортировать хелпер из `src/lib/analytics.ts`
+2. Вызвать в обработчике события (Client Component)
+3. Или добавить новый хелпер в `analytics.ts`
+
+---
+
+## 🔍 SEO/GEO Dynamic Files
+
+### Обзор
+
+Все SEO-файлы генерируются динамически из БД:
+
+| Файл | Источник | Тип |
+|------|----------|-----|
+| `/robots.txt` | `src/app/robots.ts` | Next.js Metadata API |
+| `/sitemap.xml` | `src/app/sitemap.ts` | Next.js Metadata API |
+| `/llms.txt` | `src/app/llms.txt/route.ts` | API Route |
+| `/llms-full.txt` | `src/app/llms-full.txt/route.ts` | API Route |
+
+### robots.txt
+
+Управляется через админку: `/admin/settings/site` → SEO & LLM → "Block All Search Engines"
+
+- **Обычный режим**: Allow `/`, Disallow `/admin/`, `/api/`, `/login`, `/catalog-viewer`, ссылка на sitemap
+- **Блокировка**: `Disallow: /` для всех user-agents (для staging)
+
+### sitemap.xml
+
+Автоматически включает:
+- Статические страницы (home, newsroom, resources, catalog)
+- CMS страницы (`Page` model, status: published)
+- Продукты (`Product` model, все)
+- Новости (`NewsArticle`, status: PUBLISHED, publishedAt <= now)
+- Ресурсы (`Resource`, status: PUBLISHED, с category slug)
+
+### llms.txt
+
+Формат: Markdown по стандарту [llmstxt.org](https://llmstxt.org)
+- Описание сайта из `SiteSettings.llmsSiteDescription` (настраивается в админке)
+- Автоматический список CMS-страниц, ссылки на каталог, ресурсы, новости
+- `llms-full.txt` — расширенная версия с деталями продуктов (по filter type), новостями (последние 20), ресурсами (по категориям)
+
+### Кэширование
+
+Все файлы: `Cache-Control: public, max-age=3600` (1 час для llms.txt), `force-dynamic` (без static generation)
 
 ---
 

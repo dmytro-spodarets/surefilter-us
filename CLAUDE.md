@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 21 января 2026
+> Последнее обновление: 20 февраля 2026
 
 ---
 
@@ -10,13 +10,14 @@
 **Sure Filter US** — корпоративный сайт производителя автомобильных фильтров с полнофункциональной CMS системой.
 
 **Технологический стек:**
-- **Framework:** Next.js 15.5.7 (App Router, Server Components)
+- **Framework:** Next.js 15.5.9 (App Router, Server Components)
 - **React:** 19.0.0
 - **Styling:** Tailwind CSS 4.1.11
 - **Database:** PostgreSQL + Prisma ORM 7.1.0 (с pg adapter)
 - **Storage:** AWS S3 + CloudFront CDN
 - **Hosting:** AWS App Runner
 - **Auth:** NextAuth.js (credentials)
+- **Analytics:** Google Analytics 4 + Google Tag Manager (`@next/third-parties/google`)
 
 ---
 
@@ -46,6 +47,8 @@ surefilter-us/
 │   │   │   ├── prisma.ts       # Prisma client
 │   │   │   ├── assets.ts       # CDN URL helpers
 │   │   │   ├── auth.ts         # NextAuth config
+│   │   │   ├── analytics.ts    # GA4 event tracking helpers
+│   │   │   ├── site-settings.ts # Settings + cache + helpers
 │   │   │   └── catalog-parser.ts # HTML парсинг каталога
 │   │   └── generated/prisma/   # Сгенерированный Prisma client
 │   ├── prisma/
@@ -67,7 +70,7 @@ surefilter-us/
 - `Section` — секции страниц (type enum, data JSON)
 - `PageSection` — связь page-section с позицией
 - `SharedSection` — переиспользуемые секции
-- `SiteSettings` — глобальные настройки (header, footer)
+- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO)
 
 ### Каталог продуктов
 - `Product` — продукты (code, brand, filterType, manufacturerCatalogUrl)
@@ -132,6 +135,12 @@ surefilter-us/
 - `/newsroom`, `/newsroom/[slug]`
 - `/resources`, `/resources/[category]/[slug]`
 
+### SEO/GEO (динамические)
+- `/robots.txt` — динамический, из `src/app/robots.ts` (SiteSettings.seoRobotsBlock)
+- `/sitemap.xml` — динамический, из `src/app/sitemap.ts` (все страницы, продукты, новости, ресурсы)
+- `/llms.txt` — для LLM-краулеров, из `src/app/llms.txt/route.ts` (llmstxt.org формат)
+- `/llms-full.txt` — расширенная версия с деталями продуктов и новостей
+
 ### Админка (`/admin/*`)
 - `/admin/pages` — управление страницами
 - `/admin/products` — каталог продуктов
@@ -151,6 +160,9 @@ surefilter-us/
 - `GET /api/health` — health check
 - `POST /api/forms/[slug]/submit` — отправка формы
 - `GET /api/news`, `GET /api/resources`
+- `GET /robots.txt` — динамический robots.txt
+- `GET /sitemap.xml` — динамический sitemap
+- `GET /llms.txt`, `GET /llms-full.txt` — LLM контент
 
 ### Админские (`/api/admin/*`)
 - CRUD для pages, sections, products, news, resources, forms
@@ -229,6 +241,12 @@ npm run seed:content:force  # С перезаписью
 - Ответы: `{ data }` или `{ error, message }`
 - Логирование через `logAdminAction()`
 
+### Analytics
+- GA4 и GTM ID хранятся только в БД (SiteSettings), не в env
+- `@next/third-parties/google` — `GoogleAnalytics` + `GoogleTagManager` в root layout
+- Применяются только к публичным страницам (admin layout изолирован)
+- `src/lib/analytics.ts` — клиентские хелперы (`trackFormSubmit`, `trackButtonClick`, etc.)
+
 ---
 
 ## Известные особенности
@@ -236,8 +254,10 @@ npm run seed:content:force  # С перезаписью
 1. **Prisma 7**: `prisma.config.ts` должен быть в корне surefilter-ui/, не в prisma/
 2. **Поиск отключен**: Временно закомментирован для Phase 1 (TODO в компонентах)
 3. **ISR**: Product pages кэшируются 24 часа
-4. **Dynamic rendering**: `force-dynamic` в root layout
+4. **Dynamic rendering**: `force-dynamic` в root layout и SEO-файлах
 5. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)
+6. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
+7. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД
 
 ---
 
@@ -275,7 +295,7 @@ npm run seed:content:force  # С перезаписью
 **Где добавить новый тип секции?**
 → 1) Enum в schema.prisma 2) Компонент в sections/ 3) Форма в admin/pages/[slug]/sections/ 4) Обработка в cms/section-renderer.tsx
 
-**Где настройки Header/Footer?**
+**Где настройки Header/Footer/Analytics/SEO?**
 → `/admin/settings/site` → `SiteSettings` модель
 
 **Как добавить изображение?**

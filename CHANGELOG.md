@@ -13,6 +13,11 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-02-20 — Динамические SEO/GEO файлы: robots.txt (из БД, блокировка из админки), sitemap.xml (страницы, продукты, новости, ресурсы), llms.txt и llms-full.txt (формат llmstxt.org для LLM-краулеров)
+- 2026-02-20 — Google Tag Manager: интеграция через @next/third-parties/google, GTM Container ID из админки, предупреждение о дублировании с GA
+- 2026-02-20 — Google Analytics 4: интеграция через @next/third-parties/google, GA Measurement ID из админки (не env), автоматический трекинг SPA-навигаций, клиентские хелперы для кастомных событий
+- 2026-02-20 — News Article Page Settings: настраиваемые hero title, description, image для /newsroom/[slug] (отдельно для новостей и событий)
+- 2026-02-20 — LimitedWarrantyDetails: настраиваемые кнопки (ссылка на гарантию, контакт) через CMS
 - 2025-12-30 — Добавлен redirect /catalog → /resources/catalogs: временная переадресация до готовности каталога
 - 2025-12-30 — CDN URL с надёжным fallback: используется NEXT_PUBLIC_CDN_URL, если не установлена - fallback на https://assets.surefilter.us
 - 2025-12-30 — КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: fallback CDN URL изменён на assets.surefilter.us, исправлены 404 ошибки для всех изображений

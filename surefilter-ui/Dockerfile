@@ -32,6 +32,8 @@ RUN DATABASE_URL="${DATABASE_URL}" npx prisma generate
 FROM deps AS build
 # Copy app sources
 COPY . .
+# Ensure public/ exists (may be empty if all static files moved to CDN/S3)
+RUN mkdir -p /app/public
 # Build with Next.js
 ENV NODE_ENV=production
 # Note: DATABASE_URL not needed at build time because all pages are dynamic (force-dynamic)
