@@ -57,6 +57,8 @@ export default function ContentWithImages({
                         src={images.find(img => img.position === index + 1)!.src}
                         alt={images.find(img => img.position === index + 1)!.alt}
                         fill
+                        quality={95}
+                        sizes="(min-width: 1024px) 60vw, 100vw"
                         className="object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>

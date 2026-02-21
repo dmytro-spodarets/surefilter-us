@@ -41,6 +41,12 @@ interface SiteSettingsData {
   newsroomMetaTitle?: string;
   newsroomMetaDesc?: string;
   newsroomOgImage?: string;
+  newsArticleTitle?: string;
+  newsArticleDescription?: string;
+  newsArticleHeroImage?: string;
+  eventArticleTitle?: string;
+  eventArticleDescription?: string;
+  eventArticleHeroImage?: string;
   resourcesTitle?: string;
   resourcesDescription?: string;
   resourcesHeroImage?: string;
@@ -51,6 +57,10 @@ interface SiteSettingsData {
   footerContent?: FooterContent;
   catalogPassword?: string;
   catalogPasswordEnabled?: boolean;
+  gaMeasurementId?: string;
+  gtmId?: string;
+  seoRobotsBlock?: boolean;
+  llmsSiteDescription?: string;
 }
 
 export default function SiteSettingsPage() {
@@ -61,6 +71,8 @@ export default function SiteSettingsPage() {
 
   const [showNewsroomHeroPicker, setShowNewsroomHeroPicker] = useState(false);
   const [showNewsroomOgImagePicker, setShowNewsroomOgImagePicker] = useState(false);
+  const [showNewsArticleHeroPicker, setShowNewsArticleHeroPicker] = useState(false);
+  const [showEventArticleHeroPicker, setShowEventArticleHeroPicker] = useState(false);
   const [showResourcesHeroPicker, setShowResourcesHeroPicker] = useState(false);
   const [showResourcesOgImagePicker, setShowResourcesOgImagePicker] = useState(false);
 
@@ -115,6 +127,12 @@ export default function SiteSettingsPage() {
         newsroomMetaTitle: settings?.newsroomMetaTitle,
         newsroomMetaDesc: settings?.newsroomMetaDesc,
         newsroomOgImage: settings?.newsroomOgImage,
+        newsArticleTitle: settings?.newsArticleTitle,
+        newsArticleDescription: settings?.newsArticleDescription,
+        newsArticleHeroImage: settings?.newsArticleHeroImage,
+        eventArticleTitle: settings?.eventArticleTitle,
+        eventArticleDescription: settings?.eventArticleDescription,
+        eventArticleHeroImage: settings?.eventArticleHeroImage,
         resourcesTitle: settings?.resourcesTitle,
         resourcesDescription: settings?.resourcesDescription,
         resourcesHeroImage: settings?.resourcesHeroImage,
@@ -123,6 +141,10 @@ export default function SiteSettingsPage() {
         resourcesOgImage: settings?.resourcesOgImage,
         catalogPassword: settings?.catalogPassword,
         catalogPasswordEnabled: settings?.catalogPasswordEnabled,
+        gaMeasurementId: settings?.gaMeasurementId,
+        gtmId: settings?.gtmId,
+        seoRobotsBlock: settings?.seoRobotsBlock,
+        llmsSiteDescription: settings?.llmsSiteDescription,
       };
 
       const response = await fetch('/api/admin/site-settings', {
@@ -489,6 +511,115 @@ export default function SiteSettingsPage() {
                 </div>
               </div>
 
+              {/* News Article Page Settings */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">News Article Page Settings</h2>
+                <p className="text-sm text-gray-500 mb-4">Configure the hero section for individual news articles and events at /newsroom/[slug]</p>
+                <div className="space-y-6">
+                  {/* News Articles */}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">News Articles</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Title</label>
+                        <input
+                          type="text"
+                          value={settings.newsArticleTitle || ''}
+                          onChange={(e) => handleFieldChange('newsArticleTitle', e.target.value)}
+                          placeholder="News Article"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Description</label>
+                        <textarea
+                          value={settings.newsArticleDescription || ''}
+                          onChange={(e) => handleFieldChange('newsArticleDescription', e.target.value)}
+                          placeholder="Stay updated with the latest news from Sure Filter®"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={settings.newsArticleHeroImage || ''}
+                            onChange={(e) => handleFieldChange('newsArticleHeroImage', e.target.value)}
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                            placeholder="S3 key or URL"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewsArticleHeroPicker(true)}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                          >
+                            Browse
+                          </button>
+                        </div>
+                        {settings.newsArticleHeroImage && (
+                          <div className="mt-2 w-32 h-20 relative border border-gray-200 rounded-lg overflow-hidden">
+                            <Image src={getAssetUrl(settings.newsArticleHeroImage)} alt="News Hero Preview" fill className="object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Events */}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">Events</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Title</label>
+                        <input
+                          type="text"
+                          value={settings.eventArticleTitle || ''}
+                          onChange={(e) => handleFieldChange('eventArticleTitle', e.target.value)}
+                          placeholder="Event Details"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Description</label>
+                        <textarea
+                          value={settings.eventArticleDescription || ''}
+                          onChange={(e) => handleFieldChange('eventArticleDescription', e.target.value)}
+                          placeholder="Join us at our upcoming event"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={settings.eventArticleHeroImage || ''}
+                            onChange={(e) => handleFieldChange('eventArticleHeroImage', e.target.value)}
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                            placeholder="S3 key or URL"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowEventArticleHeroPicker(true)}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                          >
+                            Browse
+                          </button>
+                        </div>
+                        {settings.eventArticleHeroImage && (
+                          <div className="mt-2 w-32 h-20 relative border border-gray-200 rounded-lg overflow-hidden">
+                            <Image src={getAssetUrl(settings.eventArticleHeroImage)} alt="Event Hero Preview" fill className="object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Resources Page Settings */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Resources Page Settings</h2>
@@ -577,6 +708,97 @@ export default function SiteSettingsPage() {
                         <Image src={getAssetUrl(settings.resourcesOgImage)} alt="OG Image Preview" fill className="object-cover" />
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Analytics Settings */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Analytics &amp; Tag Manager</h2>
+                <p className="text-sm text-gray-500 mb-4">Google Analytics 4 and Tag Manager integration. Applies only to public pages (not admin panel).</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">GA Measurement ID</label>
+                    <input
+                      type="text"
+                      value={settings.gaMeasurementId || ''}
+                      onChange={(e) => handleFieldChange('gaMeasurementId', e.target.value)}
+                      placeholder="G-XXXXXXXXXX"
+                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 font-mono"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Google Analytics 4 Measurement ID. Found in GA4 Admin &rarr; Data Streams &rarr; Web. Leave empty to disable.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">GTM Container ID</label>
+                    <input
+                      type="text"
+                      value={settings.gtmId || ''}
+                      onChange={(e) => handleFieldChange('gtmId', e.target.value)}
+                      placeholder="GTM-XXXXXXX"
+                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 font-mono"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Google Tag Manager Container ID. Found in GTM &rarr; Admin &rarr; Container Settings. Leave empty to disable.
+                    </p>
+                  </div>
+                  {settings.gaMeasurementId && settings.gtmId && (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        If you configure GA inside GTM, you can leave the GA Measurement ID empty here to avoid duplicate tracking.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* SEO & LLM Settings */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">SEO &amp; LLM</h2>
+                <p className="text-sm text-gray-500 mb-4">Search engine and LLM crawler configuration. Controls robots.txt and llms.txt output.</p>
+                <div className="space-y-4">
+                  {/* Block Search Engines Toggle */}
+                  <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Block All Search Engines
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        Sets robots.txt to Disallow: / for all crawlers. Use for staging environments.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoRobotsBlock || false}
+                        onChange={(e) => handleFieldChange('seoRobotsBlock', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sure-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    </label>
+                  </div>
+
+                  {settings?.seoRobotsBlock && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-800">
+                        All search engines and crawlers are currently blocked. Your site will not appear in search results. Disable this for production.
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Site Description for LLMs</label>
+                    <textarea
+                      value={settings?.llmsSiteDescription || ''}
+                      onChange={(e) => handleFieldChange('llmsSiteDescription', e.target.value)}
+                      placeholder="Sure Filter US is a manufacturer of premium aftermarket automotive and industrial filtration products..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                      rows={4}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Used in llms.txt as the site description for LLM crawlers (ChatGPT, Claude, Perplexity, etc.). Markdown supported.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1104,6 +1326,26 @@ export default function SiteSettingsPage() {
             setShowNewsroomOgImagePicker(false);
           }}
           onClose={() => setShowNewsroomOgImagePicker(false)}
+        />
+      )}
+      {showNewsArticleHeroPicker && (
+        <MediaPickerModal
+          isOpen={showNewsArticleHeroPicker}
+          onSelect={(url) => {
+            handleFieldChange('newsArticleHeroImage', url);
+            setShowNewsArticleHeroPicker(false);
+          }}
+          onClose={() => setShowNewsArticleHeroPicker(false)}
+        />
+      )}
+      {showEventArticleHeroPicker && (
+        <MediaPickerModal
+          isOpen={showEventArticleHeroPicker}
+          onSelect={(url) => {
+            handleFieldChange('eventArticleHeroImage', url);
+            setShowEventArticleHeroPicker(false);
+          }}
+          onClose={() => setShowEventArticleHeroPicker(false)}
         />
       )}
       {showResourcesHeroPicker && (

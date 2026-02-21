@@ -95,7 +95,8 @@ export default function FilterTypesImageGrid({
                         src={filterType.image}
                         alt={filterType.name}
                         fill
-                        className="object-contain p-3 sm:p-4 group-hover:scale-110 transition-transform duration-300 relative z-10"
+                        quality={95}
+                        className="object-contain p-3 sm:p-4 group-hover:scale-103 transition-transform duration-300 relative z-10"
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
                       />
                     ) : (

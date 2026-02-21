@@ -42,7 +42,8 @@ const CompactSearchHero: React.FC<CompactSearchHeroProps> = ({
           src={backgroundImage}
           alt="Hero Background"
           fill
-          quality={85}
+          priority
+          quality={95}
           sizes="100vw"
           className="object-cover"
         />

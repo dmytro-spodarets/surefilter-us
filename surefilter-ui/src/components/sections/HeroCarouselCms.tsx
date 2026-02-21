@@ -134,7 +134,7 @@ export default function HeroCarouselCms({
                         alt={slide.title || 'Hero image'}
                         fill
                         priority={isFirstSlide}
-                        quality={90}
+                        quality={95}
                         sizes="(min-width: 1920px) 1400px, (min-width: 1280px) 80vw, (min-width: 768px) 70vw, 100vw"
                         className="object-cover object-right-bottom brightness-75"
                       />
@@ -151,7 +151,7 @@ export default function HeroCarouselCms({
                       alt={slide.title || 'Hero image'}
                       width={1200}
                       height={900}
-                      quality={90}
+                      quality={95}
                       sizes="(max-width: 640px) 100vw, 100vw"
                       className="w-full h-auto object-contain"
                       priority={isFirstSlide}

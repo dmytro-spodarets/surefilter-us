@@ -270,6 +270,10 @@ export const LimitedWarrantyDetailsSchema = z.object({
   warrantyTitle: z.string().optional(),
   warrantyText1: z.string().optional(),
   warrantyText2: z.string().optional(),
+  primaryButtonText: z.string().optional(),
+  primaryButtonUrl: z.string().optional(),
+  secondaryButtonText: z.string().optional(),
+  secondaryButtonUrl: z.string().optional(),
 });
 export type LimitedWarrantyDetailsInput = z.infer<typeof LimitedWarrantyDetailsSchema>;
 

@@ -658,6 +658,16 @@ model SiteSettings {
   newsroomMetaDesc     String? @db.Text
   newsroomOgImage      String?
   
+  // News Article Page (individual article)
+  newsArticleTitle       String?
+  newsArticleDescription String? @db.Text
+  newsArticleHeroImage   String?
+
+  // Event Article Page (individual event)
+  eventArticleTitle       String?
+  eventArticleDescription String? @db.Text
+  eventArticleHeroImage   String?
+
   resourcesTitle       String? @default("Resources")
   resourcesDescription String? @db.Text
   resourcesHeroImage   String?
@@ -674,7 +684,15 @@ model SiteSettings {
   // Catalog Password Protection
   catalogPassword      String? // Password to access catalog page (plain text for simplicity)
   catalogPasswordEnabled Boolean @default(false) // Enable/disable password protection
-  
+
+  // Analytics
+  gaMeasurementId    String?   // Google Analytics 4 Measurement ID (G-XXXXXXXXXX)
+  gtmId              String?   // Google Tag Manager Container ID (GTM-XXXXXXX)
+
+  // SEO
+  seoRobotsBlock       Boolean @default(false) // Block all crawlers (for staging)
+  llmsSiteDescription  String? @db.Text        // Site description for llms.txt
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

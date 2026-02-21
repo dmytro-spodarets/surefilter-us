@@ -26,6 +26,9 @@ const FullScreenHero: React.FC<FullScreenHeroProps> = ({
           src={backgroundImage}
           alt="Hero background"
           fill
+          priority
+          quality={95}
+          sizes="100vw"
           className="object-cover"
         />
         {/* Темный оверлей для читаемости текста */}

@@ -28,6 +28,9 @@ const CompactHero: React.FC<CompactHeroProps> = ({
           src={backgroundImage}
           alt="Hero Background"
           fill
+          priority
+          quality={95}
+          sizes="100vw"
           className="object-cover"
         />
         {/* Темный оверлей для читаемости текста */}

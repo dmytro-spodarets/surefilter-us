@@ -9,6 +9,16 @@ export interface SiteSettings {
   newsroomMetaDesc?: string;
   newsroomOgImage?: string;
   
+  // News Article Page
+  newsArticleTitle?: string;
+  newsArticleDescription?: string;
+  newsArticleHeroImage?: string;
+
+  // Event Article Page
+  eventArticleTitle?: string;
+  eventArticleDescription?: string;
+  eventArticleHeroImage?: string;
+
   // Resources
   resourcesTitle?: string;
   resourcesDescription?: string;
@@ -17,6 +27,14 @@ export interface SiteSettings {
   resourcesMetaDesc?: string;
   resourcesOgImage?: string;
   
+  // Analytics
+  gaMeasurementId?: string;
+  gtmId?: string;
+
+  // SEO
+  seoRobotsBlock?: boolean;
+  llmsSiteDescription?: string;
+
   // Header Navigation
   headerNavigation?: Array<{
     label: string;
@@ -83,12 +101,22 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     newsroomMetaTitle: settings.newsroomMetaTitle || undefined,
     newsroomMetaDesc: settings.newsroomMetaDesc || undefined,
     newsroomOgImage: settings.newsroomOgImage || undefined,
+    newsArticleTitle: settings.newsArticleTitle || undefined,
+    newsArticleDescription: settings.newsArticleDescription || undefined,
+    newsArticleHeroImage: settings.newsArticleHeroImage || undefined,
+    eventArticleTitle: settings.eventArticleTitle || undefined,
+    eventArticleDescription: settings.eventArticleDescription || undefined,
+    eventArticleHeroImage: settings.eventArticleHeroImage || undefined,
     resourcesTitle: settings.resourcesTitle || undefined,
     resourcesDescription: settings.resourcesDescription || undefined,
     resourcesHeroImage: settings.resourcesHeroImage || undefined,
     resourcesMetaTitle: settings.resourcesMetaTitle || undefined,
     resourcesMetaDesc: settings.resourcesMetaDesc || undefined,
     resourcesOgImage: settings.resourcesOgImage || undefined,
+    gaMeasurementId: settings.gaMeasurementId || undefined,
+    gtmId: settings.gtmId || undefined,
+    seoRobotsBlock: settings.seoRobotsBlock,
+    llmsSiteDescription: settings.llmsSiteDescription || undefined,
     headerNavigation: settings.headerNavigation as any,
     footerContent: settings.footerContent as any,
   };
@@ -122,6 +150,31 @@ export async function getNewsroomPageSettings() {
     metaDescription: settings.newsroomMetaDesc,
     ogImage: settings.newsroomOgImage,
   };
+}
+
+// Helper to get news article page settings
+export async function getNewsArticlePageSettings() {
+  const settings = await getSiteSettings();
+  return {
+    newsTitle: settings.newsArticleTitle || 'News Article',
+    newsDescription: settings.newsArticleDescription || 'Stay updated with the latest news from Sure Filter\u00AE',
+    newsHeroImage: settings.newsArticleHeroImage,
+    eventTitle: settings.eventArticleTitle || 'Event Details',
+    eventDescription: settings.eventArticleDescription || 'Join us at our upcoming event',
+    eventHeroImage: settings.eventArticleHeroImage,
+  };
+}
+
+// Helper to get GA Measurement ID
+export async function getGaMeasurementId(): Promise<string | undefined> {
+  const settings = await getSiteSettings();
+  return settings.gaMeasurementId || undefined;
+}
+
+// Helper to get GTM Container ID
+export async function getGtmId(): Promise<string | undefined> {
+  const settings = await getSiteSettings();
+  return settings.gtmId || undefined;
 }
 
 // Helper to get resources page settings

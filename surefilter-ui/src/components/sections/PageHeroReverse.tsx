@@ -59,16 +59,17 @@ const PageHeroReverse: React.FC<PageHeroReverseProps> = ({
                 <div
                   key={index}
                   className={cn(
-                    'rounded-lg overflow-hidden shadow-md w-full h-[120px] lg:h-[210px]',
+                    'relative rounded-lg overflow-hidden shadow-md w-full h-[120px] lg:h-[210px]',
                     img.offset && 'lg:-translate-y-[30px]'
                   )}
                 >
                   <ManagedImage
                     src={img.src}
                     alt={img.alt}
-                    width={136}
-                    height={210}
-                    className="w-full h-full object-cover"
+                    fill
+                    quality={95}
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                    className="object-cover"
                     priority={index < 2}
                   />
                 </div>

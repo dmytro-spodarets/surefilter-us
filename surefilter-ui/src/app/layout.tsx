@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
+import { getGaMeasurementId, getGtmId } from '@/lib/site-settings';
 import './globals.css';
 
 // Force dynamic rendering for all pages (data from database)
@@ -18,13 +20,17 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const gaId = await getGaMeasurementId();
+  const gtmId = await getGtmId();
+
   return (
     <html lang="en" suppressHydrationWarning>
+      {gtmId && <GoogleTagManager gtmId={gtmId} />}
       <head>
         {/* Preload critical assets for faster LCP */}
         <link
@@ -37,6 +43,7 @@ export default function RootLayout({
       <body>
         {children}
       </body>
+      {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 } 

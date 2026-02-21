@@ -39,7 +39,7 @@ interface ManagedImageProps {
 export function ManagedImage({
   src,
   alt,
-  quality = 85,
+  quality = 90,
   priority = false,
   sizes,
   placeholder = 'shimmer',

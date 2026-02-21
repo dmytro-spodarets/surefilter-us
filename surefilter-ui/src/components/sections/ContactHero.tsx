@@ -15,11 +15,14 @@ export default function ContactHero({ title, description, image }: { title: stri
           </div>
           <div className="relative w-full flex justify-center lg:justify-end">
             <div className="aspect-[4/3] w-full max-w-lg lg:max-w-xl rounded-2xl overflow-hidden shadow-xl relative">
-              <ManagedImage 
-                src={img} 
-                alt="Outer space view showing global connectivity and limitless reach" 
-                fill 
-                className="object-cover" 
+              <ManagedImage
+                src={img}
+                alt="Outer space view showing global connectivity and limitless reach"
+                fill
+                priority
+                quality={95}
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
               />
             </div>
           </div>

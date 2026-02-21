@@ -3,6 +3,8 @@ import Footer from '@/components/layout/Footer';
 import CompactHero from '@/components/sections/CompactHero';
 import { ArrowLeftIcon, CalendarDaysIcon, TagIcon, MapPinIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
+import { getNewsArticlePageSettings } from '@/lib/site-settings';
+import { getAssetUrl } from '@/lib/assets';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ManagedImage } from '@/components/ui/ManagedImage';
@@ -42,16 +44,24 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
   }
 
   const isEvent = article.type === 'EVENT';
+  const articleSettings = await getNewsArticlePageSettings();
+
+  const heroTitle = isEvent ? articleSettings.eventTitle : articleSettings.newsTitle;
+  const heroDescription = isEvent ? articleSettings.eventDescription : articleSettings.newsDescription;
+  const settingsHeroImage = isEvent ? articleSettings.eventHeroImage : articleSettings.newsHeroImage;
+  const heroImage = settingsHeroImage
+    ? getAssetUrl(settingsHeroImage)
+    : article.ogImage || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
 
   return (
     <main>
       <Header />
-      
+
       {/* Compact Hero Section */}
       <CompactHero
-        title={isEvent ? 'Event Details' : 'News Article'}
-        description={isEvent ? 'Join us at our upcoming event' : 'Stay updated with the latest news from Sure Filter®'}
-        backgroundImage={article.ogImage || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'}
+        title={heroTitle}
+        description={heroDescription}
+        backgroundImage={heroImage}
       />
       
       <section className="py-16">

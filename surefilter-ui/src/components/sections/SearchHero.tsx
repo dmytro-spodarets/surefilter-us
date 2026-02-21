@@ -62,7 +62,8 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           src={backgroundImage}
           alt="Hero background"
           fill
-          quality={85}
+          priority
+          quality={95}
           sizes="100vw"
           className="object-cover"
         />

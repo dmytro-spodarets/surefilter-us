@@ -14,7 +14,17 @@ const UpdateSettingsSchema = z.object({
   newsroomMetaTitle: z.string().nullable().optional(),
   newsroomMetaDesc: z.string().nullable().optional(),
   newsroomOgImage: z.string().nullable().optional(),
-  
+
+  // News Article Page
+  newsArticleTitle: z.string().nullable().optional(),
+  newsArticleDescription: z.string().nullable().optional(),
+  newsArticleHeroImage: z.string().nullable().optional(),
+
+  // Event Article Page
+  eventArticleTitle: z.string().nullable().optional(),
+  eventArticleDescription: z.string().nullable().optional(),
+  eventArticleHeroImage: z.string().nullable().optional(),
+
   // Resources
   resourcesTitle: z.string().nullable().optional(),
   resourcesDescription: z.string().nullable().optional(),
@@ -59,6 +69,14 @@ const UpdateSettingsSchema = z.object({
     })).optional(),
   }).optional(),
   
+  // Analytics
+  gaMeasurementId: z.string().nullable().optional(),
+  gtmId: z.string().nullable().optional(),
+
+  // SEO
+  seoRobotsBlock: z.boolean().optional(),
+  llmsSiteDescription: z.string().nullable().optional(),
+
   // Security
   catalogPassword: z.string().nullable().optional(),
   catalogPasswordEnabled: z.boolean().optional(),

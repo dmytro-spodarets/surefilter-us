@@ -30,7 +30,7 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
               alt={title || 'Hero image'}
               fill
               priority
-              quality={85}
+              quality={95}
               sizes="(min-width:1536px) 40vw, (min-width:1280px) 45vw, (min-width:768px) 50vw, 100vw"
               className="object-cover object-right-bottom brightness-75"
             />
@@ -47,7 +47,7 @@ export default function HeroCms({ badge = '', title = '', titlePrefix = '', titl
             alt={title || 'Hero image'}
             width={1200}
             height={900}
-            quality={85}
+            quality={95}
             sizes="100vw"
             className="w-full h-auto object-contain"
             priority

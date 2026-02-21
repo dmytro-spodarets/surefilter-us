@@ -17,6 +17,10 @@ interface LimitedWarrantyDetailsProps {
   warrantyTitle?: string;
   warrantyText1?: string;
   warrantyText2?: string;
+  primaryButtonText?: string;
+  primaryButtonUrl?: string;
+  secondaryButtonText?: string;
+  secondaryButtonUrl?: string;
 }
 
 export default function LimitedWarrantyDetails({
@@ -29,6 +33,10 @@ export default function LimitedWarrantyDetails({
   warrantyTitle,
   warrantyText1,
   warrantyText2,
+  primaryButtonText,
+  primaryButtonUrl,
+  secondaryButtonText,
+  secondaryButtonUrl,
 }: LimitedWarrantyDetailsProps) {
   if (!title) return null;
   
@@ -120,14 +128,20 @@ export default function LimitedWarrantyDetails({
               )}
             </div>
           
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-sure-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-sure-blue-700 transition-colors duration-200">
-                Download Warranty Certificate
-              </button>
-              <button className="border border-sure-blue-600 text-sure-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-sure-blue-50 transition-colors duration-200">
-                Download Claim Form
-              </button>
-            </div>
+            {(primaryButtonUrl || secondaryButtonUrl) && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {primaryButtonUrl && (
+                  <a href={primaryButtonUrl} target="_blank" rel="noopener noreferrer" className="bg-sure-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-sure-blue-700 transition-colors duration-200 text-center">
+                    {primaryButtonText || 'Download Warranty Certificate'}
+                  </a>
+                )}
+                {secondaryButtonUrl && (
+                  <a href={secondaryButtonUrl} target="_blank" rel="noopener noreferrer" className="border border-sure-blue-600 text-sure-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-sure-blue-50 transition-colors duration-200 text-center">
+                    {secondaryButtonText || 'Download Claim Form'}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
