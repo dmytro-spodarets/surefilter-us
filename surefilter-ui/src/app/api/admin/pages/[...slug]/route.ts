@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { isProtectedSlug, RESERVED_SLUGS } from '@/lib/pages';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { invalidatePages } from '@/lib/revalidate';
 
 function joinSlug(parts: string[]) {
   return (parts || []).join('/');
@@ -40,8 +41,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
       prisma.pageSection.update({ where: { id: b.id }, data: { position: a.position } }),
     ]);
     try {
-      const { revalidateTag } = await import('next/cache');
-      revalidateTag(`page:${slug}`);
+      await invalidatePages([slug === 'home' ? '/' : `/${slug}`], [`page:${slug}`]);
     } catch {}
     return NextResponse.json({ ok: true });
   }
@@ -88,9 +88,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ slug: st
   });
 
   try {
-    const { revalidateTag } = await import('next/cache');
-    revalidateTag(`page:${slug}`);
-    if (newSlug && newSlug !== slug) revalidateTag(`page:${newSlug}`);
+    const paths = [slug === 'home' ? '/' : `/${slug}`];
+    const tags = [`page:${slug}`];
+    if (newSlug && newSlug !== slug) {
+      paths.push(newSlug === 'home' ? '/' : `/${newSlug}`);
+      tags.push(`page:${newSlug}`);
+    }
+    await invalidatePages(paths, tags);
   } catch {}
 
   return NextResponse.json({ ok: true, slug: updated.slug });
@@ -137,8 +141,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     });
 
     try {
-      const { revalidateTag } = await import('next/cache');
-      revalidateTag(`page:${slug}`);
+      await invalidatePages([slug === 'home' ? '/' : `/${slug}`], [`page:${slug}`]);
     } catch {}
 
     return NextResponse.json({ ok: true, id: section.id });
@@ -186,8 +189,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   }
 
   try {
-    const { revalidateTag } = await import('next/cache');
-    revalidateTag(`page:${slug}`);
+    await invalidatePages([slug === 'home' ? '/' : `/${slug}`], [`page:${slug}`]);
   } catch {}
 
   return NextResponse.json({ ok: true, id: sec.id });
@@ -249,10 +251,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ slug:
     }
 
     try {
-      const { revalidateTag } = await import('next/cache');
-      revalidateTag(`page:${slug}`);
+      await invalidatePages([slug === 'home' ? '/' : `/${slug}`], [`page:${slug}`]);
     } catch {}
-    
+
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     console.error('Delete page error:', e);

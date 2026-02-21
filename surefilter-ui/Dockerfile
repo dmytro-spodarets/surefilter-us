@@ -36,9 +36,10 @@ COPY . .
 RUN mkdir -p /app/public
 # Build with Next.js
 ENV NODE_ENV=production
-# Note: DATABASE_URL not needed at build time because all pages are dynamic (force-dynamic)
-# Real DATABASE_URL will be injected at runtime via App Runner environment
+# Skip real DB connections during build — pages prerender with empty data (ISR fills at runtime)
+ENV NEXT_BUILD_SKIP_DB=1
 RUN --mount=type=cache,target=/app/.next/cache npm run build
+ENV NEXT_BUILD_SKIP_DB=
 
 # Prune dev dependencies for production runtime
 RUN npm prune --omit=dev

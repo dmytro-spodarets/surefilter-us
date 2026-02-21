@@ -4,6 +4,8 @@ import CompactHero from '@/components/sections/CompactHero';
 import { ArrowLeftIcon, CalendarDaysIcon, TagIcon, MapPinIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
 import { getNewsArticlePageSettings } from '@/lib/site-settings';
+
+export const revalidate = 3600;
 import { getAssetUrl } from '@/lib/assets';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';

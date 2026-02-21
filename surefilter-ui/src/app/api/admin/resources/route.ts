@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { invalidatePages } from '@/lib/revalidate';
 
 const CreateResourceSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -168,6 +169,14 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Invalidate resources listing cache
+    try {
+      const catSlug = resource.category?.slug;
+      const paths = ['/resources'];
+      if (catSlug) paths.push(`/resources/${catSlug}`);
+      await invalidatePages(paths);
+    } catch {}
 
     return NextResponse.json(resource, { status: 201 });
   } catch (error) {

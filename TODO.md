@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 20 февраля 2026
+**Последнее обновление:** 21 февраля 2026
 
 ---
 
@@ -60,6 +60,9 @@
 - [x] Static Upload Workflow
 - [x] Image optimization pipeline
 - [x] Admin action logging (`/admin/logs`)
+- [x] ISR + CloudFront кэширование (on-demand invalidation)
+- [x] CloudFront gzip/brotli compression
+- [x] Чистые Docker билды (Prisma build-time stub)
 
 ### В планах
 - [ ] S3 OAC вместо OAI (SigV4)
@@ -135,5 +138,13 @@
 - ✅ Dynamic sitemap.xml (pages, products, news, resources)
 - ✅ llms.txt + llms-full.txt (llmstxt.org format)
 - ✅ News Article Page Settings (configurable hero)
+
+### Performance & Caching (February 2026)
+- ✅ ISR caching (revalidate на публичных страницах)
+- ✅ CloudFront on-demand invalidation (invalidatePages utility)
+- ✅ CloudFront gzip/brotli compression
+- ✅ Admin layout isolation (force-dynamic via server wrapper)
+- ✅ Build-time Prisma stub (NEXT_BUILD_SKIP_DB)
+- ✅ IAM cloudfront:CreateInvalidation permission
 
 </details>

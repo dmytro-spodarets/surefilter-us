@@ -68,7 +68,12 @@ export async function loadCachedPageBySlug(slug: string): Promise<CmsPage | null
     ['cms-page', slug],
     { tags: [`page:${slug}`] }
   );
-  return cached();
+  try {
+    return await cached();
+  } catch {
+    // DB unavailable (e.g., during build) — return null
+    return null;
+  }
 }
 
 

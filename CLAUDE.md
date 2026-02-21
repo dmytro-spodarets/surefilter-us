@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 20 февраля 2026
+> Последнее обновление: 21 февраля 2026
 
 ---
 
@@ -16,6 +16,7 @@
 - **Database:** PostgreSQL + Prisma ORM 7.1.0 (с pg adapter)
 - **Storage:** AWS S3 + CloudFront CDN
 - **Hosting:** AWS App Runner
+- **Caching:** ISR + CloudFront (on-demand invalidation via `@aws-sdk/client-cloudfront`)
 - **Auth:** NextAuth.js (credentials)
 - **Analytics:** Google Analytics 4 + Google Tag Manager (`@next/third-parties/google`)
 
@@ -44,7 +45,8 @@ surefilter-us/
 │   │   │   └── ui/             # UI примитивы (Button, Card, etc.)
 │   │   ├── cms/                # CMS утилиты и типы
 │   │   ├── lib/                # Утилиты
-│   │   │   ├── prisma.ts       # Prisma client
+│   │   │   ├── prisma.ts       # Prisma client (+ build-time stub)
+│   │   │   ├── revalidate.ts   # ISR + CloudFront cache invalidation
 │   │   │   ├── assets.ts       # CDN URL helpers
 │   │   │   ├── auth.ts         # NextAuth config
 │   │   │   ├── analytics.ts    # GA4 event tracking helpers
@@ -166,6 +168,7 @@ surefilter-us/
 
 ### Админские (`/api/admin/*`)
 - CRUD для pages, sections, products, news, resources, forms
+- Все мутации вызывают `invalidatePages()` — сброс ISR + CloudFront кэша
 - `/api/admin/file-manager/*` — работа с S3
 - `/api/admin/site-settings` — глобальные настройки
 
@@ -185,12 +188,16 @@ AWS_S3_BUCKET_NAME="surefilter-files-prod"
 AWS_ACCESS_KEY_ID="..."
 AWS_SECRET_ACCESS_KEY="..."
 
-# CDN
+# CDN / Caching
 NEXT_PUBLIC_CDN_URL="https://assets.surefilter.us"
 NEXT_PUBLIC_SITE_URL="https://new.surefilter.us"
+CLOUDFRONT_DISTRIBUTION_ID="..."   # For on-demand cache invalidation
 
 # TinyMCE (для редактора контента)
 NEXT_PUBLIC_TINYMCE_API_KEY="..."
+
+# Build-time only (Dockerfile)
+NEXT_BUILD_SKIP_DB="1"             # Skip DB during Docker build
 ```
 
 ---
@@ -253,8 +260,13 @@ npm run seed:content:force  # С перезаписью
 
 1. **Prisma 7**: `prisma.config.ts` должен быть в корне surefilter-ui/, не в prisma/
 2. **Поиск отключен**: Временно закомментирован для Phase 1 (TODO в компонентах)
-3. **ISR**: Product pages кэшируются 24 часа
-4. **Dynamic rendering**: `force-dynamic` в root layout и SEO-файлах
+3. **ISR + CloudFront кэширование**: двухуровневый кэш (Next.js ISR + CloudFront edge)
+   - Listing pages (`/newsroom`, `/resources`): `revalidate = 300` (5 мин)
+   - CMS/detail pages: `revalidate = 3600` (1 час)
+   - Product pages: `revalidate = 86400` (24 часа)
+   - Admin pages: `force-dynamic` (через server component layout)
+   - On-demand invalidation: `invalidatePages()` из `src/lib/revalidate.ts`
+4. **Docker build**: `NEXT_BUILD_SKIP_DB=1` — Prisma stub, нет подключения к БД при сборке
 5. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)
 6. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
 7. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД

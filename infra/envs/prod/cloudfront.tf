@@ -16,15 +16,13 @@ resource "aws_cloudfront_cache_policy" "static_long" {
   }
 }
 
-# Custom cache policy that forwards Accept-Encoding to the origin.
-# Managed-CachingDisabled has enable_accept_encoding_* = false so the origin
-# never sees Accept-Encoding and can't compress streaming responses.
-# max_ttl must be > 0 for CloudFront to allow enable_accept_encoding_*.
-# Next.js sends Cache-Control: no-store for dynamic pages, so no actual caching occurs.
+# Custom cache policy: forwards Accept-Encoding to origin + respects ISR s-maxage headers.
+# default_ttl=0 means no caching unless origin sends Cache-Control with s-maxage.
+# max_ttl=86400 caps CloudFront caching at 24h (actual duration controlled by Next.js ISR).
 resource "aws_cloudfront_cache_policy" "no_cache_compressed" {
   name        = "surefilter-no-cache-compressed"
   default_ttl = 0
-  max_ttl     = 1
+  max_ttl     = 86400
   min_ttl     = 0
   parameters_in_cache_key_and_forwarded_to_origin {
     enable_accept_encoding_gzip   = true

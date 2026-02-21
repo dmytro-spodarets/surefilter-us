@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { RESERVED_SLUGS } from '@/lib/pages';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { invalidatePages } from '@/lib/revalidate';
 
 function isValidSlugForType(slug: string, type?: 'CUSTOM' | 'INDUSTRY') {
   // allow multi-segment slugs like industries/agriculture or heavy-duty/oil
@@ -50,8 +51,7 @@ export async function POST(req: Request) {
     });
 
     try {
-      const { revalidateTag } = await import('next/cache');
-      revalidateTag(`page:${slug}`);
+      await invalidatePages([slug === 'home' ? '/' : `/${slug}`], [`page:${slug}`]);
     } catch {}
 
     return NextResponse.json({ ok: true, page });

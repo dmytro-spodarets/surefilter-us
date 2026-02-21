@@ -7,7 +7,8 @@ import { DocumentTextIcon, PlayIcon, BookOpenIcon, AcademicCapIcon, WrenchScrewd
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getAssetUrl } from '@/lib/assets';
-import ResourcePreviewModal from '@/components/ResourcePreviewModal';
+import dynamic from 'next/dynamic';
+const ResourcePreviewModal = dynamic(() => import('@/components/ResourcePreviewModal'), { ssr: false });
 
 // Icon mapping for categories
 const iconMap: Record<string, any> = {

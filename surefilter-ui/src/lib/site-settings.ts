@@ -80,9 +80,15 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     return cachedSettings;
   }
 
-  const settings = await prisma.siteSettings.findUnique({
-    where: { id: 'site_settings' },
-  });
+  let settings;
+  try {
+    settings = await prisma.siteSettings.findUnique({
+      where: { id: 'site_settings' },
+    });
+  } catch {
+    // DB unavailable (e.g., during build) — return empty settings
+    return { headerNavigation: [], footerContent: {} };
+  }
 
   if (!settings) {
     // Return minimal empty settings - admin can fill them in admin panel

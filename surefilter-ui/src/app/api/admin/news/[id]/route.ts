@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { invalidatePages } from '@/lib/revalidate';
 
 // GET /api/admin/news/[id] - Get single article
 export async function GET(
@@ -112,6 +113,15 @@ export async function PUT(
       }
     });
 
+    // Invalidate newsroom listing + article page (old and new slug)
+    try {
+      const paths = ['/newsroom', `/newsroom/${article.slug}`];
+      if (existing.slug !== article.slug) {
+        paths.push(`/newsroom/${existing.slug}`);
+      }
+      await invalidatePages(paths);
+    } catch {}
+
     return NextResponse.json(article);
   } catch (error) {
     console.error('Error updating news article:', error);
@@ -144,6 +154,11 @@ export async function DELETE(
     await prisma.newsArticle.delete({
       where: { id }
     });
+
+    // Invalidate newsroom listing + deleted article page
+    try {
+      await invalidatePages(['/newsroom', `/newsroom/${article.slug}`]);
+    } catch {}
 
     return NextResponse.json({ success: true });
   } catch (error) {

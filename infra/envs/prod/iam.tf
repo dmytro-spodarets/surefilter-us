@@ -56,3 +56,22 @@ resource "aws_iam_role_policy_attachment" "apprunner_service_ssm_attach" {
   policy_arn = aws_iam_policy.ssm_parameter_access.arn
 }
 
+# Allow App Runner to invalidate CloudFront cache on content updates
+resource "aws_iam_policy" "cloudfront_invalidation" {
+  name        = "surefilter-cloudfront-invalidation"
+  description = "Allow App Runner to create CloudFront cache invalidations"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect   = "Allow",
+      Action   = ["cloudfront:CreateInvalidation"],
+      Resource = aws_cloudfront_distribution.site.arn
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "apprunner_service_cloudfront_attach" {
+  role       = aws_iam_role.apprunner_service_role.name
+  policy_arn = aws_iam_policy.cloudfront_invalidation.arn
+}
+

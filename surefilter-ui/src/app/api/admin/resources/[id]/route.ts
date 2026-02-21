@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { invalidatePages } from '@/lib/revalidate';
 
 const UpdateResourceSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
@@ -78,9 +79,10 @@ export async function PUT(
     const body = await request.json();
     const data = UpdateResourceSchema.parse(body);
 
-    // Check if resource exists
+    // Check if resource exists (include category for cache invalidation)
     const existing = await prisma.resource.findUnique({
       where: { id },
+      include: { category: { select: { slug: true } } },
     });
 
     if (!existing) {
@@ -169,6 +171,20 @@ export async function PUT(
       },
     });
 
+    // Invalidate resources listing + detail page
+    try {
+      const catSlug = resource.category?.slug || existing.category?.slug;
+      const paths = ['/resources'];
+      if (catSlug) {
+        paths.push(`/resources/${catSlug}`);
+        paths.push(`/resources/${catSlug}/${resource.slug}`);
+      }
+      if (existing.slug !== resource.slug && existing.category?.slug) {
+        paths.push(`/resources/${existing.category.slug}/${existing.slug}`);
+      }
+      await invalidatePages(paths);
+    } catch {}
+
     return NextResponse.json(resource);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -196,6 +212,7 @@ export async function DELETE(
 
     const resource = await prisma.resource.findUnique({
       where: { id },
+      include: { category: { select: { slug: true } } },
     });
 
     if (!resource) {
@@ -208,6 +225,17 @@ export async function DELETE(
     await prisma.resource.delete({
       where: { id },
     });
+
+    // Invalidate resources listing + deleted detail page
+    try {
+      const catSlug = resource.category?.slug;
+      const paths = ['/resources'];
+      if (catSlug) {
+        paths.push(`/resources/${catSlug}`);
+        paths.push(`/resources/${catSlug}/${resource.slug}`);
+      }
+      await invalidatePages(paths);
+    } catch {}
 
     return NextResponse.json({ message: 'Resource deleted successfully' });
   } catch (error) {

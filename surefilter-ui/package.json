@@ -13,6 +13,7 @@
     "seed:content:force": "SEED_FORCE_UPDATE=1 node --env-file=.env prisma/seed_content.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.995.0",
     "@aws-sdk/client-s3": "^3.705.0",
     "@aws-sdk/s3-request-presigner": "^3.705.0",
     "@heroicons/react": "^2.2.0",

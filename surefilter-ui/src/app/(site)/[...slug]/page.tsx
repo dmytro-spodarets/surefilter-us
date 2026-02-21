@@ -6,6 +6,8 @@ import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 
+export const revalidate = 3600;
+
 function joinSlug(segments: string[] | string | undefined) {
   if (Array.isArray(segments)) return segments.join('/');
   if (typeof segments === 'string') return segments;

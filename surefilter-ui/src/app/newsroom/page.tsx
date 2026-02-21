@@ -4,45 +4,49 @@ import DynamicNewsroomHero from '@/components/sections/DynamicNewsroomHero';
 import NewsroomClient from './NewsroomClient';
 import { prisma } from '@/lib/prisma';
 
-// Server Component - SEO оптимизирован ✅
-// Все данные загружаются на сервере напрямую из БД
+export const revalidate = 300;
 export default async function NewsroomPage() {
-  const now = new Date();
-
-  const [events, news] = await Promise.all([
-    // Featured future events, sorted by soonest first
-    prisma.newsArticle.findMany({
-      where: {
-        status: 'PUBLISHED',
-        publishedAt: { lte: now },
-        type: 'EVENT',
-        isFeatured: true,
-        eventStartDate: { gte: now },
-      },
-      include: {
-        category: {
-          select: { id: true, name: true, slug: true, color: true, icon: true },
+  let events: any[] = [];
+  let news: any[] = [];
+  try {
+    const now = new Date();
+    [events, news] = await Promise.all([
+      // Featured future events, sorted by soonest first
+      prisma.newsArticle.findMany({
+        where: {
+          status: 'PUBLISHED',
+          publishedAt: { lte: now },
+          type: 'EVENT',
+          isFeatured: true,
+          eventStartDate: { gte: now },
         },
-      },
-      orderBy: { eventStartDate: 'asc' },
-      take: 10,
-    }),
-    // Latest news, sorted by newest first
-    prisma.newsArticle.findMany({
-      where: {
-        status: 'PUBLISHED',
-        publishedAt: { lte: now },
-        type: 'NEWS',
-      },
-      include: {
-        category: {
-          select: { id: true, name: true, slug: true, color: true, icon: true },
+        include: {
+          category: {
+            select: { id: true, name: true, slug: true, color: true, icon: true },
+          },
         },
-      },
-      orderBy: { publishedAt: 'desc' },
-      take: 10,
-    }),
-  ]);
+        orderBy: { eventStartDate: 'asc' },
+        take: 10,
+      }),
+      // Latest news, sorted by newest first
+      prisma.newsArticle.findMany({
+        where: {
+          status: 'PUBLISHED',
+          publishedAt: { lte: now },
+          type: 'NEWS',
+        },
+        include: {
+          category: {
+            select: { id: true, name: true, slug: true, color: true, icon: true },
+          },
+        },
+        orderBy: { publishedAt: 'desc' },
+        take: 10,
+      }),
+    ]);
+  } catch {
+    // DB unavailable during build — render with empty data, ISR will populate at runtime
+  }
 
   return (
     <main>

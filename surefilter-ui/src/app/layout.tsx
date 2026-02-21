@@ -3,9 +3,6 @@ import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import { getGaMeasurementId, getGtmId } from '@/lib/site-settings';
 import './globals.css';
 
-// Force dynamic rendering for all pages (data from database)
-export const dynamic = 'force-dynamic';
-
 export const metadata: Metadata = {
   title: {
     default: 'Sure Filter® - Premium Automotive & Industrial Filters',
@@ -25,8 +22,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const gaId = await getGaMeasurementId();
-  const gtmId = await getGtmId();
+  let gaId: string | undefined;
+  let gtmId: string | undefined;
+  try {
+    gaId = await getGaMeasurementId();
+    gtmId = await getGtmId();
+  } catch {
+    // DB unavailable during build — analytics will be injected at runtime via ISR
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>

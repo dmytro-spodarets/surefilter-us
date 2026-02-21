@@ -8,8 +8,32 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
+// Build-time stub: returns a Proxy that throws on any model method call
+// without attempting a real DB connection (no TLS errors in build logs)
+function createBuildTimeStub(): PrismaClient {
+  const buildError = new Error('Database not available during build');
+  const modelProxy = new Proxy({}, {
+    get() {
+      return () => { throw buildError; };
+    },
+  });
+  return new Proxy({} as PrismaClient, {
+    get(_target, prop) {
+      if (typeof prop === 'string' && prop.startsWith('$')) {
+        return () => Promise.resolve();
+      }
+      return modelProxy;
+    },
+  });
+}
+
 // Lazy initialization to avoid errors during build
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
+  // During Docker build, skip real DB connections entirely
+  if (process.env.NEXT_BUILD_SKIP_DB === '1') {
+    return createBuildTimeStub();
+  }
+
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
   }
@@ -17,7 +41,7 @@ function createPrismaClient() {
   // SSL configuration for AWS RDS
   // In production, require SSL but don't verify certificate (AWS RDS uses self-signed certs)
   // This still encrypts the connection, which is the main security goal
-  const sslConfig = process.env.NODE_ENV === 'production' 
+  const sslConfig = process.env.NODE_ENV === 'production'
     ? {
         rejectUnauthorized: false,
         // AWS RDS certificates are self-signed and not in Node.js CA bundle

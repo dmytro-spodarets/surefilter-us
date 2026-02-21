@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { invalidatePages } from '@/lib/revalidate';
 import {
   HeroFullSchema,
   HeroCarouselSchema,
@@ -232,16 +233,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     // Revalidate all pages containing this section
     const pages = await prisma.pageSection.findMany({ where: { sectionId: id }, include: { page: true } });
-    const { revalidateTag, revalidatePath } = await import('next/cache');
-    for (const ps of pages) {
-      revalidateTag(`page:${ps.page.slug}`);
-      // Also revalidate the page path directly
-      if (ps.page.slug === 'home') {
-        revalidatePath('/', 'page');
-      } else {
-        revalidatePath(`/${ps.page.slug}`, 'page');
-      }
-    }
+    const paths = pages.map(ps => ps.page.slug === 'home' ? '/' : `/${ps.page.slug}`);
+    const tags = pages.map(ps => `page:${ps.page.slug}`);
+    await invalidatePages(paths, tags);
   } catch (e) {
     console.error('Revalidation error:', e);
   }
@@ -257,10 +251,9 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   await prisma.pageSection.deleteMany({ where: { sectionId: id } });
   await prisma.section.delete({ where: { id } });
   try {
-    const { revalidateTag } = await import('next/cache');
-    for (const ps of related) {
-      revalidateTag(`page:${ps.page.slug}`);
-    }
+    const paths = related.map(ps => ps.page.slug === 'home' ? '/' : `/${ps.page.slug}`);
+    const tags = related.map(ps => `page:${ps.page.slug}`);
+    await invalidatePages(paths, tags);
   } catch {}
   return NextResponse.json({ ok: true });
 }

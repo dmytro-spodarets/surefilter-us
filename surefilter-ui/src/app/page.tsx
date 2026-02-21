@@ -4,8 +4,15 @@ import { renderSection } from '@/cms/renderer';
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 
+export const revalidate = 3600;
+
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await prisma.page.findUnique({ where: { slug: 'home' } });
+  let page: any = null;
+  try {
+    page = await prisma.page.findUnique({ where: { slug: 'home' } });
+  } catch {
+    // DB unavailable during build
+  }
   const title = page?.title || 'Sure Filter® - Premium Automotive & Industrial Filters';
   const description = page?.description || 'Sure Filter® provides you with the best selection of aftermarket filters and separators, each designed to combat containments, improve efficiency, and deliver world-class results.';
   const image = page?.ogImage || '/images/sf-logo.png';

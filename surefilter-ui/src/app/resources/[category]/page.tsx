@@ -1,9 +1,12 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicResourcesHero from '@/components/sections/DynamicResourcesHero';
 import ResourcesClient from '../ResourcesClient';
 import { prisma } from '@/lib/prisma';
+
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ category: string }>;
@@ -83,11 +86,13 @@ export default async function ResourcesCategoryPage({ params }: PageProps) {
       <DynamicResourcesHero />
 
       {/* Interactive Content - Client Component с server data */}
-      <ResourcesClient
-        initialResources={JSON.parse(JSON.stringify(resources))}
-        initialCategories={JSON.parse(JSON.stringify(categories))}
-        initialCategory={category}
-      />
+      <Suspense>
+        <ResourcesClient
+          initialResources={JSON.parse(JSON.stringify(resources))}
+          initialCategories={JSON.parse(JSON.stringify(categories))}
+          initialCategory={category}
+        />
+      </Suspense>
 
       <Footer />
     </main>

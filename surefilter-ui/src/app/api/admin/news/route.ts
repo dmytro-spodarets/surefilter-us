@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { invalidatePages } from '@/lib/revalidate';
 
 // GET /api/admin/news - Get all articles with filters
 export async function GET(request: NextRequest) {
@@ -133,6 +134,11 @@ export async function POST(request: NextRequest) {
         category: true
       }
     });
+
+    // Invalidate newsroom listing cache
+    try {
+      await invalidatePages(['/newsroom']);
+    } catch {}
 
     return NextResponse.json(article, { status: 201 });
   } catch (error) {

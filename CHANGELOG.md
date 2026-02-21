@@ -13,6 +13,11 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-02-21 — ISR + CloudFront кэширование: убран force-dynamic из root layout, добавлен revalidate на публичные страницы (5мин/1ч/24ч), on-demand инвалидация CloudFront + ISR при редактировании в админке (src/lib/revalidate.ts), CloudFront max_ttl увеличен до 86400
+- 2026-02-21 — Чистые Docker билды: Prisma build-time stub (NEXT_BUILD_SKIP_DB=1) — нет подключения к БД при сборке контейнера, нет prisma:error в логах
+- 2026-02-21 — Admin layout refactoring: разделён на server component (force-dynamic) + client component (AdminClientLayout.tsx), убраны дублирующие html/body теги
+- 2026-02-21 — CloudFront compression: настроена политика кэширования с gzip/brotli, origin request policy с whitelist заголовков, content-encoding работает на всех страницах
+- 2026-02-21 — IAM permission cloudfront:CreateInvalidation для App Runner service role
 - 2026-02-20 — Динамические SEO/GEO файлы: robots.txt (из БД, блокировка из админки), sitemap.xml (страницы, продукты, новости, ресурсы), llms.txt и llms-full.txt (формат llmstxt.org для LLM-краулеров)
 - 2026-02-20 — Google Tag Manager: интеграция через @next/third-parties/google, GTM Container ID из админки, предупреждение о дублировании с GA
 - 2026-02-20 — Google Analytics 4: интеграция через @next/third-parties/google, GA Measurement ID из админки (не env), автоматический трекинг SPA-навигаций, клиентские хелперы для кастомных событий

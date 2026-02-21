@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { invalidatePages } from '@/lib/revalidate';
 
 // GET /api/admin/shared-sections/[id] - получить одну общую секцию
 export async function GET(
@@ -99,18 +100,15 @@ export async function PUT(
 
     // Revalidate all pages that use this shared section
     try {
-      const { revalidateTag } = await import('next/cache');
       const uniqueSlugs = new Set<string>();
-      
       sharedSection.sections.forEach(section => {
         section.pages.forEach(pageSection => {
           uniqueSlugs.add(pageSection.page.slug);
         });
       });
-      
-      uniqueSlugs.forEach(slug => {
-        revalidateTag(`page:${slug}`);
-      });
+      const paths = [...uniqueSlugs].map(s => s === 'home' ? '/' : `/${s}`);
+      const tags = [...uniqueSlugs].map(s => `page:${s}`);
+      await invalidatePages(paths, tags);
     } catch (error) {
       console.error('Error revalidating pages:', error);
     }
