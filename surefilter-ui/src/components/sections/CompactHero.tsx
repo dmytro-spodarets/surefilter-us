@@ -9,6 +9,8 @@ interface CompactHeroProps {
   description?: string;
   backgroundImage: string;
   className?: string;
+  /** Use 'h2' when the page has its own <h1> in the content area */
+  headingLevel?: 'h1' | 'h2';
 }
 
 const CompactHero: React.FC<CompactHeroProps> = ({
@@ -16,7 +18,9 @@ const CompactHero: React.FC<CompactHeroProps> = ({
   description,
   backgroundImage,
   className,
+  headingLevel = 'h1',
 }) => {
+  const Heading = headingLevel;
   return (
     <section className={cn(
       'relative h-[30vh] min-h-[250px] max-h-[350px] flex items-center justify-center mt-24 overflow-hidden',
@@ -40,9 +44,9 @@ const CompactHero: React.FC<CompactHeroProps> = ({
       {/* Контент по центру */}
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
         {/* Заголовок - уменьшенный */}
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-2 drop-shadow-lg">
+        <Heading className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-2 drop-shadow-lg">
           {title}
-        </h1>
+        </Heading>
         
         {/* Описание - уменьшенное */}
         {description && (

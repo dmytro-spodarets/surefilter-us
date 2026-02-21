@@ -8,6 +8,7 @@ import { getAssetUrl } from '@/lib/assets';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ManagedImage } from '@/components/ui/ManagedImage';
+import RelatedNews from '@/components/sections/RelatedNews';
 
 interface NewsPageProps {
   params: Promise<{
@@ -44,7 +45,28 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
   }
 
   const isEvent = article.type === 'EVENT';
-  const articleSettings = await getNewsArticlePageSettings();
+  const [articleSettings, relatedArticles] = await Promise.all([
+    getNewsArticlePageSettings(),
+    prisma.newsArticle.findMany({
+      where: {
+        status: 'PUBLISHED',
+        publishedAt: { lte: new Date() },
+        slug: { not: article.slug },
+        ...(article.categoryId ? { categoryId: article.categoryId } : {}),
+      },
+      orderBy: { publishedAt: 'desc' },
+      take: 4,
+      select: {
+        slug: true,
+        title: true,
+        excerpt: true,
+        featuredImage: true,
+        featuredImageAlt: true,
+        publishedAt: true,
+        category: { select: { name: true } },
+      },
+    }),
+  ]);
 
   const heroTitle = isEvent ? articleSettings.eventTitle : articleSettings.newsTitle;
   const heroDescription = isEvent ? articleSettings.eventDescription : articleSettings.newsDescription;
@@ -62,6 +84,7 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
         title={heroTitle}
         description={heroDescription}
         backgroundImage={heroImage}
+        headingLevel="h2"
       />
       
       <section className="py-16">
@@ -226,6 +249,8 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
           </article>
         </div>
       </section>
+
+      <RelatedNews articles={relatedArticles} />
 
       <Footer />
     </main>

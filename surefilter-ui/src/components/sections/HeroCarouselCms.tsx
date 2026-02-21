@@ -167,12 +167,21 @@ export default function HeroCarouselCms({
                     ) : null}
 
                     {(headingPrefix || headingHighlight) ? (
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-                        {headingPrefix}
-                        {headingHighlight ? (
-                          <><br /><span className="text-sure-red-500">{headingHighlight}</span></>
-                        ) : null}
-                      </h1>
+                      isFirstSlide ? (
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+                          {headingPrefix}
+                          {headingHighlight ? (
+                            <><br /><span className="text-sure-red-500">{headingHighlight}</span></>
+                          ) : null}
+                        </h1>
+                      ) : (
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+                          {headingPrefix}
+                          {headingHighlight ? (
+                            <><br /><span className="text-sure-red-500">{headingHighlight}</span></>
+                          ) : null}
+                        </h2>
+                      )
                     ) : null}
 
                     {slide.subtitle ? (

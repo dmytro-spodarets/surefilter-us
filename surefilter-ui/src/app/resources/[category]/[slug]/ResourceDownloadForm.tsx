@@ -59,9 +59,9 @@ export default function ResourceDownloadForm({ resource }: ResourceDownloadFormP
               <CheckCircleIcon className="h-10 w-10 text-green-600" />
             </div>
             
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Thank You for Your Interest!
-            </h1>
+            </h2>
             
             <p className="text-lg text-gray-600 mb-8">
               Your download is ready. Click the button below to access your file.

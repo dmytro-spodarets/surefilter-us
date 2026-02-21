@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer';
 import { prisma } from '@/lib/prisma';
 import { fetchAndParseCatalog, type CatalogData } from '@/lib/catalog-parser';
 import type { Metadata } from 'next';
+import RelatedProducts from '@/components/sections/RelatedProducts';
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -212,6 +213,23 @@ export default async function ProductPage({ params }: PageProps) {
     );
   }
 
+  // Fetch related products with the same filter type
+  const relatedProducts = product.filterTypeId
+    ? await prisma.product.findMany({
+        where: {
+          filterTypeId: product.filterTypeId,
+          code: { not: product.code },
+          manufacturerCatalogUrl: { not: null },
+        },
+        take: 6,
+        select: {
+          code: true,
+          name: true,
+          filterType: { select: { name: true } },
+        },
+      })
+    : [];
+
   // Main product page with catalog data
   const primaryCategory = product.categories[0]?.category;
 
@@ -405,6 +423,8 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
         </section>
       )}
+
+      <RelatedProducts products={relatedProducts} />
 
       <Footer />
     </>

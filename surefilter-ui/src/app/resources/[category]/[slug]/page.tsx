@@ -6,6 +6,7 @@ import { DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
 import { getAssetUrl } from '@/lib/assets';
 import ResourceDownloadForm from './ResourceDownloadForm';
+import RelatedResources from '@/components/sections/RelatedResources';
 
 interface PageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -48,6 +49,24 @@ export default async function ResourceDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const relatedResources = await prisma.resource.findMany({
+    where: {
+      status: 'PUBLISHED',
+      categoryId: resource.categoryId,
+      slug: { not: resource.slug },
+    },
+    orderBy: { publishedAt: 'desc' },
+    take: 3,
+    select: {
+      slug: true,
+      title: true,
+      shortDescription: true,
+      thumbnailImage: true,
+      fileType: true,
+      category: { select: { slug: true, name: true } },
+    },
+  });
+
   const thumbnailUrl = resource.thumbnailImage 
     ? getAssetUrl(resource.thumbnailImage)
     : 'https://images.unsplash.com/photo-1568667256549-094345857637?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
@@ -61,6 +80,7 @@ export default async function ResourceDetailPage({ params }: PageProps) {
         title={resource.title}
         description={resource.shortDescription || resource.description.substring(0, 150) + '...'}
         backgroundImage={thumbnailUrl}
+        headingLevel="h2"
       />
       
       <section className="py-16">
@@ -126,6 +146,8 @@ export default async function ResourceDetailPage({ params }: PageProps) {
           </div>
         </div>
       </section>
+
+      <RelatedResources resources={relatedResources} />
 
       <Footer />
     </main>
