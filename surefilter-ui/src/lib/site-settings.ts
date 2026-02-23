@@ -1,5 +1,14 @@
 import { prisma } from '@/lib/prisma';
 
+export interface RedirectRule {
+  id: string;
+  source: string;
+  destination: string;
+  statusCode: 301 | 302;
+  isActive: boolean;
+  comment?: string;
+}
+
 export interface SiteSettings {
   // Newsroom
   newsroomTitle?: string;
@@ -34,6 +43,9 @@ export interface SiteSettings {
   // SEO
   seoRobotsBlock?: boolean;
   llmsSiteDescription?: string;
+
+  // Redirects
+  redirects?: RedirectRule[];
 
   // Header Navigation
   headerNavigation?: Array<{
@@ -123,6 +135,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     gtmId: settings.gtmId || undefined,
     seoRobotsBlock: settings.seoRobotsBlock,
     llmsSiteDescription: settings.llmsSiteDescription || undefined,
+    redirects: settings.redirects as any,
     headerNavigation: settings.headerNavigation as any,
     footerContent: settings.footerContent as any,
   };
@@ -194,5 +207,11 @@ export async function getResourcesPageSettings() {
     metaDescription: settings.resourcesMetaDesc,
     ogImage: settings.resourcesOgImage,
   };
+}
+
+// Helper to get active redirects (used by /api/redirects for middleware)
+export async function getActiveRedirects(): Promise<RedirectRule[]> {
+  const settings = await getSiteSettings();
+  return (settings.redirects || []).filter(r => r.isActive);
 }
 

@@ -80,6 +80,20 @@ const UpdateSettingsSchema = z.object({
   // Security
   catalogPassword: z.string().nullable().optional(),
   catalogPasswordEnabled: z.boolean().optional(),
+
+  // Redirects
+  redirects: z.array(z.object({
+    id: z.string().min(1),
+    source: z.string().min(1).refine(val => val.startsWith('/'), {
+      message: 'Source must start with /',
+    }),
+    destination: z.string().min(1).refine(val => val.startsWith('/') || val.startsWith('http'), {
+      message: 'Destination must start with / or http',
+    }),
+    statusCode: z.union([z.literal(301), z.literal(302)]),
+    isActive: z.boolean(),
+    comment: z.string().optional(),
+  })).optional(),
 }).passthrough(); // Allow extra fields
 
 // GET /api/admin/site-settings - Get current settings

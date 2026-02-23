@@ -34,6 +34,15 @@ interface FooterContent {
   legalLinks?: { name: string; href: string }[];
 }
 
+interface RedirectRule {
+  id: string;
+  source: string;
+  destination: string;
+  statusCode: 301 | 302;
+  isActive: boolean;
+  comment?: string;
+}
+
 interface SiteSettingsData {
   newsroomTitle?: string;
   newsroomDescription?: string;
@@ -53,6 +62,7 @@ interface SiteSettingsData {
   resourcesMetaTitle?: string;
   resourcesMetaDesc?: string;
   resourcesOgImage?: string;
+  redirects?: RedirectRule[];
   headerNavigation?: MenuItem[];
   footerContent?: FooterContent;
   catalogPassword?: string;
@@ -67,7 +77,9 @@ export default function SiteSettingsPage() {
   const [settings, setSettings] = useState<SiteSettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'specialPages' | 'headerNav' | 'footer' | 'security'>('specialPages');
+  const [activeTab, setActiveTab] = useState<'specialPages' | 'headerNav' | 'footer' | 'security' | 'redirects'>('specialPages');
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkImportText, setBulkImportText] = useState('');
 
   const [showNewsroomHeroPicker, setShowNewsroomHeroPicker] = useState(false);
   const [showNewsroomOgImagePicker, setShowNewsroomOgImagePicker] = useState(false);
@@ -87,6 +99,9 @@ export default function SiteSettingsPage() {
       if (response.ok) {
         const data = await response.json();
         // Initialize default structures if empty
+        if (!data.redirects) {
+          data.redirects = [];
+        }
         if (!data.headerNavigation) {
           data.headerNavigation = [];
         }
@@ -351,6 +366,101 @@ export default function SiteSettingsPage() {
     updateFooter({ legalLinks });
   };
 
+  // Redirect helpers
+  const addRedirect = () => {
+    const newRedirect: RedirectRule = {
+      id: crypto.randomUUID(),
+      source: '/',
+      destination: '/',
+      statusCode: 301,
+      isActive: true,
+      comment: '',
+    };
+    handleFieldChange('redirects', [...(settings?.redirects || []), newRedirect]);
+  };
+
+  const updateRedirect = (index: number, updates: Partial<RedirectRule>) => {
+    const items = [...(settings?.redirects || [])];
+    items[index] = { ...items[index], ...updates };
+    handleFieldChange('redirects', items);
+  };
+
+  const removeRedirect = (index: number) => {
+    const items = [...(settings?.redirects || [])];
+    items.splice(index, 1);
+    handleFieldChange('redirects', items);
+  };
+
+  const parseBulkImport = (text: string): RedirectRule[] => {
+    return text
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'))
+      .map(line => {
+        // Support separators: →, ->, tab, multiple spaces
+        const parts = line.split(/\s*(?:→|->)\s*|\t+|\s{2,}/);
+        if (parts.length >= 2) {
+          const source = parts[0].trim();
+          const destination = parts[1].trim();
+          if (source && destination) {
+            return {
+              id: crypto.randomUUID(),
+              source: source.startsWith('/') ? source : `/${source}`,
+              destination: destination.startsWith('/') || destination.startsWith('http') ? destination : `/${destination}`,
+              statusCode: 301 as const,
+              isActive: true,
+              comment: 'Bulk import',
+            };
+          }
+        }
+        return null;
+      })
+      .filter((r): r is RedirectRule => r !== null);
+  };
+
+  const handleBulkImport = () => {
+    const parsed = parseBulkImport(bulkImportText);
+    if (parsed.length === 0) {
+      alert('No valid redirects found. Use format: /old-path -> /new-path (one per line)');
+      return;
+    }
+    handleFieldChange('redirects', [...(settings?.redirects || []), ...parsed]);
+    setBulkImportText('');
+    setShowBulkImport(false);
+  };
+
+  const handleSaveRedirects = async () => {
+    // Validate no self-redirects
+    const selfRedirects = (settings?.redirects || []).filter(r => r.source === r.destination);
+    if (selfRedirects.length > 0) {
+      alert(`Cannot save: ${selfRedirects.length} redirect(s) have the same source and destination, which would cause an infinite loop.`);
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await fetch('/api/admin/site-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ redirects: settings?.redirects }),
+      });
+
+      if (response.ok) {
+        const updatedSettings = await response.json();
+        setSettings(updatedSettings);
+        alert('Redirects saved successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to save redirects: ${errorData.error || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error saving redirects:', error);
+      alert('An unexpected error occurred while saving redirects.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-12">
@@ -412,6 +522,17 @@ export default function SiteSettingsPage() {
               }`}
             >
               Security
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('redirects')}
+              className={`px-6 py-3 text-sm font-medium border-b-2 ${
+                activeTab === 'redirects'
+                  ? 'border-sure-blue-600 text-sure-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Redirects
             </button>
           </nav>
         </div>
@@ -1239,7 +1360,7 @@ export default function SiteSettingsPage() {
                 <p className="text-sm text-gray-600 mb-6">
                   Protect your catalog page with a password. When enabled, visitors will need to enter the password to access the catalog.
                 </p>
-                
+
                 <div className="space-y-4">
                   {/* Enable/Disable Toggle */}
                   <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
@@ -1301,6 +1422,194 @@ export default function SiteSettingsPage() {
                     {saving ? 'Saving...' : '🔒 Save Security Settings'}
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'redirects' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">URL Redirects</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Manage 301/302 redirects for SEO migration and URL cleanup. Changes take effect within 1 minute.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowBulkImport(!showBulkImport)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                  >
+                    Import Bulk
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addRedirect}
+                    className="px-4 py-2 bg-sure-blue-600 hover:bg-sure-blue-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    + Add Redirect
+                  </button>
+                </div>
+              </div>
+
+              {/* Bulk Import Panel */}
+              {showBulkImport && (
+                <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Bulk Import</h3>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Paste redirects, one per line. Format: <code className="bg-gray-200 px-1 rounded">/old-path -&gt; /new-path</code> or <code className="bg-gray-200 px-1 rounded">/old-path → /new-path</code>. Tab-separated also works. Lines starting with # are ignored.
+                  </p>
+                  <textarea
+                    value={bulkImportText}
+                    onChange={(e) => setBulkImportText(e.target.value)}
+                    placeholder={"/products-automotive -> /automotive\n/about -> /about-us\n/old-page -> /new-page"}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 font-mono text-sm"
+                    rows={6}
+                  />
+                  {bulkImportText.trim() && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-700 mb-2">
+                        Preview: <strong>{parseBulkImport(bulkImportText).length}</strong> redirect(s) will be added as 301 Permanent, Active.
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={handleBulkImport}
+                      disabled={!bulkImportText.trim()}
+                      className="px-4 py-2 bg-sure-blue-600 hover:bg-sure-blue-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
+                    >
+                      Import
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowBulkImport(false); setBulkImportText(''); }}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Redirect Chain Warning */}
+              {(() => {
+                const redirects = settings?.redirects || [];
+                const activeSources = new Set(redirects.filter(r => r.isActive).map(r => r.source.toLowerCase().replace(/\/+$/, '')));
+                const chains = redirects.filter(r => r.isActive && activeSources.has(r.destination.toLowerCase().replace(/\/+$/, '')));
+                if (chains.length > 0) {
+                  return (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        Warning: {chains.length} redirect(s) point to a destination that is itself a redirect source.
+                        This creates redirect chains which harm SEO. Update them to point directly to the final destination.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Redirect List */}
+              {settings?.redirects && settings.redirects.length > 0 ? (
+                <div className="space-y-3">
+                  {settings.redirects.map((redirect, index) => (
+                    <div key={redirect.id} className={`bg-gray-50 border rounded-lg p-4 ${redirect.isActive ? 'border-gray-200' : 'border-gray-200 opacity-60'}`}>
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-3">
+                        <div className="md:col-span-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Source Path</label>
+                          <input
+                            type="text"
+                            value={redirect.source}
+                            onChange={(e) => updateRedirect(index, { source: e.target.value })}
+                            placeholder="/old-path"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 font-mono text-sm"
+                          />
+                        </div>
+                        <div className="md:col-span-1 flex items-end justify-center pb-2">
+                          <span className="text-gray-400 text-lg">&rarr;</span>
+                        </div>
+                        <div className="md:col-span-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                          <input
+                            type="text"
+                            value={redirect.destination}
+                            onChange={(e) => updateRedirect(index, { destination: e.target.value })}
+                            placeholder="/new-path"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 font-mono text-sm"
+                          />
+                        </div>
+                        <div className="md:col-span-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                          <select
+                            value={redirect.statusCode}
+                            onChange={(e) => updateRedirect(index, { statusCode: Number(e.target.value) as 301 | 302 })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                          >
+                            <option value={301}>301 Permanent</option>
+                            <option value={302}>302 Temporary</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={redirect.isActive}
+                              onChange={(e) => updateRedirect(index, { isActive: e.target.checked })}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm text-gray-700">Active</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={redirect.comment || ''}
+                            onChange={(e) => updateRedirect(index, { comment: e.target.value })}
+                            placeholder="Comment (optional)"
+                            className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-gray-600 focus:ring-2 focus:ring-sure-blue-500"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeRedirect(index)}
+                          className="px-3 py-1 bg-red-50 text-red-600 border border-red-300 rounded hover:bg-red-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
+                  No redirects configured. Click &quot;Add Redirect&quot; or &quot;Import Bulk&quot; to get started.
+                </div>
+              )}
+
+              {/* SEO Info Box */}
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="text-sm font-medium text-blue-900 mb-2">SEO Best Practices</h3>
+                <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                  <li><strong>301 Permanent</strong> &mdash; transfers link equity (SEO value) to the new URL. Use for site migrations.</li>
+                  <li><strong>302 Temporary</strong> &mdash; tells search engines the original URL may return. Use for A/B tests or temporary moves.</li>
+                  <li>Avoid redirect chains (A &rarr; B &rarr; C). Point directly to the final destination.</li>
+                  <li>Query parameters from the original URL are preserved on redirect.</li>
+                </ul>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  type="button"
+                  onClick={handleSaveRedirects}
+                  disabled={saving}
+                  className="px-6 py-2 bg-sure-blue-600 hover:bg-sure-blue-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
+                >
+                  {saving ? 'Saving...' : 'Save Redirects'}
+                </button>
               </div>
             </div>
           )}

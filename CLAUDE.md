@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 21 февраля 2026 (ISR parametric routes fix)
+> Последнее обновление: 23 февраля 2026 (Redirects management system)
 
 ---
 
@@ -72,7 +72,7 @@ surefilter-us/
 - `Section` — секции страниц (type enum, data JSON)
 - `PageSection` — связь page-section с позицией
 - `SharedSection` — переиспользуемые секции
-- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO)
+- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO, redirects)
 
 ### Каталог продуктов
 - `Product` — продукты (code, brand, filterType, manufacturerCatalogUrl)
@@ -150,7 +150,7 @@ surefilter-us/
 - `/admin/resources` — ресурсы
 - `/admin/forms` — конструктор форм
 - `/admin/files` — файл-менеджер (S3)
-- `/admin/settings/site` — настройки сайта
+- `/admin/settings/site` — настройки сайта (включая вкладку Redirects)
 - `/admin/users` — пользователи
 - `/admin/logs` — логи действий
 
@@ -165,6 +165,7 @@ surefilter-us/
 - `GET /api/news`, `GET /api/resources`
 - `GET /robots.txt` — динамический robots.txt
 - `GET /sitemap.xml` — динамический sitemap
+- `GET /api/redirects` — активные редиректы (для middleware)
 - `GET /llms.txt`, `GET /llms-full.txt` — LLM контент
 
 ### Админские (`/api/admin/*`)
@@ -274,6 +275,12 @@ npm run seed:content:force  # С перезаписью
 6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)
 7. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
 8. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД
+9. **URL Redirects**: управляются из админки (`/admin/settings/site` → вкладка Redirects)
+   - Хранятся в `SiteSettings.redirects` (JSON)
+   - Middleware (`middleware.ts`) проверяет запросы и выполняет 301/302 редиректы
+   - Middleware получает редиректы через `/api/redirects` с in-memory кэшем (1 мин)
+   - Поддержка bulk import (вставка списка редиректов пачкой)
+   - Case-insensitive, trailing slash tolerant, query params preserved
 
 ---
 
@@ -311,8 +318,11 @@ npm run seed:content:force  # С перезаписью
 **Где добавить новый тип секции?**
 → 1) Enum в schema.prisma 2) Компонент в sections/ 3) Форма в admin/pages/[slug]/sections/ 4) Обработка в cms/section-renderer.tsx
 
-**Где настройки Header/Footer/Analytics/SEO?**
+**Где настройки Header/Footer/Analytics/SEO/Redirects?**
 → `/admin/settings/site` → `SiteSettings` модель
+
+**Как добавить редирект?**
+→ `/admin/settings/site` → вкладка Redirects → Add Redirect или Import Bulk
 
 **Как добавить изображение?**
 → `/admin/files` → загрузить → скопировать CDN URL

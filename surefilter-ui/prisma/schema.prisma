@@ -693,6 +693,9 @@ model SiteSettings {
   seoRobotsBlock       Boolean @default(false) // Block all crawlers (for staging)
   llmsSiteDescription  String? @db.Text        // Site description for llms.txt
 
+  // Redirects (JSON array of redirect rules)
+  redirects            Json?   // [{ id, source, destination, statusCode, isActive, comment }]
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

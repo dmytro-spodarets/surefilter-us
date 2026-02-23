@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 21 февраля 2026
+**Последнее обновление:** 23 февраля 2026
 
 ---
 
@@ -150,5 +150,10 @@
 - ✅ Post-deploy warm-up (/api/warm-up + scripts/warm-up.sh)
 - ✅ Terraform cycle fix (CLOUDFRONT_DISTRIBUTION_ID → SSM parameter)
 - ✅ CloudFront RSC cache key (RSC + Next-Router-Prefetch в cache policy)
+
+### SEO & Redirects (February 2026)
+- ✅ URL Redirects management (SiteSettings.redirects JSON, admin UI с CRUD + bulk import)
+- ✅ Middleware redirect matching (case-insensitive, trailing slash tolerant, query params preserved)
+- ✅ Public /api/redirects endpoint (in-memory cache 1 min)
 
 </details>
