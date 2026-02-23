@@ -40,12 +40,14 @@ const PageHero: React.FC<PageHeroProps> = ({
 
   return (
     <section className={cn(
-      'relative h-[60vh] min-h-[400px] lg:min-h-[400px] max-h-[600px] lg:lg:min-h-[500px] max-h-[600px] lg:max-h-[700px] bg-gradient-to-br from-gray-200 to-gray-100 flex items-center mt-24',
+      'relative bg-gradient-to-br from-gray-200 to-gray-100 mt-24 pt-8 pb-6 lg:pt-12 lg:pb-6 lg:h-[65vh] lg:min-h-[540px] lg:max-h-[750px] lg:flex lg:items-center',
       className
-    )}>      
+    )}>
+      {/* Background extends behind fixed header */}
+      <div className="absolute inset-0 -top-24 bg-gradient-to-br from-gray-200 to-gray-100 -z-10" />
       {/* Основной контейнер */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-8 lg:gap-16 items-center max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-16 items-center w-full max-w-6xl">
           
           {/* Левая часть - контент */}
           <div className="text-center lg:text-left">
@@ -63,7 +65,7 @@ const PageHero: React.FC<PageHeroProps> = ({
           </div>
           
           {/* Правая часть - сетка изображений 2x2 */}
-          <div className="grid grid-cols-2 gap-2 lg:gap-4 relative max-w-xx lg:max-w-lg h-fit mx-auto lg:mx-0">
+          <div className="grid grid-cols-2 gap-2 lg:gap-4 relative w-full max-w-sm lg:max-w-lg mx-auto lg:mx-0">
             {gridImages.map((img, index) => (
               <div
                 key={index}

@@ -4,7 +4,8 @@ import { loadPageBySlug } from '@/cms/fetch';
 import { renderSection } from '@/cms/renderer';
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { notFound, redirect, permanentRedirect } from 'next/navigation';
+import { getActiveRedirects } from '@/lib/site-settings';
 
 export const revalidate = 86400;
 
@@ -52,6 +53,30 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug?:
   // Use uncached fetch to avoid stale/null cache when pages are created/seeded in dev
   const page = await loadPageBySlug(key);
   if (!page) {
+    // Check for redirects before returning 404
+    const currentPath = '/' + key;
+    const normalizedPath = currentPath.toLowerCase().replace(/\/+$/, '') || '/';
+    let redirectMatch: { destination: string; statusCode: number } | null = null;
+    try {
+      const redirects = await getActiveRedirects();
+      const match = redirects.find(r => {
+        const normalizedSource = r.source.toLowerCase().replace(/\/+$/, '') || '/';
+        return normalizedSource === normalizedPath;
+      });
+      if (match) {
+        redirectMatch = { destination: match.destination, statusCode: match.statusCode };
+      }
+    } catch {
+      // Fail open — if redirect lookup fails, fall through to 404
+    }
+    // Call redirect outside try/catch — redirect() throws a special Next.js error
+    if (redirectMatch) {
+      if (redirectMatch.statusCode === 301) {
+        permanentRedirect(redirectMatch.destination);
+      } else {
+        redirect(redirectMatch.destination);
+      }
+    }
     notFound();
   }
   return (
