@@ -16,14 +16,18 @@ let cachedRedirects: RedirectRule[] = [];
 let redirectsCacheTimestamp = 0;
 const REDIRECTS_CACHE_TTL = 60_000; // 1 minute
 
-async function getRedirects(origin: string): Promise<RedirectRule[]> {
+async function getRedirects(): Promise<RedirectRule[]> {
   const now = Date.now();
   if (cachedRedirects.length > 0 && now - redirectsCacheTimestamp < REDIRECTS_CACHE_TTL) {
     return cachedRedirects;
   }
 
   try {
-    const res = await fetch(`${origin}/api/redirects`);
+    // Use localhost to bypass CloudFront origin enforcement (ENFORCE_ORIGIN=1).
+    // req.nextUrl.origin would be the App Runner domain which gets 301-redirected
+    // to the canonical domain, breaking the internal fetch.
+    const port = process.env.PORT || '3000';
+    const res = await fetch(`http://127.0.0.1:${port}/api/redirects`);
     if (res.ok) {
       cachedRedirects = await res.json();
       redirectsCacheTimestamp = now;
@@ -71,7 +75,7 @@ export async function middleware(req: NextRequest) {
     !/\.(ico|jpg|jpeg|png|gif|svg|webp|avif|css|js|woff|woff2|ttf|eot|map)$/i.test(pathname);
 
   if (shouldCheckRedirects) {
-    const redirects = await getRedirects(req.nextUrl.origin);
+    const redirects = await getRedirects();
 
     if (redirects.length > 0) {
       // Normalize: lowercase, strip trailing slash (except root)
