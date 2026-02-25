@@ -83,13 +83,13 @@ const PageHeroReverse: React.FC<PageHeroReverseProps> = ({
             gridImages.length > 0 ? "lg:text-left order-1 lg:order-2" : ""
           )}>
             {/* Заголовок */}
-            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4 lg:mb-4 lg:mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-[3.25rem] lg:leading-[1.15] font-bold text-gray-900 leading-tight mb-4 lg:mb-6">
               {title}
             </h1>
             
             {/* Описание */}
             {description && (
-              <p className="text-basese lg:text-xl text-gray-600 leading-relaxed">
+              <p className="text-base lg:text-xl text-gray-600 leading-relaxed">
                 {description}
               </p>
             )}
