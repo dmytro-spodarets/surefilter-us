@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { SessionProvider } from 'next-auth/react';
+import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
@@ -224,7 +224,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Link
                 href="/"
                 target="_blank"
@@ -235,11 +235,34 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                 </svg>
                 View Site
               </Link>
+              <UserMenu />
             </div>
           </div>
         </div>
       </header>
-      <main className="min-h-screen bg-gray-50">{children}</main>
+      <main className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto">{children}</div>
+      </main>
     </SessionProvider>
+  );
+}
+
+function UserMenu() {
+  const { data: session } = useSession();
+  if (!session?.user) return null;
+
+  return (
+    <>
+      <span className="text-sm text-gray-500 hidden lg:block">{session.user.email}</span>
+      <button
+        onClick={() => signOut({ callbackUrl: '/login' })}
+        className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Sign Out
+      </button>
+    </>
   );
 }

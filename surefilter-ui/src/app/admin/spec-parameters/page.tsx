@@ -18,7 +18,7 @@ export default async function SpecParametersPage() {
   return (
     <AdminContainer className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">Specification Parameters</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Specification Parameters</h1>
           <div className="flex items-center gap-3">
             <Link href="/admin/spec-parameters/new" className="bg-sure-blue-600 text-white px-3 py-2 rounded-lg">New parameter</Link>
           </div>

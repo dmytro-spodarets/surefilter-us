@@ -72,7 +72,7 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
     return (
       <AdminContainer className="space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">Shared Section</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Shared Section</h1>
           <div className="flex items-center gap-4 text-sm">
             {parentSlug ? (
               <Link href={`/admin/pages/${parentSlug}`} className="text-sure-blue-600 hover:underline">← Back to Page</Link>
@@ -162,7 +162,7 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
   return (
     <AdminContainer className="space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">Edit Section: {section.type}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Section: {section.type}</h1>
           <div className="flex items-center gap-4 text-sm">
             {parentSlug ? (
               <Link href={`/admin/pages/${parentSlug}`} className="text-sure-blue-600 hover:underline">← Back</Link>

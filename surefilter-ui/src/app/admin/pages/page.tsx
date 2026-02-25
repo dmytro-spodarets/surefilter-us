@@ -28,7 +28,7 @@ export default async function PagesList() {
   return (
     <AdminContainer>
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Pages</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Pages</h1>
           <div className="flex items-center gap-4">
             <NewPageForm />
             <div className="text-sm">

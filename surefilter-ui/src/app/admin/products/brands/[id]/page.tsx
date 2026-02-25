@@ -123,8 +123,8 @@ export default function EditBrandPage({ params }: { params: Promise<{ id: string
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <div className="text-center text-gray-500">Loading brand...</div>
+      <div className="p-6">
+        <div className="text-center py-12 text-gray-500">Loading brand...</div>
       </div>
     );
   }
@@ -134,24 +134,15 @@ export default function EditBrandPage({ params }: { params: Promise<{ id: string
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div className="p-6">
+      <div className="max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Edit Brand</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Edit Brand</h1>
         <p className="mt-2 text-sm text-gray-600">
           Update brand information
         </p>
 
-        {/* Breadcrumbs */}
-        <nav className="flex text-sm text-gray-500 mt-4">
-          <Link href="/admin" className="hover:text-gray-700">Admin</Link>
-          <span className="mx-2">/</span>
-          <Link href="/admin/products" className="hover:text-gray-700">Products</Link>
-          <span className="mx-2">/</span>
-          <Link href="/admin/products/brands" className="hover:text-gray-700">Brands</Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-900">{brand.name}</span>
-        </nav>
       </div>
 
       {/* Usage Info */}
@@ -356,6 +347,7 @@ export default function EditBrandPage({ params }: { params: Promise<{ id: string
         onSelect={handleMediaSelect}
         onClose={() => setShowMediaPicker(false)}
       />
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 23 февраля 2026 (Redirects management system)
+> Последнее обновление: 25 февраля 2026
 
 ---
 
@@ -10,7 +10,7 @@
 **Sure Filter US** — корпоративный сайт производителя автомобильных фильтров с полнофункциональной CMS системой.
 
 **Технологический стек:**
-- **Framework:** Next.js 15.5.9 (App Router, Server Components)
+- **Framework:** Next.js 15.5.x (App Router, Server Components)
 - **React:** 19.0.0
 - **Styling:** Tailwind CSS 4.1.11
 - **Database:** PostgreSQL + Prisma ORM 7.1.0 (с pg adapter)
@@ -145,13 +145,13 @@ surefilter-us/
 
 ### Админка (`/admin/*`)
 - `/admin/pages` — управление страницами
-- `/admin/products` — каталог продуктов
+- `/admin/products` — каталог продуктов (+ brands, categories, spec-parameters, product-filter-types)
 - `/admin/news` — новости
 - `/admin/resources` — ресурсы
 - `/admin/forms` — конструктор форм
 - `/admin/files` — файл-менеджер (S3)
-- `/admin/settings/site` — настройки сайта (включая вкладку Redirects)
-- `/admin/users` — пользователи
+- `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages, Redirects)
+- `/admin/users` — пользователи (список, создание, редактирование)
 - `/admin/logs` — логи действий
 
 ---
@@ -165,7 +165,7 @@ surefilter-us/
 - `GET /api/news`, `GET /api/resources`
 - `GET /robots.txt` — динамический robots.txt
 - `GET /sitemap.xml` — динамический sitemap
-- `GET /api/redirects` — активные редиректы (для middleware)
+- `GET /api/redirects` — активные редиректы (legacy, не используется — логика в catch-all page)
 - `GET /llms.txt`, `GET /llms-full.txt` — LLM контент
 
 ### Админские (`/api/admin/*`)
@@ -226,6 +226,16 @@ npm run seed:content        # Без перезаписи
 npm run seed:content:force  # С перезаписью
 ```
 
+### Локальная админка
+
+| | |
+|---|---|
+| **URL** | `http://localhost:3000/admin` |
+| **Email** | `admin@spodarets.com` |
+| **Password** | `Data1986` |
+
+> Создаётся через `npm run seed:content` (env: `ADMIN_EMAIL`, `ADMIN_PASSWORD`)
+
 ---
 
 ## Паттерны и соглашения
@@ -235,13 +245,22 @@ npm run seed:content:force  # С перезаписью
 - **Client Components** — только при необходимости интерактивности (`'use client'`)
 - **CMS компоненты** — суффикс `Cms` (например, `HeroCms`, `WhyChooseCms`)
 
+### Админ-панель (лайаут)
+- **AdminClientLayout** (`admin/AdminClientLayout.tsx`) — клиентский layout: SessionProvider, хедер с навигацией + UserMenu (email + Sign Out), `<main>` с `max-w-7xl mx-auto`
+- **AdminContainer** (`components/admin/AdminContainer.tsx`) — серверный wrapper: `<div className="p-6">`
+- **Обёртка страниц**: `<div className="p-6">` (или AdminContainer)
+- **Заголовки**: `<h1 className="text-2xl font-bold text-gray-900 mb-6">`
+- **Loading states**: `<div className="p-6"><div className="text-center py-12"><spinner /></div></div>`
+- **Формы/edit страницы**: `<div className="p-6">` с inner `max-w-2xl` или `max-w-4xl`
+- **Breadcrumbs отключены** — FolderBreadcrumbs только в файл-менеджере
+
 ### Стили
 - Утилита `cn()` из `lib/utils.ts` для объединения Tailwind классов
 - Цвета: `sure-blue`, `sure-orange`, `sure-red`
 - Контейнер: `max-w-7xl mx-auto px-4`
 
 ### Изображения
-- Компонент `ManagedImage` — с shimmer placeholder и retry
+- Компонент `ManagedImage` — с shimmer placeholder (без retry/error boundary — TODO)
 - Утилита `getAssetUrl()` — конвертирует S3 path в CDN URL
 - Next.js `<Image>` везде вместо `<img>`
 
@@ -261,7 +280,7 @@ npm run seed:content:force  # С перезаписью
 ## Известные особенности
 
 1. **Prisma 7**: `prisma.config.ts` должен быть в корне surefilter-ui/, не в prisma/
-2. **Поиск отключен**: Временно закомментирован для Phase 1 (TODO в компонентах)
+2. **Поиск отключен**: Временно закомментирован для Phase 1 (5 компонентов с TODO-маркерами: Header, HeroCms, SearchHero, CompactSearchHero, QuickSearchCms, SimpleSearch)
 3. **ISR + CloudFront кэширование**: двухуровневый кэш (Next.js ISR + CloudFront edge)
    - **Все публичные страницы**: `revalidate = 86400` (24 часа) — единое значение, fallback-страховка
    - Admin pages: `force-dynamic` (через server component layout)
@@ -272,15 +291,19 @@ npm run seed:content:force  # С перезаписью
    - **`revalidate` = только литерал** — Next.js AST-анализ не поддерживает импорт из общего файла
 4. **Docker build**: `NEXT_BUILD_SKIP_DB=1` — Prisma stub, нет подключения к БД при сборке
 5. **Post-deploy warm-up**: `scripts/warm-up.sh` вызывает `/api/warm-up` после старта сервера — обновляет ISR кэш реальными данными из БД (build-time страницы пустые)
-6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (техдолг)
+6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (из-за FilterType.category workarounds в API/админке)
 7. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
 8. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД
 9. **URL Redirects**: управляются из админки (`/admin/settings/site` → вкладка Redirects)
    - Хранятся в `SiteSettings.redirects` (JSON)
-   - Middleware (`middleware.ts`) проверяет запросы и выполняет 301/302 редиректы
-   - Middleware получает редиректы через `/api/redirects` с in-memory кэшем (1 мин)
-   - Поддержка bulk import (вставка списка редиректов пачкой)
-   - Case-insensitive, trailing slash tolerant, query params preserved
+   - Логика редиректов в catch-all page `(site)/[...slug]/page.tsx` (не в middleware — Edge Runtime не поддерживает fetch на App Runner)
+   - `permanentRedirect()` для 301 (отправляет 308), `redirect()` для 302 (отправляет 307) — SEO-эквиваленты
+   - **Важно**: `redirect()`/`permanentRedirect()` бросают специальные Next.js ошибки — вызывать ВНЕ try/catch
+   - Поддержка bulk import, case-insensitive matching, query params preserved
+10. **Custom Error Pages**: `not-found.tsx` (404 с Header/Footer), `error.tsx` (runtime, client component), `global-error.tsx` (root layout fallback с inline styles)
+   - 404: `robots: { index: false, follow: true }` — не индексируется, но ссылки следуются
+   - `error.tsx` — client component, не может использовать Header/Footer (async server components)
+   - `global-error.tsx` — свои `<html>`/`<body>`, inline styles (Tailwind может не загрузиться)
 
 ---
 
@@ -302,6 +325,10 @@ npm run seed:content:force  # С перезаписью
 2. **Консолидировать** информацию в существующие документы
 3. **Временные файлы** — в `docs/WIP_*.md`, потом архивировать
 4. **Устаревшее** — в `docs/archive/`
+5. **После реализации любой фичи** — ОБЯЗАТЕЛЬНО обновить:
+   - `TODO.md` — отметить выполненное, добавить новые задачи
+   - `CLAUDE.md` — обновить если изменились архитектура, паттерны или версии
+   - `CHANGELOG.md` — добавить запись о каждом значимом изменении
 
 ### Дополнительно
 

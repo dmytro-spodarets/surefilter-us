@@ -26,7 +26,7 @@ export default async function ProductFilterTypesPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Product Filter Types</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Product Filter Types</h1>
             <p className="mt-1 text-sm text-gray-600">
               Manage filter types for your product catalog (Air, Oil, Fuel, etc.)
             </p>

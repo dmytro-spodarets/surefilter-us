@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import SettingsShell from '@/components/admin/SettingsShell';
 
 interface AdminLog {
   id: string;
@@ -48,15 +49,17 @@ export default function AdminLogsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sure-blue-600"></div>
-      </div>
+      <SettingsShell>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sure-blue-600 mx-auto"></div>
+        </div>
+      </SettingsShell>
     );
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Activity Logs</h1>
+    <SettingsShell>
+      <h2 className="text-xl font-bold text-gray-900 mb-6">Activity Logs</h2>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
@@ -106,6 +109,6 @@ export default function AdminLogsPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </SettingsShell>
   );
 }

@@ -112,12 +112,12 @@ export default function BrandsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Brands</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Brands</h1>
             <p className="mt-2 text-sm text-gray-600">
               Manage product brands (Sure Filter, Premium Guard, etc.)
             </p>
@@ -133,14 +133,6 @@ export default function BrandsPage() {
           </Link>
         </div>
 
-        {/* Breadcrumbs */}
-        <nav className="flex text-sm text-gray-500">
-          <Link href="/admin" className="hover:text-gray-700">Admin</Link>
-          <span className="mx-2">/</span>
-          <Link href="/admin/products" className="hover:text-gray-700">Products</Link>
-          <span className="mx-2">/</span>
-          <span className="text-gray-900">Brands</span>
-        </nav>
       </div>
 
       {/* Filters */}

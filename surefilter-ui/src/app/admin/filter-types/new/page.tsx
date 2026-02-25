@@ -12,12 +12,12 @@ export default async function NewFilterType({ searchParams }: { searchParams?: P
   const category = sp.category === 'AUTOMOTIVE' ? 'AUTOMOTIVE' : 'HEAVY_DUTY';
 
   return (
-    <main className="min-h-screen px-6 py-10">
+    <div className="p-6">
       <div className="max-w-lg mx-auto space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-900">New Filter Type</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">New Filter Type</h1>
         <NewFilterTypeForm defaultCategory={category} />
       </div>
-    </main>
+    </div>
   );
 }
 

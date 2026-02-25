@@ -45,8 +45,8 @@ export default function NewProductPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="text-center text-gray-500">Loading form data...</div>
+      <div className="p-6">
+        <div className="text-center py-12 text-gray-500">Loading form data...</div>
       </div>
     );
   }

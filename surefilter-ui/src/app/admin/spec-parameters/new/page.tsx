@@ -14,7 +14,7 @@ export default async function NewSpecParameterPage() {
   return (
     <AdminContainer className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">New Specification Parameter</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">New Specification Parameter</h1>
           <Link href="/admin/spec-parameters" className="text-sure-blue-600 hover:underline">← Back to spec parameters</Link>
         </div>
         <div className="border border-gray-200 rounded-lg p-5">

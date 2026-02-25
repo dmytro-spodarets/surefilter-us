@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import SettingsShell from '@/components/admin/SettingsShell';
 
 interface User {
   id: string;
@@ -59,16 +60,18 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sure-blue-600"></div>
-      </div>
+      <SettingsShell>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sure-blue-600 mx-auto"></div>
+        </div>
+      </SettingsShell>
     );
   }
 
   return (
-    <div className="p-6">
+    <SettingsShell>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Users Management</h1>
+        <h2 className="text-xl font-bold text-gray-900">Users</h2>
         <Link
           href="/admin/users/new"
           className="inline-flex items-center px-4 py-2 bg-sure-blue-600 text-white rounded-lg hover:bg-sure-blue-700 transition-colors"
@@ -148,6 +151,6 @@ export default function UsersPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </SettingsShell>
   );
 }

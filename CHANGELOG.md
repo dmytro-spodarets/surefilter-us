@@ -13,7 +13,15 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
-- 2026-02-23 — URL Redirects: управление 301/302 редиректами из админки (Settings → Redirects), middleware-based matching, bulk import, SEO best practices
+- 2026-02-25 — Admin Dashboard: 5 виджетов — статистика (products/pages/news/submissions), quick actions, content health warnings, последние заявки с форм, лента активности (AdminLog), всё Server Component с прямыми Prisma запросами
+- 2026-02-25 — Admin UX overhaul: стандартизация лайаутов всех ~46 админ-страниц (единый p-6, text-2xl font-bold, inline loading spinners), Sign Out + email пользователя в хедере (useSession + signOut), удалены breadcrumbs из всех страниц, контент ограничен max-w-7xl как и хедер
+- 2026-02-25 — Страницы управления пользователями: создан /admin/users/[id]/edit (редактирование), /admin/users/new (создание), полный CRUD через API
+- 2026-02-25 — Удалены неиспользуемые страницы: /admin/settings/system-health, /admin/settings/debug и 5 связанных API routes (system-info, health-check, fix-issues, filter-types/cleanup, debug)
+- 2026-02-25 — Аудит и обновление документации: TODO.md (отмечены завершённые Swiper migration, CMS формы, DB cleanup), CLAUDE.md (исправлены версии, ManagedImage описание, TypeScript причина), выявлены устаревшие пункты
+- 2026-02-23 — Custom Error Pages: кастомные 404 (not-found.tsx с Header/Footer), error.tsx (runtime ошибки), global-error.tsx (root layout fallback), SEO noindex+follow
+- 2026-02-23 — Redirects fix: перенос логики редиректов из middleware (Edge Runtime) в server component catch-all page — решена проблема с fetch на App Runner
+- 2026-02-23 — PageHero fix: исправлены невидимые картинки на мобилке (missing w-full), фон за хедером (absolute -top-24), отступы, невалидные CSS классы
+- 2026-02-23 — URL Redirects: управление 301/302 редиректами из админки (Settings → Redirects), bulk import, SEO best practices
 - 2026-02-21 — Unified revalidate = 86400 (24ч) на все публичные страницы — on-demand invalidation обновляет контент мгновенно, revalidate только как fallback-страховка
 - 2026-02-21 — ISR fix для параметрических роутов: добавлен generateStaticParams() на все публичные [slug] страницы + исправлен re-export revalidate в [slug]/page.tsx — все CMS/news/resources/product страницы теперь кэшируются (были force-dynamic)
 - 2026-02-21 — CloudFront RSC cache key fix: RSC и Next-Router-Prefetch добавлены в cache policy headers — HTML и RSC flight payload кэшируются раздельно, исправлена проблема с отображением сырого JSON в браузере

@@ -119,7 +119,7 @@ export default function NewSharedSectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="p-6">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -130,7 +130,7 @@ export default function NewSharedSectionPage() {
             <ArrowLeftIcon className="w-4 h-4" />
             Back to Shared Sections
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Create Shared Section</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Create Shared Section</h1>
           <p className="text-gray-600 mt-2">
             Create a reusable section that can be used across multiple pages
           </p>

@@ -22,7 +22,7 @@ export default async function IndustriesPagesList() {
   return (
     <AdminContainer>
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Industries</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Industries</h1>
           <div className="flex items-center gap-4">
             <NewPageForm presetType="INDUSTRY" presetPrefix="industries/" buttonLabel="New industry page" />
             <div className="text-sm">

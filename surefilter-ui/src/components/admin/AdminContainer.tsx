@@ -7,10 +7,8 @@ interface AdminContainerProps {
 
 export default function AdminContainer({ children, className = '' }: AdminContainerProps) {
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className={`max-w-7xl mx-auto ${className}`}>
-        {children}
-      </div>
-    </main>
+    <div className={`p-6 ${className}`.trim()}>
+      {children}
+    </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import Breadcrumbs from '@/components/admin/Breadcrumbs';
 
 interface Submission {
   id: string;
@@ -154,18 +153,11 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="p-6">
-      <Breadcrumbs items={[
-        { label: 'Admin', href: '/admin' },
-        { label: 'Forms', href: '/admin/forms' },
-        { label: form.name, href: `/admin/forms/${id}/edit` },
-        { label: 'Submissions' },
-      ]} />
-
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Form Submissions</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Form Submissions</h1>
             <p className="text-gray-600 mt-1">{submissions.length} total submissions for "{form.name}"</p>
           </div>
           <div className="flex gap-2">

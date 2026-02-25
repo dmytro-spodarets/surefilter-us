@@ -235,7 +235,7 @@ export default function EditSharedSectionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="p-6">
         <div className="max-w-5xl mx-auto">
           <div className="animate-pulse space-y-4">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
@@ -248,7 +248,7 @@ export default function EditSharedSectionPage() {
 
   if (!sharedSection) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="p-6">
         <div className="max-w-5xl mx-auto">
           <p className="text-red-600">Shared section not found</p>
         </div>
@@ -259,7 +259,7 @@ export default function EditSharedSectionPage() {
   const usedOnPages = getUsedOnPages();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div>
@@ -270,7 +270,7 @@ export default function EditSharedSectionPage() {
             <ArrowLeftIcon className="w-4 h-4" />
             Back to Shared Sections
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">{sharedSection.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{sharedSection.name}</h1>
           <p className="text-gray-600 mt-2">
             Type: <span className="font-medium">{sharedSection.type}</span>
           </p>

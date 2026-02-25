@@ -4,7 +4,6 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import FormBuilder, { FormData } from '@/components/admin/FormBuilder';
 import Link from 'next/link';
-import Breadcrumbs from '@/components/admin/Breadcrumbs';
 
 export default function EditFormPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -99,15 +98,9 @@ export default function EditFormPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="p-6">
-      <Breadcrumbs items={[
-        { label: 'Admin', href: '/admin' },
-        { label: 'Forms', href: '/admin/forms' },
-        { label: formData?.name || 'Edit Form' },
-      ]} />
-
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Form</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Form</h1>
           <p className="text-gray-600 mt-1">Update your form configuration</p>
         </div>
         <Link

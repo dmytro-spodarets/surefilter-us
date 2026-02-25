@@ -78,15 +78,13 @@ export default function SharedSectionsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
-              ))}
-            </div>
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
           </div>
         </div>
       </div>
@@ -94,12 +92,11 @@ export default function SharedSectionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Shared Sections</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Shared Sections</h1>
             <p className="text-gray-600 mt-2">
               Create reusable sections that can be used across multiple pages
             </p>
@@ -190,7 +187,6 @@ export default function SharedSectionsPage() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }

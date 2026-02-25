@@ -134,20 +134,17 @@ export default function NewsCategoriesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="p-6">
+        <p className="text-gray-600">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="p-6">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">News Categories</h1>
+            <h1 className="text-2xl font-bold text-gray-900">News Categories</h1>
             <p className="text-gray-600 mt-1">Manage categories for news articles and events</p>
           </div>
           <div className="flex gap-3">
@@ -358,7 +355,6 @@ export default function NewsCategoriesPage() {
             </tbody>
           </table>
         </div>
-      </div>
     </div>
   );
 }

@@ -75,7 +75,7 @@ export default async function FilterTypesPage() {
   return (
     <AdminContainer className="space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">Filter Types</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Filter Types</h1>
           <Link href="/admin" className="text-sure-blue-600 hover:underline">← Back to dashboard</Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
