@@ -39,6 +39,12 @@ const UpdateSettingsSchema = z.object({
     url: z.string(),
     order: z.number(),
     isActive: z.boolean().default(true),
+    children: z.array(z.object({
+      label: z.string(),
+      url: z.string(),
+      order: z.number(),
+      isActive: z.boolean().default(true),
+    })).optional(),
   })).optional(),
   
   // Footer

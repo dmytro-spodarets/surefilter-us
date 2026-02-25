@@ -5,11 +5,19 @@ import Image from 'next/image';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import { getAssetUrl } from '@/lib/assets';
 
+interface MenuChildItem {
+  label: string;
+  url: string;
+  order: number;
+  isActive: boolean;
+}
+
 interface MenuItem {
   label: string;
   url: string;
   order: number;
   isActive: boolean;
+  children?: MenuChildItem[];
 }
 
 interface FooterContent {
@@ -282,6 +290,52 @@ export default function SiteSettingsPage() {
     if (newIndex < 0 || newIndex >= items.length) return;
     [items[index], items[newIndex]] = [items[newIndex], items[index]];
     items.forEach((item, idx) => item.order = idx);
+    handleFieldChange('headerNavigation', items);
+  };
+
+  // Child item helpers
+  const addChildItem = (parentIndex: number) => {
+    const items = [...(settings?.headerNavigation || [])];
+    const parent = items[parentIndex];
+    const children = [...(parent.children || [])];
+    children.push({
+      label: 'New Sub-item',
+      url: '/',
+      order: children.length,
+      isActive: true,
+    });
+    items[parentIndex] = { ...parent, children };
+    handleFieldChange('headerNavigation', items);
+  };
+
+  const updateChildItem = (parentIndex: number, childIndex: number, updates: Partial<MenuChildItem>) => {
+    const items = [...(settings?.headerNavigation || [])];
+    const parent = items[parentIndex];
+    const children = [...(parent.children || [])];
+    children[childIndex] = { ...children[childIndex], ...updates };
+    items[parentIndex] = { ...parent, children };
+    handleFieldChange('headerNavigation', items);
+  };
+
+  const removeChildItem = (parentIndex: number, childIndex: number) => {
+    const items = [...(settings?.headerNavigation || [])];
+    const parent = items[parentIndex];
+    const children = [...(parent.children || [])];
+    children.splice(childIndex, 1);
+    children.forEach((c, i) => c.order = i);
+    items[parentIndex] = { ...parent, children };
+    handleFieldChange('headerNavigation', items);
+  };
+
+  const moveChildItem = (parentIndex: number, childIndex: number, direction: 'up' | 'down') => {
+    const items = [...(settings?.headerNavigation || [])];
+    const parent = items[parentIndex];
+    const children = [...(parent.children || [])];
+    const newIndex = direction === 'up' ? childIndex - 1 : childIndex + 1;
+    if (newIndex < 0 || newIndex >= children.length) return;
+    [children[childIndex], children[newIndex]] = [children[newIndex], children[childIndex]];
+    children.forEach((c, i) => c.order = i);
+    items[parentIndex] = { ...parent, children };
     handleFieldChange('headerNavigation', items);
   };
 
@@ -1014,6 +1068,87 @@ export default function SiteSettingsPage() {
                             Delete
                           </button>
                         </div>
+                      </div>
+
+                      {/* Sub-items section */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-sm font-medium text-gray-700">
+                            Sub-items ({item.children?.length || 0})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => addChildItem(index)}
+                            className="text-xs px-2 py-1 bg-sure-blue-100 text-sure-blue-700 rounded hover:bg-sure-blue-200 transition-colors"
+                          >
+                            + Add Sub-item
+                          </button>
+                        </div>
+
+                        {item.children && item.children.length > 0 && (
+                          <div className="space-y-2 ml-4 border-l-2 border-sure-blue-200 pl-4">
+                            {item.children.map((child, childIndex) => (
+                              <div key={childIndex} className="bg-white border border-gray-200 rounded-lg p-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
+                                    <input
+                                      type="text"
+                                      value={child.label}
+                                      onChange={(e) => updateChildItem(index, childIndex, { label: e.target.value })}
+                                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">URL</label>
+                                    <input
+                                      type="text"
+                                      value={child.url}
+                                      onChange={(e) => updateChildItem(index, childIndex, { url: e.target.value })}
+                                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <label className="flex items-center gap-1.5">
+                                    <input
+                                      type="checkbox"
+                                      checked={child.isActive}
+                                      onChange={(e) => updateChildItem(index, childIndex, { isActive: e.target.checked })}
+                                      className="rounded border-gray-300"
+                                    />
+                                    <span className="text-xs text-gray-600">Active</span>
+                                  </label>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => moveChildItem(index, childIndex, 'up')}
+                                      disabled={childIndex === 0}
+                                      className="px-1.5 py-0.5 text-xs border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      ↑
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => moveChildItem(index, childIndex, 'down')}
+                                      disabled={childIndex === (item.children?.length || 0) - 1}
+                                      className="px-1.5 py-0.5 text-xs border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      ↓
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeChildItem(index, childIndex)}
+                                      className="px-2 py-0.5 text-xs bg-red-50 text-red-600 border border-red-300 rounded hover:bg-red-100"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

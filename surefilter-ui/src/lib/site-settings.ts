@@ -9,6 +9,21 @@ export interface RedirectRule {
   comment?: string;
 }
 
+export interface NavigationChildItem {
+  label: string;
+  url: string;
+  order: number;
+  isActive: boolean;
+}
+
+export interface NavigationItem {
+  label: string;
+  url: string;
+  order: number;
+  isActive: boolean;
+  children?: NavigationChildItem[];
+}
+
 export interface SiteSettings {
   // Newsroom
   newsroomTitle?: string;
@@ -48,12 +63,7 @@ export interface SiteSettings {
   redirects?: RedirectRule[];
 
   // Header Navigation
-  headerNavigation?: Array<{
-    label: string;
-    url: string;
-    order: number;
-    isActive: boolean;
-  }>;
+  headerNavigation?: NavigationItem[];
   
   // Footer
   footerContent?: {
@@ -147,9 +157,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 }
 
 // Helper to get only navigation
-export async function getHeaderNavigation() {
+export async function getHeaderNavigation(): Promise<NavigationItem[]> {
   const settings = await getSiteSettings();
-  return settings.headerNavigation?.filter(item => item.isActive).sort((a, b) => a.order - b.order) || [];
+  const items = settings.headerNavigation?.filter(item => item.isActive).sort((a, b) => a.order - b.order) || [];
+  return items.map(item => ({
+    ...item,
+    children: item.children?.filter(c => c.isActive).sort((a, b) => a.order - b.order) || [],
+  }));
 }
 
 // Helper to get only footer
