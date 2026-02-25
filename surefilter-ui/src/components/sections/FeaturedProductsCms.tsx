@@ -12,7 +12,7 @@ interface Item {
 export default function FeaturedProductsCms({ title, description, fallbackHref = '/catalog', items = [] as Item[] }: { title?: string; description?: string; fallbackHref?: string; items?: Item[] }) {
   const targetHref = (item: Item) => item.href || fallbackHref;
   return (
-    <section className="py-16 sm:py-24 bg-white">
+    <section className="py-16 sm:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="text-center mb-12">
           {title && (
