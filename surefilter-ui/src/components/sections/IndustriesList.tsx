@@ -30,19 +30,21 @@ export default async function IndustriesList({ title = 'Our Industries', descrip
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {cards.map((industry) => (
-            <Link
+            <div
               key={industry.slug}
-              href={`/industries/${industry.slug}`}
-              className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-sure-blue-200"
+              className="group bg-white rounded-lg overflow-hidden border border-gray-200 transition-all duration-300"
             >
-              <div className="relative h-64 bg-gray-100 overflow-hidden">
+              <Link
+                href={`/industries/${industry.slug}`}
+                className="block relative h-64 bg-gray-100 overflow-hidden"
+              >
                 {industry.image ? (
-                  <ManagedImage 
-                    src={industry.image} 
-                    alt={industry.title} 
-                    fill 
+                  <ManagedImage
+                    src={industry.image}
+                    alt={industry.title}
+                    fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -51,22 +53,25 @@ export default async function IndustriesList({ title = 'Our Industries', descrip
                     {industry.title}
                   </h3>
                 </div>
-              </div>
+              </Link>
 
               <div className="p-6">
                 <p className="text-gray-600 text-sm leading-relaxed mb-4">{industry.description}</p>
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-gray-800 uppercase tracking-wide">Popular Filters:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {industry.popularFilters.map((filter: string, index: number) => (
-                      <span key={`${filter}-${index}`} className="text-xs bg-sure-blue-50 text-sure-blue-700 px-3 py-1 rounded-full border border-sure-blue-200">
-                        {filter}
-                      </span>
-                    ))}
+
+                {industry.popularFilters.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Popular Filters</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {industry.popularFilters.map((filter: string, index: number) => (
+                        <span key={`${filter}-${index}`} className="text-xs text-sure-blue-700 bg-sure-blue-50 px-2.5 py-1.5 rounded-md font-medium">
+                          {filter}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
