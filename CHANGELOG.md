@@ -13,6 +13,10 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-02-25 — Header Dropdown Navigation: поддержка вложенных пунктов меню с hover-dropdown на десктопе и accordion на мобильных, клавиатурная навигация (Escape/ArrowDown/ArrowUp), ARIA-атрибуты, управление sub-items в админке Settings → Navigation
+- 2026-02-25 — Mobile Menu: добавлена кнопка Browse Catalog в гамбургер-меню, фоновый цвет bg-gray-50 для контраста с hero-секцией
+- 2026-02-25 — IndustriesList UX: кликабельна только верхняя часть карточки (картинка + название), нижняя часть (описание + фильтры) информационная, бейджи фильтров в фирменном синем цвете
+- 2026-02-25 — FeaturedProductsCms: визуальное разделение зон карточки (image bg-gray-50 + border-b, text white)
 - 2026-02-25 — Admin Dashboard: 5 виджетов — статистика (products/pages/news/submissions), quick actions, content health warnings, последние заявки с форм, лента активности (AdminLog), всё Server Component с прямыми Prisma запросами
 - 2026-02-25 — Admin UX overhaul: стандартизация лайаутов всех ~46 админ-страниц (единый p-6, text-2xl font-bold, inline loading spinners), Sign Out + email пользователя в хедере (useSession + signOut), удалены breadcrumbs из всех страниц, контент ограничен max-w-7xl как и хедер
 - 2026-02-25 — Страницы управления пользователями: создан /admin/users/[id]/edit (редактирование), /admin/users/new (создание), полный CRUD через API

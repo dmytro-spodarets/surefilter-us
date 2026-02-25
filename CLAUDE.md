@@ -254,6 +254,13 @@ npm run seed:content:force  # С перезаписью
 - **Формы/edit страницы**: `<div className="p-6">` с inner `max-w-2xl` или `max-w-4xl`
 - **Breadcrumbs отключены** — FolderBreadcrumbs только в файл-менеджере
 
+### Header Navigation
+- **Dropdown поддержка**: пункты меню могут иметь `children` (вложенные ссылки)
+- **Desktop** (`HeaderNav.tsx`): hover-dropdown с 150ms задержкой закрытия, CSS-анимации opacity/translate
+- **Mobile** (`MobileMenu.tsx`): accordion expand/collapse, Browse Catalog CTA в конце
+- **Данные**: `NavigationItem` с optional `children: NavigationChildItem[]` в JSON поле `SiteSettings.headerNavigation`
+- **Управление**: `/admin/settings/site` → вкладка Header Navigation → добавление sub-items к пунктам
+
 ### Стили
 - Утилита `cn()` из `lib/utils.ts` для объединения Tailwind классов
 - Цвета: `sure-blue`, `sure-orange`, `sure-red`
