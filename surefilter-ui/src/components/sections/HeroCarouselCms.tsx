@@ -62,7 +62,7 @@ export default function HeroCarouselCms({
   // Если нет слайдов, показываем fallback
   if (slides.length === 0) {
     return (
-      <section className="relative h-screen flex items-center justify-center bg-gray-100">
+      <section className="relative h-[80dvh] md:h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center px-4">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No slides configured</h2>
           <p className="text-gray-600">Please add slides in the admin panel to display the carousel.</p>
@@ -72,7 +72,7 @@ export default function HeroCarouselCms({
   }
 
   return (
-    <section className="relative h-screen overflow-hidden bg-white">
+    <section className="relative h-[80dvh] md:h-screen overflow-hidden bg-white">
       {/* Preload hints for next slides - helps browser prioritize these images */}
       {slides.slice(1, 3).map((slide, index) => {
         if (!slide.image) return null;
@@ -143,9 +143,9 @@ export default function HeroCarouselCms({
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-24 pb-16 sm:pb-32">
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-28 pb-14 sm:pt-24 sm:pb-32">
                   {/* Mobile image */}
-                  <div className="md:hidden mb-8">
+                  <div className="md:hidden mb-4">
                     <ManagedImage
                       src={imageSrc}
                       alt={slide.title || 'Hero image'}
@@ -153,7 +153,7 @@ export default function HeroCarouselCms({
                       height={900}
                       quality={95}
                       sizes="(max-width: 640px) 100vw, 100vw"
-                      className="w-full h-auto object-contain"
+                      className="w-full h-auto max-h-[30dvh] object-contain"
                       priority={isFirstSlide}
                     />
                   </div>
