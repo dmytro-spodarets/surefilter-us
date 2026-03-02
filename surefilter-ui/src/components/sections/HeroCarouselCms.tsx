@@ -72,7 +72,7 @@ export default function HeroCarouselCms({
   }
 
   return (
-    <section className="relative h-[80dvh] md:h-screen overflow-hidden bg-white mb-8 md:mb-0">
+    <section className="relative h-[80dvh] md:h-screen md:overflow-hidden bg-white mb-8 md:mb-0">
       {/* Preload hints for next slides - helps browser prioritize these images */}
       {slides.slice(1, 3).map((slide, index) => {
         if (!slide.image) return null;
@@ -98,6 +98,7 @@ export default function HeroCarouselCms({
           disableOnInteraction: false,
         }}
         pagination={isSingleSlide || !showPagination ? false : {
+          el: '.hero-custom-pagination',
           clickable: true,
           bulletClass: 'swiper-pagination-bullet !bg-gray-400 !opacity-100',
           bulletActiveClass: 'swiper-pagination-bullet-active !bg-sure-blue-600 !scale-125',
@@ -120,7 +121,7 @@ export default function HeroCarouselCms({
 
           return (
             <SwiperSlide key={index}>
-              <div className="relative h-full flex items-center">
+              <div className="relative h-full flex items-start md:items-center">
                 {/* Desktop diagonal image */}
                 <div className="absolute top-24 bottom-0 right-0 z-0 hidden md:block w-[65vw] md:w-[60vw] lg:w-[55vw] max-w-[1400px]">
                   <div className="relative h-full w-full">
@@ -143,9 +144,9 @@ export default function HeroCarouselCms({
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-32 pb-14 sm:pt-24 sm:pb-32">
-                  {/* Mobile image */}
-                  <div className="md:hidden mb-4">
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-28 pb-4 sm:pt-24 sm:pb-32">
+                  {/* Mobile image — fixed height container for consistent pagination positioning */}
+                  <div className="md:hidden mb-1 h-[30dvh] flex items-center">
                     <ManagedImage
                       src={imageSrc}
                       alt={slide.title || 'Hero image'}
@@ -157,6 +158,8 @@ export default function HeroCarouselCms({
                       priority={isFirstSlide}
                     />
                   </div>
+                  {/* Spacer for pagination dots on mobile */}
+                  <div className="md:hidden h-6" />
 
                   <div className="max-w-xl text-center sm:text-left">
                     {slide.badge ? (
@@ -208,6 +211,11 @@ export default function HeroCarouselCms({
           );
         })}
       </Swiper>
+
+      {/* Custom positioned pagination dots — mobile: after image, desktop: bottom */}
+      {!isSingleSlide && showPagination && (
+        <div className="hero-custom-pagination absolute left-0 right-0 z-10 flex justify-center top-[calc(7rem+30dvh+0.5rem)] md:top-auto md:bottom-4" />
+      )}
 
       {/* Navigation Arrows - показываем только если слайдов > 1 */}
       {!isSingleSlide && showNavigation && (
