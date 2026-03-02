@@ -83,6 +83,12 @@ const UpdateSettingsSchema = z.object({
   seoRobotsBlock: z.boolean().optional(),
   llmsSiteDescription: z.string().nullable().optional(),
 
+  // Default SEO Meta
+  defaultMetaTitle: z.string().nullable().optional(),
+  defaultMetaTitleSuffix: z.string().nullable().optional(),
+  defaultMetaDesc: z.string().nullable().optional(),
+  defaultMetaKeywords: z.string().nullable().optional(),
+
   // Security
   catalogPassword: z.string().nullable().optional(),
   catalogPasswordEnabled: z.boolean().optional(),

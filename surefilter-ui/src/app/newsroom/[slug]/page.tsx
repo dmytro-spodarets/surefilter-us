@@ -4,6 +4,7 @@ import CompactHero from '@/components/sections/CompactHero';
 import { ArrowLeftIcon, CalendarDaysIcon, TagIcon, MapPinIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
 import { getNewsArticlePageSettings } from '@/lib/site-settings';
+import type { Metadata } from 'next';
 
 export const revalidate = 86400;
 
@@ -25,7 +26,7 @@ interface NewsPageProps {
 
 async function getArticleBySlug(slug: string) {
   const article = await prisma.newsArticle.findUnique({
-    where: { 
+    where: {
       slug,
       status: 'PUBLISHED'
     },
@@ -41,6 +42,41 @@ async function getArticleBySlug(slug: string) {
   });
 
   return article;
+}
+
+export async function generateMetadata({ params }: NewsPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  let article: any = null;
+  try {
+    article = await getArticleBySlug(slug);
+  } catch {
+    // DB unavailable during build
+  }
+  if (!article) return {};
+
+  const title = article.metaTitle || article.title || undefined;
+  const description = article.metaDescription || article.excerpt || undefined;
+  const image = article.ogImage || article.featuredImage
+    ? getAssetUrl(article.ogImage || article.featuredImage)
+    : undefined;
+
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+
+  return {
+    ...(title && { title }),
+    ...(description && { description }),
+    openGraph: {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(image && { images: [image] }),
+      type: 'article',
+      ...(article.publishedAt && { publishedTime: new Date(article.publishedAt).toISOString() }),
+      ...(article.updatedAt && { modifiedTime: new Date(article.updatedAt).toISOString() }),
+      ...(article.author && { authors: [article.author] }),
+      ...(article.tags?.length && { tags: article.tags }),
+      ...(base && { url: `${base}/newsroom/${slug}` }),
+    },
+  };
 }
 
 export default async function NewsArticlePage({ params }: NewsPageProps) {

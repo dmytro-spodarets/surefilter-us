@@ -13,16 +13,16 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch {
     // DB unavailable during build
   }
-  const title = page?.title || 'Sure Filter® - Premium Automotive & Industrial Filters';
-  const description = page?.description || 'Sure Filter® provides you with the best selection of aftermarket filters and separators, each designed to combat containments, improve efficiency, and deliver world-class results.';
-  const image = page?.ogImage || '/images/sf-logo.png';
+  const title = page?.title || undefined;
+  const description = page?.description || undefined;
+  const image = page?.ogImage || undefined;
   return {
-    title,
-    description,
+    ...(title && { title }),
+    ...(description && { description }),
     openGraph: {
-      title,
-      description,
-      images: [image],
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(image && { images: [image] }),
       url: process.env.NEXT_PUBLIC_SITE_URL,
       type: 'website',
     },

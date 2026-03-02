@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 25 февраля 2026
+> Последнее обновление: 2 марта 2026
 
 ---
 
@@ -72,7 +72,7 @@ surefilter-us/
 - `Section` — секции страниц (type enum, data JSON)
 - `PageSection` — связь page-section с позицией
 - `SharedSection` — переиспользуемые секции
-- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO, redirects)
+- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO, redirects, default meta tags)
 
 ### Каталог продуктов
 - `Product` — продукты (code, brand, filterType, manufacturerCatalogUrl)
@@ -301,6 +301,9 @@ npm run seed:content:force  # С перезаписью
 6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (из-за FilterType.category workarounds в API/админке)
 7. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
 8. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД
+9. **Default SEO Meta**: title, description, keywords, title suffix (template) — из SiteSettings (БД), не захардкожены. Root layout использует `generateMetadata()` с `getDefaultSeoMeta()`. Если в БД пусто — мета-теги не рендерятся.
+10. **Favicon**: `/public/favicon/` (SVG, PNG, ICO, apple-touch-icon, web-app-manifest). Метаданные `icons` + `manifest` в root layout.
+11. **Meta Tags Fallback Chain**: Все страницы используют `generateMetadata()` → данные из БД → если undefined, Next.js наследует из root layout `title.default`/`title.template`. Не дублировать suffix в `generateMetadata()` дочерних страниц — root layout `title.template` делает это автоматически.
 9. **URL Redirects**: управляются из админки (`/admin/settings/site` → вкладка Redirects)
    - Хранятся в `SiteSettings.redirects` (JSON)
    - Логика редиректов в catch-all page `(site)/[...slug]/page.tsx` (не в middleware — Edge Runtime не поддерживает fetch на App Runner)

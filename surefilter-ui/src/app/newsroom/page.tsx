@@ -3,8 +3,33 @@ import Footer from '@/components/layout/Footer';
 import DynamicNewsroomHero from '@/components/sections/DynamicNewsroomHero';
 import NewsroomClient from './NewsroomClient';
 import { prisma } from '@/lib/prisma';
+import { getNewsroomPageSettings } from '@/lib/site-settings';
+import type { Metadata } from 'next';
 
 export const revalidate = 86400;
+
+export async function generateMetadata(): Promise<Metadata> {
+  let settings: { metaTitle?: string; metaDescription?: string; ogImage?: string } = {};
+  try {
+    settings = await getNewsroomPageSettings();
+  } catch {
+    // DB unavailable during build
+  }
+  const title = settings.metaTitle || undefined;
+  const description = settings.metaDescription || undefined;
+  const image = settings.ogImage || undefined;
+  return {
+    ...(title && { title }),
+    ...(description && { description }),
+    openGraph: {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(image && { images: [image] }),
+      type: 'website',
+    },
+  };
+}
+
 export default async function NewsroomPage() {
   let events: any[] = [];
   let news: any[] = [];

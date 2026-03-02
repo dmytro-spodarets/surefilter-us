@@ -29,20 +29,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!product) {
     return {
-      title: 'Product Not Found | Sure Filter',
+      title: 'Product Not Found',
+      robots: { index: false, follow: true },
     };
   }
 
-  let title = `${product.code} - Sure Filter`;
-  let description = `View specifications and applications for Sure Filter ${product.code}`;
-  let imageUrl = undefined;
+  let title = product.code;
+  let description: string | undefined = undefined;
+  let imageUrl: string | undefined = undefined;
 
   // Try to get catalog data for better metadata
   if (product.manufacturerCatalogUrl) {
     try {
       const catalogData = await fetchAndParseCatalog(product.manufacturerCatalogUrl);
       if (catalogData.title) {
-        title = `${catalogData.title} | Sure Filter`;
+        title = catalogData.title;
       }
       if (catalogData.imageUrl) {
         imageUrl = catalogData.imageUrl;
@@ -55,11 +56,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title,
-    description,
+    ...(description && { description }),
     openGraph: {
       title,
-      description,
-      images: imageUrl ? [imageUrl] : undefined,
+      ...(description && { description }),
+      ...(imageUrl && { images: [imageUrl] }),
     },
     robots: { index: true, follow: true },
   };

@@ -59,6 +59,12 @@ export interface SiteSettings {
   seoRobotsBlock?: boolean;
   llmsSiteDescription?: string;
 
+  // Default SEO Meta
+  defaultMetaTitle?: string;
+  defaultMetaTitleSuffix?: string;
+  defaultMetaDesc?: string;
+  defaultMetaKeywords?: string;
+
   // Redirects
   redirects?: RedirectRule[];
 
@@ -145,6 +151,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     gtmId: settings.gtmId || undefined,
     seoRobotsBlock: settings.seoRobotsBlock,
     llmsSiteDescription: settings.llmsSiteDescription || undefined,
+    defaultMetaTitle: settings.defaultMetaTitle || undefined,
+    defaultMetaTitleSuffix: settings.defaultMetaTitleSuffix || undefined,
+    defaultMetaDesc: settings.defaultMetaDesc || undefined,
+    defaultMetaKeywords: settings.defaultMetaKeywords || undefined,
     redirects: settings.redirects as any,
     headerNavigation: settings.headerNavigation as any,
     footerContent: settings.footerContent as any,
@@ -220,6 +230,17 @@ export async function getResourcesPageSettings() {
     metaTitle: settings.resourcesMetaTitle,
     metaDescription: settings.resourcesMetaDesc,
     ogImage: settings.resourcesOgImage,
+  };
+}
+
+// Helper to get default SEO meta (used in root layout)
+export async function getDefaultSeoMeta() {
+  const settings = await getSiteSettings();
+  return {
+    title: settings.defaultMetaTitle,
+    titleSuffix: settings.defaultMetaTitleSuffix,
+    description: settings.defaultMetaDesc,
+    keywords: settings.defaultMetaKeywords,
   };
 }
 

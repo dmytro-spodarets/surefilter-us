@@ -4,25 +4,25 @@
 
 > **🤖 Для AI Ассистентов:** См. [CLAUDE.md](./CLAUDE.md) — Quick Reference для быстрой ориентации в проекте.
 
-## ✨ Последние обновления (February 20, 2026)
+## Последние обновления (March 2, 2026)
 
-### 📊 Analytics & Tag Manager
-- ✅ **Google Analytics 4** — `@next/third-parties/google`, GA Measurement ID из админки
-- ✅ **Google Tag Manager** — GTM Container ID из админки
-- ✅ Автоматический трекинг SPA-навигаций (GA4 Enhanced Measurement)
-- ✅ Клиентские хелперы для кастомных событий (`src/lib/analytics.ts`)
-- ✅ Только публичные страницы (admin layout изолирован)
+### SEO/GEO Implementation
+- **Default SEO Meta из админки** — title, title suffix (template), description, keywords вынесены из кода в SiteSettings (БД). Root layout использует `generateMetadata()` вместо статического `metadata` export.
+- **generateMetadata() на всех страницах** — newsroom, news articles (og:type article + publishedTime/authors/tags), resources, resource detail, CMS pages, products. Fallback chain: если page не задаёт meta → наследуются defaults из root layout.
+- **Favicon** — SVG, PNG 96x96, ICO, apple-touch-icon 180x180, PWA icons 192/512, site.webmanifest. Метаданные `icons` + `manifest` в layout.tsx.
+- **robots.txt** — все AI-боты разрешены (training + retrieval). Стратегия: максимальная видимость в AI-поисковиках.
+- **SEO/GEO аудит** — 23 задачи в TODO.md (JSON-LD structured data, Twitter Cards, canonical URLs, preconnect hints и др.)
 
-### 🔍 SEO/GEO Dynamic Files
-- ✅ **`/robots.txt`** — динамический из БД, toggle блокировки в админке
-- ✅ **`/sitemap.xml`** — все страницы, продукты, новости, ресурсы из БД
-- ✅ **`/llms.txt`** — формат llmstxt.org для LLM-краулеров (ChatGPT, Claude, Perplexity)
-- ✅ **`/llms-full.txt`** — расширенная версия с деталями продуктов и новостей
-- ✅ Секция "SEO & LLM" в админке с описанием для LLM и блокировкой краулеров
+### Analytics & Tag Manager
+- **Google Analytics 4** — `@next/third-parties/google`, GA Measurement ID из админки
+- **Google Tag Manager** — GTM Container ID из админки
+- Клиентские хелперы для кастомных событий (`src/lib/analytics.ts`)
 
-### 📰 News Article Page Settings
-- ✅ Настраиваемые hero title, description, image для `/newsroom/[slug]`
-- ✅ Отдельные настройки для новостей и событий в админке
+### SEO/GEO Dynamic Files
+- **`/robots.txt`** — динамический из БД, toggle блокировки в админке
+- **`/sitemap.xml`** — все страницы, продукты, новости, ресурсы из БД
+- **`/llms.txt`** — формат llmstxt.org для LLM-краулеров (ChatGPT, Claude, Perplexity)
+- **`/llms-full.txt`** — расширенная версия с деталями продуктов и новостей
 
 ---
 
@@ -87,7 +87,7 @@
 - `lib/`:
   - `utils.ts` — `cn(...classes)`
   - `assets.ts` — `getAssetUrl`, `getOptimizedImageUrl`, `isAssetPath`
-  - `site-settings.ts` — `getHeaderNavigation`, `getFooterContent`, `getGaMeasurementId`, `getGtmId` (Server-side)
+  - `site-settings.ts` — `getHeaderNavigation`, `getFooterContent`, `getDefaultSeoMeta`, `getNewsroomPageSettings`, `getResourcesPageSettings`, `getGaMeasurementId`, `getGtmId` (Server-side)
   - `analytics.ts` — `sendGAEvent`, `trackFormSubmit`, `trackButtonClick` (Client-side)
   - `prisma.ts` — глобальный Prisma client
   - `catalog-parser.ts` — парсинг HTML каталогов производителя (JSDOM)
@@ -102,13 +102,14 @@
 - В компонентах выдержаны единые отступы и ширина контейнера (`max-w-7xl`).
 
 ### Рендеринг и производительность
-- **Динамический рендеринг**: Все страницы используют `force-dynamic` (настроено глобально в `app/layout.tsx`)
-  - Страницы рендерятся на каждый запрос с актуальными данными из БД
-  - Нет статической генерации при build (не требуется DATABASE_URL)
-  - Build проходит без подключения к БД
+- **ISR (Incremental Static Regeneration)**: Все публичные страницы `revalidate = 86400` (24ч). On-demand invalidation при редактировании в админке.
+  - Build без подключения к БД (`NEXT_BUILD_SKIP_DB=1` → Prisma stub)
+  - Post-deploy warm-up (`/api/warm-up`) обновляет ISR кэш реальными данными
+  - Параметрические роуты: `generateStaticParams()` (даже `return []`) обязателен для ISR
 - **Кэширование**:
-  - Site settings (Header/Footer) кэшируются на 1 минуту в production
-  - Автоматический сброс кэша при обновлении настроек через админку
+  - ISR + CloudFront двухуровневый кэш
+  - On-demand invalidation: `invalidatePages()` сбрасывает ISR + CloudFront одновременно
+  - Site settings кэшируются на 1 минуту в production
   - CloudFront кэширует статические assets на 1 год
 - **Оптимизация**:
   - Server Components для Header/Footer (загрузка данных на сервере)
@@ -116,8 +117,11 @@
   - Lazy loading изображений с shimmer placeholder
 
 ### SEO & GEO
-- Базовые метаданные и `metadataBase` задаются в `app/layout.tsx` через переменную окружения `NEXT_PUBLIC_SITE_URL`
-- **Dynamic robots.txt** (`src/app/robots.ts`): Next.js Metadata API, блокировка через админку (`seoRobotsBlock`)
+- **Default meta tags из БД**: title, title suffix (template), description, keywords — управляются через админку (`Settings → Special Pages → Default SEO Meta Tags`)
+- **Meta tags fallback chain**: root layout `generateMetadata()` → `getDefaultSeoMeta()` → child pages override через свои `generateMetadata()` → если child не задаёт поле, наследуется из root layout `title.default`/`title.template`
+- **generateMetadata() на всех страницах**: home, newsroom, news articles (og:type article), resources, resource detail, CMS pages, products
+- **Favicon**: `/public/favicon/` (SVG, PNG, ICO, apple-touch-icon, web-app-manifest). Метаданные через `icons` + `manifest` в root layout.
+- **Dynamic robots.txt** (`src/app/robots.ts`): все AI-боты разрешены, блокировка из админки (`seoRobotsBlock`)
 - **Dynamic sitemap.xml** (`src/app/sitemap.ts`): CMS pages, products, news, resources
 - **llms.txt / llms-full.txt** (`src/app/llms.txt/route.ts`, `src/app/llms-full.txt/route.ts`): формат llmstxt.org для LLM-краулеров
 - Все SEO-файлы `force-dynamic` (генерируются из БД на каждый запрос)
@@ -266,7 +270,7 @@ surefilter-ui/
     AdminNav.tsx                   # Навигация админки с dropdown
     Breadcrumbs.tsx
     ... другие админ-компоненты
-  src/components/seo/SEO.tsx
+  src/components/seo/SEO.tsx       # LEGACY: не используется, удалить (uses next/head, incompatible with App Router)
   src/lib/
     utils.ts                       # cn(...classes)
     assets.ts                      # getAssetUrl, getOptimizedImageUrl

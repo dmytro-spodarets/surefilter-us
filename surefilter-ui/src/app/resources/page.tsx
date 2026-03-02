@@ -4,8 +4,32 @@ import Footer from '@/components/layout/Footer';
 import DynamicResourcesHero from '@/components/sections/DynamicResourcesHero';
 import ResourcesClient from './ResourcesClient';
 import { prisma } from '@/lib/prisma';
+import { getResourcesPageSettings } from '@/lib/site-settings';
+import type { Metadata } from 'next';
 
 export const revalidate = 86400;
+
+export async function generateMetadata(): Promise<Metadata> {
+  let settings: { metaTitle?: string; metaDescription?: string; ogImage?: string } = {};
+  try {
+    settings = await getResourcesPageSettings();
+  } catch {
+    // DB unavailable during build
+  }
+  const title = settings.metaTitle || undefined;
+  const description = settings.metaDescription || undefined;
+  const image = settings.ogImage || undefined;
+  return {
+    ...(title && { title }),
+    ...(description && { description }),
+    openGraph: {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(image && { images: [image] }),
+      type: 'website',
+    },
+  };
+}
 export default async function ResourcesPage() {
   let resources: any[] = [];
   let categories: any[] = [];

@@ -693,6 +693,12 @@ model SiteSettings {
   seoRobotsBlock       Boolean @default(false) // Block all crawlers (for staging)
   llmsSiteDescription  String? @db.Text        // Site description for llms.txt
 
+  // Default SEO Meta (used in root layout as fallback)
+  defaultMetaTitle       String?                 // Default <title> for pages without custom title
+  defaultMetaTitleSuffix String?                 // Appended to page titles, e.g. "| Sure Filter®"
+  defaultMetaDesc        String? @db.Text        // Default meta description
+  defaultMetaKeywords    String? @db.Text        // Comma-separated keywords
+
   // Redirects (JSON array of redirect rules)
   redirects            Json?   // [{ id, source, destination, statusCode, isActive, comment }]
 

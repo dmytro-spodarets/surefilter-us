@@ -13,6 +13,11 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-03-02 — SEO Meta Tags fallback chain: добавлен generateMetadata() на /newsroom, /newsroom/[slug], /resources, /resources/[category]/[slug]; исправлены fallback-и в CMS pages и product pages (не дублируют suffix, наследуют defaults из root layout); news articles используют og:type article с publishedTime/modifiedTime/authors/tags
+- 2026-03-02 — Default SEO Meta в SiteSettings: title, title suffix (template), description, keywords вынесены из кода в БД (4 новых поля в Prisma), управление через админку Settings → Special Pages → Default SEO Meta Tags; root layout переведён на generateMetadata()
+- 2026-03-02 — Favicon и Web Manifest: добавлены favicon (SVG, PNG 96x96, ICO), apple-touch-icon 180x180, PWA иконки 192/512, site.webmanifest с фирменными цветами; метаданные icons + manifest в layout.tsx
+- 2026-03-02 — robots.txt: все AI-боты разрешены (training + retrieval), стратегия — максимальная видимость в AI-поисковиках
+- 2026-03-02 — SEO/GEO аудит: полный аудит кода на соответствие best practices 2026, 23 задачи добавлены в TODO.md
 - 2026-02-25 — Header Dropdown Navigation: поддержка вложенных пунктов меню с hover-dropdown на десктопе и accordion на мобильных, клавиатурная навигация (Escape/ArrowDown/ArrowUp), ARIA-атрибуты, управление sub-items в админке Settings → Navigation
 - 2026-02-25 — Mobile Menu: добавлена кнопка Browse Catalog в гамбургер-меню, фоновый цвет bg-gray-50 для контраста с hero-секцией
 - 2026-02-25 — IndustriesList UX: кликабельна только верхняя часть карточки (картинка + название), нижняя часть (описание + фильтры) информационная, бейджи фильтров в фирменном синем цвете

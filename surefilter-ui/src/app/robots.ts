@@ -15,6 +15,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
 
   return {
     rules: [
+      // Allow all crawlers (including AI training + retrieval)
       {
         userAgent: '*',
         allow: '/',

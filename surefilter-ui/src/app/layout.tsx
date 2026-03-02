@@ -1,21 +1,40 @@
 import type { Metadata } from 'next';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
-import { getGaMeasurementId, getGtmId } from '@/lib/site-settings';
+import { getGaMeasurementId, getGtmId, getDefaultSeoMeta } from '@/lib/site-settings';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Sure Filter® - Premium Automotive & Industrial Filters',
-    template: '%s | Sure Filter®',
-  },
-  description: 'Sure Filter® provides you with the best selection of aftermarket filters and separators, each designed to combat containments, improve efficiency, and deliver world-class results.',
-  keywords: ['automotive filters', 'industrial filters', 'air filters', 'oil filters', 'fuel filters', 'hydraulic filters', 'sure filter', 'aftermarket filters', 'filter separators'],
-  robots: {
-    index: true,
-    follow: true,
-  },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-};
+export async function generateMetadata(): Promise<Metadata> {
+  let seo: { title?: string; titleSuffix?: string; description?: string; keywords?: string } = {};
+  try {
+    seo = await getDefaultSeoMeta();
+  } catch {
+    // DB unavailable during build
+  }
+
+  const keywords = seo.keywords
+    ? seo.keywords.split(',').map(k => k.trim()).filter(Boolean)
+    : undefined;
+
+  return {
+    title: {
+      default: seo.title || '',
+      template: seo.titleSuffix ? `%s ${seo.titleSuffix}` : '%s',
+    },
+    description: seo.description,
+    keywords,
+    robots: { index: true, follow: true },
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+    icons: {
+      icon: [
+        { url: '/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+        { url: '/favicon/favicon.svg', type: 'image/svg+xml' },
+      ],
+      shortcut: '/favicon/favicon.ico',
+      apple: { url: '/favicon/apple-touch-icon.png', sizes: '180x180' },
+    },
+    manifest: '/favicon/site.webmanifest',
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -49,4 +68,4 @@ export default async function RootLayout({
       {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
-} 
+}

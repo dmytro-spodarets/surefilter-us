@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 25 февраля 2026 (+ dropdown nav, mobile UX, IndustriesList)
+**Последнее обновление:** 2 марта 2026 (SEO/GEO аудит + имплементация)
 
 ---
 
@@ -319,20 +319,268 @@
 
 ---
 
+## SEO & GEO оптимизация (аудит март 2026)
+
+> Полный аудит кода на соответствие лучшим практикам SEO и GEO (Generative Engine Optimization) на март 2026.
+> Включает: мета-теги, Open Graph, Twitter Cards, JSON-LD, robots.txt для AI-краулеров, llms.txt, Core Web Vitals.
+> **Контекст:** 40%+ поисковых запросов Google запускают AI Overviews; ChatGPT обрабатывает 100M+ запросов в неделю.
+> Приоритеты: 🔴 Критично (влияет на индексацию/видимость), 🟡 Важно (улучшает представление), 🟢 Улучшение (стратегическое)
+
+### 🔴 Критично — Отсутствующие мета-теги
+
+> **Статус:** Все 4 задачи выполнены (март 2026). Также вынесены default SEO meta (title, description, keywords, title suffix) из кода в SiteSettings (админка → Settings → Special Pages → Default SEO Meta Tags). Исправлена fallback chain: CMS-страницы и product pages больше не хардкодят fallback — наследуют из root layout defaults.
+
+- [x] ~~generateMetadata для Newsroom страницы~~ — Готово: `/newsroom/page.tsx` использует `getNewsroomPageSettings()`
+- [x] ~~generateMetadata для News Article страниц~~ — Готово: `/newsroom/[slug]/page.tsx` с `og:type: article`, publishedTime, modifiedTime, authors, tags
+- [x] ~~generateMetadata для Resources страницы~~ — Готово: `/resources/page.tsx` использует `getResourcesPageSettings()`
+- [x] ~~generateMetadata для Resource Detail страниц~~ — Готово: `/resources/[category]/[slug]/page.tsx` с title, shortDescription, thumbnailImage
+
+### 🔴 Критично — Structured Data (JSON-LD)
+
+#### 5. Organization schema на главной странице
+- [ ] Добавить JSON-LD `Organization` + `WebSite` на `/page.tsx`
+  - **Текущее состояние:** Нет никакого structured data на всём сайте
+  - **Влияние:** Structured data повышает AI-цитирование на 30%; страницы с разметкой в 3 раза чаще цитируются AI
+  - **Что добавить:**
+    ```json
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Sure Filter",
+      "url": "https://new.surefilter.us",
+      "logo": "https://new.surefilter.us/images/sf-logo.png",
+      "description": "...",
+      "contactPoint": { "@type": "ContactPoint", "contactType": "customer service" },
+      "sameAs": ["...social links..."]
+    }
+    ```
+  - Плюс `WebSite` schema с `SearchAction` (когда поиск активируется)
+  - **Паттерн Next.js 15:** `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />`
+  - **Безопасность:** Заменять `<` на `\u003c` в JSON для предотвращения XSS
+
+#### 6. Product schema на страницах продуктов
+- [ ] Добавить JSON-LD `Product` на `/products/[code]/page.tsx`
+  - **Что добавить:**
+    - `@type`: `Product`
+    - `name`, `description`, `image`, `sku` (code), `brand` (Brand)
+    - `mpn` (manufacturer part number, если доступен)
+    - `category`: тип фильтра
+    - `manufacturer`: Sure Filter
+    - **Важно 2026:** `availability` и `itemCondition` должны быть полными URL Schema.org (`https://schema.org/InStock`)
+    - Без `offers.price` — можно не добавлять Offer (товар без цены на сайте)
+  - **Rich Results:** Отображение в поиске с изображением, брендом, категорией
+
+#### 7. NewsArticle schema на новостных страницах
+- [ ] Добавить JSON-LD `NewsArticle` на `/newsroom/[slug]/page.tsx`
+  - **Что добавить:**
+    - `@type`: `NewsArticle` (для новостей) или `Event` (для мероприятий)
+    - `headline`: `article.title`
+    - `datePublished`: `article.publishedAt`
+    - `dateModified`: `article.updatedAt`
+    - `author`: `{ "@type": "Person", "name": article.author }` (если есть)
+    - `publisher`: `{ "@type": "Organization", "name": "Sure Filter", "logo": {...} }`
+    - `image`: `article.featuredImage`
+    - `articleBody`: текст статьи (или excerpt)
+  - **Для Event-статей:** Дополнительно `Event` schema с `startDate`, `endDate`, `location`, `url`
+
+#### 8. BreadcrumbList schema на всех внутренних страницах
+- [ ] Добавить JSON-LD `BreadcrumbList` на продукты, новости, ресурсы и CMS-страницы
+  - **Влияние:** Мгновенный CTR-бенефит, простая реализация
+  - **Пример для продукта:**
+    ```json
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://..." },
+        { "@type": "ListItem", "position": 2, "name": "Products", "item": "https://.../catalog" },
+        { "@type": "ListItem", "position": 3, "name": "SF-12345" }
+      ]
+    }
+    ```
+  - **Создать:** Переиспользуемый компонент `StructuredData` или `BreadcrumbSchema`
+
+### 🔴 Критично — robots.txt для AI-краулеров
+
+> **Статус:** Решено (март 2026). Все AI-боты (training + retrieval) разрешены — `User-agent: *`, `Allow: /`. Решение владельца: пусть LLM обучаются на данных компании для лучшей видимости в AI-поисковиках.
+
+- [x] ~~Гранулярные правила для AI-ботов~~ — Готово: все боты разрешены, блокируются только `/admin/`, `/api/`, `/login`, `/catalog-viewer`
+
+### 🔴 Критично — Favicon и иконки
+
+> **Статус:** Выполнено (март 2026).
+
+- [x] ~~Favicon, Apple Touch Icon, Web Manifest~~ — Готово: `/public/favicon/` с SVG, PNG 96x96, ICO, apple-touch-icon 180x180, web-app-manifest 192x192 и 512x512. Метаданные в layout.tsx через `icons` + `manifest`. Web Manifest с фирменными цветами и названием.
+
+### 🟡 Важно — Open Graph и Twitter Cards
+
+#### 11. Twitter Card метаданные глобально
+- [ ] Добавить `twitter` объект в root layout metadata и все `generateMetadata()`
+  - **Текущее состояние:** Twitter Card теги есть только в неиспользуемом legacy компоненте `SEO.tsx`
+  - **Что добавить в `layout.tsx` metadata:**
+    ```typescript
+    twitter: {
+      card: 'summary_large_image',
+      site: '@surefilter',  // если есть Twitter аккаунт
+    },
+    ```
+  - **На каждой странице** с `generateMetadata()`: добавить `twitter.title`, `twitter.description`, `twitter.images`
+  - **Тестирование:** Twitter Card Validator, LinkedIn Post Inspector
+
+#### 12. OpenGraph дополнительные поля
+- [ ] Добавить отсутствующие OG-поля на все страницы
+  - **Что не хватает (root layout):**
+    - `openGraph.siteName`: `'Sure Filter®'`
+    - `openGraph.locale`: `'en_US'`
+  - **На страницах с изображениями:**
+    - `openGraph.images[0].width`: `1200`
+    - `openGraph.images[0].height`: `630`
+    - `openGraph.images[0].alt`: описание изображения
+  - **На article-страницах (новости):**
+    - `openGraph.type`: `'article'` (сейчас `'website'` или отсутствует)
+    - `openGraph.publishedTime`, `openGraph.modifiedTime`, `openGraph.authors`, `openGraph.tags`
+  - **На product-страницах:**
+    - `openGraph.type`: `'product'` (неофициальный, но поддерживается)
+
+#### 13. OG Image по умолчанию (fallback)
+- [ ] Создать и добавить дефолтное OG-изображение 1200x630px
+  - **Текущее состояние:** Фоллбэк на `/images/sf-logo.png` — маленький логотип, плохо выглядит при шеринге
+  - **Что сделать:**
+    - Создать `/public/images/og-default.jpg` (1200x630) — логотип + название на фирменном фоне
+    - Обновить root layout: `openGraph.images: [{ url: '/images/og-default.jpg', width: 1200, height: 630, alt: 'Sure Filter - Premium Automotive & Industrial Filters' }]`
+    - Для news/resources без своего изображения — использовать дефолтный OG
+  - **Рекомендация:** Также создать отдельные OG-images для каталога, newsroom, resources (статические)
+
+### 🟡 Важно — Preconnect и Resource Hints
+
+#### 14. Preconnect к CDN и внешним ресурсам
+- [ ] Добавить resource hints в `layout.tsx`
+  - **Текущее состояние:** Только preload логотипа — нет preconnect к CDN
+  - **Что добавить в `<head>`:**
+    ```html
+    <link rel="preconnect" href="https://assets.surefilter.us" />
+    <link rel="dns-prefetch" href="https://assets.surefilter.us" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+    ```
+  - **Эффект:** Экономия 100-300ms на каждом CDN-запросе при первом визите
+
+### 🟡 Важно — Удаление legacy кода
+
+#### 15. Удалить неиспользуемый компонент SEO.tsx
+- [ ] Удалить `/components/seo/SEO.tsx`
+  - **Текущее состояние:** Использует `next/head` (Pages Router) — несовместим с App Router
+  - Нигде не импортируется — мёртвый код
+  - Все функции перенесены в Next.js Metadata API
+
+### 🟡 Важно — Улучшение llms.txt
+
+#### 16. Улучшить llms.txt и llms-full.txt
+- [ ] Обновить содержимое для лучшей AI-обнаруживаемости
+  - **Что улучшить:**
+    - Добавить описания к каждой ссылке в `## Main Pages` (сейчас только title без описания)
+      - Формат: `- [Page Title](url): Brief description of what this page covers`
+    - Добавить секцию `## Company Info` с ключевой информацией (основание, местоположение, специализация)
+    - В `llms-full.txt`: добавить спецификации продуктов (dimensions, applications), не только названия
+    - Добавить `## Contact` секцию с телефоном, email, адресом (если публичные)
+  - **Спецификация:** Согласно llmstxt.org, blockquote после H1 должен содержать "key information necessary for understanding the rest of the file"
+  - **Тестирование:** Проверить файл в нескольких LLM (Claude, ChatGPT, Perplexity)
+
+### 🟡 Важно — Canonical URLs
+
+#### 17. Явные canonical URL
+- [ ] Добавить explicit `alternates.canonical` в `generateMetadata()` на ключевых страницах
+  - **Текущее состояние:** Полагается на автоматическое поведение Next.js через `metadataBase`
+  - **Что сделать:**
+    - Product pages: `alternates: { canonical: \`${baseUrl}/products/${code}\` }`
+    - News articles: `alternates: { canonical: \`${baseUrl}/newsroom/${slug}\` }`
+    - Resources: `alternates: { canonical: \`${baseUrl}/resources/${category}/${slug}\` }`
+  - **Зачем:** Явный canonical предотвращает дублирование при наличии query-параметров
+
+### 🟡 Важно — Sitemap улучшения
+
+#### 18. Дополнительные поля в sitemap.xml
+- [ ] Добавить image sitemap и улучшить существующий
+  - **Текущее состояние:** Базовый sitemap — URL, lastModified, changeFrequency, priority
+  - **Что улучшить:**
+    - Добавить `<image:image>` для продуктов и новостей (поддерживается Google)
+    - Homepage `lastModified: new Date()` → использовать реальную дату последнего обновления контента (не текущую)
+    - Рассмотреть `/newsroom` и `/resources` `changeFrequency: 'daily'` → `'weekly'` (если обновления нечастые)
+    - Добавить ссылку на sitemap в `<head>` layout (кроме robots.txt)
+  - **Ref:** Next.js поддерживает image sitemap через `images` property
+
+### 🟢 Улучшение — GEO-оптимизация контента
+
+#### 19. Answer-first структура контента
+- [ ] Аудит и обновление CMS-контента для AI-поисковиков
+  - **Контекст:** AI-поисковики извлекают прямые ответы из первых абзацев
+  - **Рекомендации для контент-менеджеров:**
+    - Начинать каждую секцию с прямого ответа перед подробностями
+    - Добавлять TL;DR в начало длинных страниц
+    - Использовать чёткую H2/H3 иерархию для самостоятельных пассажей
+    - FAQ-секции с вопросами и прямыми ответами (но БЕЗ FAQPage schema — Google ограничил его в 2025 только для гос. и мед. сайтов)
+  - **Это контентная задача**, не техническая — документировать рекомендации для редакторов
+
+#### 20. Meta description оптимизация
+- [ ] Аудит и улучшение meta descriptions на всех страницах
+  - **Best practices 2026:**
+    - 120-155 символов
+    - Включать primary keyword естественно
+    - Резюмировать контент страницы
+    - Уникальный для каждой страницы
+  - **Проверить:**
+    - CMS-страницы: поле `description` заполнено и оптимизировано?
+    - Product pages: сейчас description не задан (наследуется из root layout default) — нужно генерировать из catalog data (тип фильтра, бренд, applications)
+    - Home page: проверить длину и релевантность
+  - **Инструментарий:** Google Search Console → Coverage → проверить страницы без мета-описаний
+
+#### 21. Мониторинг AI-цитируемости
+- [ ] Настроить отслеживание цитирования бренда AI-поисковиками
+  - **Что отслеживать:**
+    - AI-referred трафик в GA4 (реферреры от chat.openai.com, claude.ai, perplexity.ai)
+    - Brand mentions в AI-ответах (ручная проверка периодически)
+    - Позиции в AI Overviews Google
+  - **Инструменты:** GA4 custom segments, Google Search Console, ручной мониторинг
+
+### 🟢 Улучшение — Технические оптимизации
+
+#### 22. Prerender-hint для навигации
+- [ ] Рассмотреть `<link rel="prerender">` или Speculation Rules API для ключевых переходов
+  - **Зачем:** Мгновенный переход на популярные страницы (каталог, контакты)
+  - **Next.js 15:** Автоматический prefetch при hover на `<Link>` — но полный prerender ещё быстрее
+  - **Chrome 121+:** Speculation Rules API — `<script type="speculationrules">`
+  - **Оценить:** Потребление ресурсов vs выигрыш в производительности
+
+#### 23. Content Security Policy headers
+- [ ] Добавить CSP и security headers
+  - **Связано с:** SEO косвенно — Google учитывает HTTPS и безопасность
+  - **Headers:** `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`
+  - **Где:** `next.config.ts` → `headers()` или middleware
+
+---
+
 ## Бэклог (когда-нибудь)
 
 - Интеграция live chat
 - PWA / Service Worker → связано с **Мобильная оптимизация** (bottom nav, safe areas, theme-color)
 - Переключение единиц (mm ↔ in)
-- Structured data (JSON-LD) для продуктов
-- Per-page SEO meta tags (отдельная задача)
 
 ---
 
 ## Завершено (архив)
 
 <details>
-<summary>Декабрь 2025 - Февраль 2026</summary>
+<summary>Декабрь 2025 - Март 2026</summary>
+
+### SEO/GEO Implementation (March 2026)
+- ✅ Default SEO Meta в SiteSettings: title, title suffix (template), description, keywords — из кода в БД, управление в админке
+- ✅ Favicon и Web Manifest: SVG, PNG, ICO, apple-touch-icon, site.webmanifest с фирменными цветами
+- ✅ robots.txt: все AI-боты разрешены (training + retrieval), блокированы admin/api/login
+- ✅ generateMetadata для /newsroom (из SiteSettings)
+- ✅ generateMetadata для /newsroom/[slug] (article meta, OG article type, publishedTime, authors, tags)
+- ✅ generateMetadata для /resources (из SiteSettings)
+- ✅ generateMetadata для /resources/[category]/[slug] (title, shortDescription, thumbnailImage)
+- ✅ Fallback chain fix: CMS pages и product pages не дублируют suffix, наследуют defaults из root layout
+- ✅ Root layout: generateMetadata() вместо static metadata, title.template из БД
 
 ### Image Optimization
 - ✅ Shimmer placeholders (ManagedImage)

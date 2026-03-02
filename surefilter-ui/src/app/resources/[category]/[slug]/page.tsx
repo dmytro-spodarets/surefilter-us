@@ -4,6 +4,7 @@ import Footer from '@/components/layout/Footer';
 import CompactHero from '@/components/sections/CompactHero';
 import { DocumentTextIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
+import type { Metadata } from 'next';
 
 export const revalidate = 86400;
 
@@ -17,6 +18,44 @@ import RelatedResources from '@/components/sections/RelatedResources';
 
 interface PageProps {
   params: Promise<{ category: string; slug: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { category, slug } = await params;
+  let resource: any = null;
+  try {
+    resource = await prisma.resource.findFirst({
+      where: {
+        slug,
+        status: 'PUBLISHED',
+        category: { slug: category },
+      },
+      select: {
+        title: true,
+        shortDescription: true,
+        thumbnailImage: true,
+        category: { select: { name: true } },
+      },
+    });
+  } catch {
+    // DB unavailable during build
+  }
+  if (!resource) return {};
+
+  const title = resource.title || undefined;
+  const description = resource.shortDescription || undefined;
+  const image = resource.thumbnailImage ? getAssetUrl(resource.thumbnailImage) : undefined;
+
+  return {
+    ...(title && { title }),
+    ...(description && { description }),
+    openGraph: {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(image && { images: [image] }),
+      type: 'website',
+    },
+  };
 }
 
 export default async function ResourceDetailPage({ params }: PageProps) {

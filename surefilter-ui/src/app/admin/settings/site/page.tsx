@@ -79,6 +79,10 @@ interface SiteSettingsData {
   gtmId?: string;
   seoRobotsBlock?: boolean;
   llmsSiteDescription?: string;
+  defaultMetaTitle?: string;
+  defaultMetaTitleSuffix?: string;
+  defaultMetaDesc?: string;
+  defaultMetaKeywords?: string;
 }
 
 export default function SiteSettingsPage() {
@@ -168,6 +172,10 @@ export default function SiteSettingsPage() {
         gtmId: settings?.gtmId,
         seoRobotsBlock: settings?.seoRobotsBlock,
         llmsSiteDescription: settings?.llmsSiteDescription,
+        defaultMetaTitle: settings?.defaultMetaTitle,
+        defaultMetaTitleSuffix: settings?.defaultMetaTitleSuffix,
+        defaultMetaDesc: settings?.defaultMetaDesc,
+        defaultMetaKeywords: settings?.defaultMetaKeywords,
       };
 
       const response = await fetch('/api/admin/site-settings', {
@@ -883,6 +891,66 @@ export default function SiteSettingsPage() {
                         <Image src={getAssetUrl(settings.resourcesOgImage)} alt="OG Image Preview" fill className="object-cover" />
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Default SEO Meta Tags */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Default SEO Meta Tags</h2>
+                <p className="text-sm text-gray-500 mb-4">Global defaults used on pages without custom metadata. Leave empty to omit from HTML.</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Meta Title</label>
+                    <input
+                      type="text"
+                      value={settings.defaultMetaTitle || ''}
+                      onChange={(e) => handleFieldChange('defaultMetaTitle', e.target.value)}
+                      placeholder="e.g. Sure Filter® - Premium Automotive & Industrial Filters"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      The default &lt;title&gt; tag for the homepage and pages without a custom title.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title Suffix</label>
+                    <input
+                      type="text"
+                      value={settings.defaultMetaTitleSuffix || ''}
+                      onChange={(e) => handleFieldChange('defaultMetaTitleSuffix', e.target.value)}
+                      placeholder="e.g. | Sure Filter®"
+                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Appended to all page titles. Example: &quot;About Us&quot; becomes &quot;About Us | Sure Filter&reg;&quot;.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Meta Description</label>
+                    <textarea
+                      value={settings.defaultMetaDesc || ''}
+                      onChange={(e) => handleFieldChange('defaultMetaDesc', e.target.value)}
+                      placeholder="e.g. Sure Filter® provides you with the best selection of aftermarket filters and separators..."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                      rows={3}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Used as the default meta description for pages without a custom one. Recommended: 120-155 characters.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Meta Keywords</label>
+                    <textarea
+                      value={settings.defaultMetaKeywords || ''}
+                      onChange={(e) => handleFieldChange('defaultMetaKeywords', e.target.value)}
+                      placeholder="e.g. automotive filters, industrial filters, air filters, oil filters, fuel filters"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                      rows={2}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Comma-separated list of keywords. Applied globally as a fallback.
+                    </p>
                   </div>
                 </div>
               </div>

@@ -30,17 +30,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
   }
   const base = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
   const page = await prisma.page.findUnique({ where: { slug: key } });
-  const title = page?.title || key;
+  const title = page?.title || undefined;
   const description = page?.description || undefined;
   const image = page?.ogImage || undefined;
   return {
-    title,
-    description,
+    ...(title && { title }),
+    ...(description && { description }),
     openGraph: {
-      title,
-      description,
-      images: image ? [image] : undefined,
-      url: base && key ? `${base}/${key}` : undefined,
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(image && { images: [image] }),
+      ...(base && key && { url: `${base}/${key}` }),
       type: 'website',
     },
     robots: { index: true, follow: true },
