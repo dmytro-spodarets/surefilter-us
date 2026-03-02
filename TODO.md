@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 2 марта 2026 (SEO/GEO аудит + имплементация)
+**Последнее обновление:** 2 марта 2026 (CI/CD аудит, SEO/GEO аудит + имплементация)
 
 ---
 
@@ -279,7 +279,7 @@
 ## Инфраструктура
 
 ### Завершено
-- [x] CI/CD (GitHub Actions)
+- [x] CI/CD (GitHub Actions) — базовые workflows работают, аудит проведён (март 2026, см. секцию CI/CD Pipeline выше)
 - [x] CloudFront + ACM для `new.surefilter.us`
 - [x] Static Upload Workflow
 - [x] Image optimization pipeline (клиентская компрессия `browser-image-compression`, 1MB max, 2048px)
@@ -288,6 +288,108 @@
 - [x] ISR для параметрических роутов (`generateStaticParams` + revalidate re-export)
 - [x] CloudFront gzip/brotli compression
 - [x] Чистые Docker билды (Prisma build-time stub)
+
+### CI/CD Pipeline (аудит март 2026)
+
+> Аудит всех 6 GitHub Actions workflows на соответствие best practices 2026.
+> Приоритеты: 🔴 Безопасность, 🟡 Производительность/надёжность, 🟢 Улучшение
+
+#### 🔴 AWS OIDC вместо long-lived ключей
+- [ ] Перейти с `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` на OIDC federation
+  - **Проблема:** Все 6 workflows используют постоянные AWS ключи — риск утечки, ручная ротация
+  - **Решение:** GitHub OIDC → STS AssumeRoleWithWebIdentity → кратковременные токены (15 мин)
+  - **Terraform:**
+    - Создать `aws_iam_openid_connect_provider` для `token.actions.githubusercontent.com`
+    - Создать IAM role `github-actions-surefilter` с trust policy на repo `dmytro-spodarets/surefilter-us`
+    - Policy: ECR push/pull, S3 sync, CloudFront invalidation, SSM read
+  - **Workflows:** Заменить во всех 6 файлах:
+    ```yaml
+    # Было:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    # Стало:
+    role-to-assume: arn:aws:iam::ACCOUNT:role/github-actions-surefilter
+    ```
+  - **permissions:** Добавить `id-token: write` в каждый workflow
+  - После миграции: удалить secrets `AWS_ACCESS_KEY_ID` и `AWS_SECRET_ACCESS_KEY` из GitHub
+
+#### 🔴 Trivy vulnerability scan перед push в ECR
+- [ ] Добавить сканирование образа на CVE в `ci-build-push.yml`
+  - **Сейчас:** ECR `scan_on_push: true` — сканирует ПОСЛЕ push, не блокирует деплой
+  - **Нужно:** Сканировать ДО push — `aquasecurity/trivy-action@master` с `severity: CRITICAL,HIGH`
+  - **Поведение:** Предупреждение в summary (не блокировать билд — есть CVE в базовых образах, которые нельзя пофиксить)
+  - **Где:** Между `docker build` и `docker push`
+
+#### 🔴 S3 sync safety check (--delete)
+- [ ] Добавить проверку перед `aws s3 sync --delete`
+  - **Проблема:** Если `extracted/_next/static` пуст (ошибка билда) → `--delete` удалит ВСЕ из S3 bucket
+  - **Решение:** Проверять количество файлов перед sync:
+    ```bash
+    FILE_COUNT=$(find extracted/_next/static -type f | wc -l)
+    if [ "$FILE_COUNT" -lt 10 ]; then echo "Too few files ($FILE_COUNT), aborting" && exit 1; fi
+    ```
+
+#### 🔴 Замаскировать DATABASE_URL в db-migrate.yml
+- [ ] Добавить `::add-mask::` для DATABASE_URL
+  - **Проблема:** `echo "db_url=$DB_URL" >> $GITHUB_OUTPUT` → значение видно в логах при `export DATABASE_URL="${{ steps.ssm.outputs.db_url }}"`
+  - **Решение:** Добавить `echo "::add-mask::$DB_URL"` перед записью в output
+  - **Затронутые workflows:** `db-migrate.yml`, `db-backup.yml`, `db-restore.yml`, `db-backup-restore.yml`
+
+#### 🟡 Docker Buildx + GHA layer caching
+- [ ] Перейти на `docker/build-push-action` с кэшированием слоёв
+  - **Сейчас:** Голый `docker build` — каждый билд: apt-get, npm ci, prisma generate, next build с нуля
+  - **Нужно:**
+    ```yaml
+    - uses: docker/setup-buildx-action@v3
+    - uses: docker/build-push-action@v6
+      with:
+        context: surefilter-ui
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.VERSION_TAG }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    ```
+  - **Эффект:** Повторные билды на 60-80% быстрее (кэш npm ci, apt-get, .next/cache)
+
+#### 🟡 Убрать лишний docker pull
+- [ ] Извлекать статику из локального образа, не пуллить заново
+  - **Сейчас:** `docker build` → `docker push` → `docker pull` (тот же образ!) → extract
+  - **Нужно:** Использовать образ сразу после build (он уже локальный)
+  - **Или:** При Buildx + `--load` — образ доступен локально
+
+#### 🟡 Concurrency control
+- [ ] Добавить `concurrency` в `ci-build-push.yml`
+  - **Проблема:** Два одновременных dispatch → гонка: оба пишут в S3, оба инвалидируют CF
+  - **Решение:**
+    ```yaml
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    ```
+
+#### 🟡 CloudFront — использовать известный distribution ID
+- [ ] Заменить lookup по comment на прямой ID или SSM
+  - **Сейчас:** `aws cloudfront list-distributions --query "...?Comment=='surefilter new.surefilter.us'..."` — хрупко
+  - **Варианты:**
+    - GitHub secret `CLOUDFRONT_DISTRIBUTION_ID` (простейший)
+    - SSM parameter (уже есть `/surefilter/CLOUDFRONT_DISTRIBUTION_ID`)
+  - **Затронуто:** `ci-build-push.yml`, `static-upload.yml`
+
+#### 🟢 Build summary ($GITHUB_STEP_SUMMARY)
+- [ ] Добавить итоговый отчёт в GitHub Actions Summary
+  - **Что показать:** версия образа, размер, результат Trivy scan, кол-во файлов в S3, CF invalidation ID
+  - **Формат:** Markdown-таблица в `$GITHUB_STEP_SUMMARY`
+
+#### 🟢 Тег latest помимо version tag
+- [ ] Пушить образ с двумя тегами: `v0.3.9` + `latest`
+  - **Зачем:** Удобство при дебаге и rollback — всегда знаешь какой образ последний
+  - **Реализация:** Два `docker tag` + `docker push` (или `tags` в build-push-action)
+
+#### 🟢 Dockerfile: Node 22 + syntax directive
+- [ ] Обновить `node:20-bookworm-slim` → `node:22-bookworm-slim`
+  - **Node 20 LTS:** заканчивается апрель 2026
+  - **Node 22 LTS:** активная поддержка до апреля 2027
+  - **Также:** `# syntax=docker/dockerfile:1.7` → `# syntax=docker/dockerfile:1` (latest 1.x)
 
 ### В планах
 - [ ] S3 OAC вместо OAI (SigV4)

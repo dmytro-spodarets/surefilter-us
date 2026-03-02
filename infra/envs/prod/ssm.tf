@@ -57,7 +57,7 @@ resource "terraform_data" "set_cloudfront_dist_id" {
   input = aws_cloudfront_distribution.site.id
 
   provisioner "local-exec" {
-    command = "aws ssm put-parameter --name '/surefilter/CLOUDFRONT_DISTRIBUTION_ID' --value '${self.input}' --type String --overwrite --region ${var.aws_region}"
+    command = "aws --profile surefilter-local ssm put-parameter --name '/surefilter/CLOUDFRONT_DISTRIBUTION_ID' --value '${self.input}' --type String --overwrite --region ${var.aws_region}"
   }
 }
 

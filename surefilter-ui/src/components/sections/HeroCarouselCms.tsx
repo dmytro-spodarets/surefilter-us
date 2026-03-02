@@ -71,7 +71,7 @@ export default function HeroCarouselCms({
   }
 
   return (
-    <section className="relative md:h-screen md:overflow-hidden bg-white mb-8 md:mb-0">
+    <section className="relative md:h-screen md:overflow-hidden bg-white mb-2 md:mb-0">
       {/* Preload hints for next slides - helps browser prioritize these images */}
       {slides.slice(1, 3).map((slide, index) => {
         if (!slide.image) return null;
@@ -145,7 +145,7 @@ export default function HeroCarouselCms({
                 {/* Content */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-28 pb-6 sm:pt-24 sm:pb-32">
                   {/* Mobile image — fixed height container for consistent pagination positioning */}
-                  <div className="md:hidden h-[25dvh] flex items-center">
+                  <div className="md:hidden h-[35dvh] flex items-center">
                     <ManagedImage
                       src={imageSrc}
                       alt={slide.title || 'Hero image'}
@@ -153,12 +153,12 @@ export default function HeroCarouselCms({
                       height={900}
                       quality={95}
                       sizes="(max-width: 640px) 100vw, 100vw"
-                      className="w-full h-auto max-h-[25dvh] object-contain"
+                      className="w-full h-auto max-h-[35dvh] object-contain"
                       priority={isFirstSlide}
                     />
                   </div>
                   {/* Spacer for pagination dots on mobile */}
-                  <div className="md:hidden h-4" />
+                  <div className="md:hidden h-10" />
 
                   <div className="max-w-xl text-center sm:text-left">
                     {(headingPrefix || headingHighlight) ? (
@@ -206,14 +206,14 @@ export default function HeroCarouselCms({
 
       {/* Custom positioned pagination dots — mobile: after image, desktop: bottom */}
       {!isSingleSlide && showPagination && (
-        <div className="hero-custom-pagination absolute left-0 right-0 z-10 flex justify-center !bottom-auto !top-[calc(7rem+25dvh+0.25rem)] md:!top-auto md:!bottom-4" />
+        <div className="hero-custom-pagination absolute left-0 right-0 z-10 flex justify-center !bottom-auto !top-[calc(7rem+35dvh+0.5rem)] md:!top-auto md:!bottom-4" />
       )}
 
       {/* Navigation Arrows - показываем только если слайдов > 1 */}
       {!isSingleSlide && showNavigation && (
         <>
           <button
-            className="hero-carousel-prev absolute left-2 sm:left-4 top-[calc(7rem+12.5dvh)] md:top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 bg-white/80 sm:bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="hero-carousel-prev absolute left-2 sm:left-4 top-[calc(7rem+17.5dvh)] md:top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 bg-white/80 sm:bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Previous slide"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@ export default function HeroCarouselCms({
           </button>
 
           <button
-            className="hero-carousel-next absolute right-2 sm:right-4 top-[calc(7rem+12.5dvh)] md:top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 bg-white/80 sm:bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="hero-carousel-next absolute right-2 sm:right-4 top-[calc(7rem+17.5dvh)] md:top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-12 sm:h-12 bg-white/80 sm:bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Next slide"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
