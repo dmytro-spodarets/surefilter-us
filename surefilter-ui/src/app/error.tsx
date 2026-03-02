@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { getAssetUrl } from '@/lib/assets';
 
 export default function Error({
   error,
@@ -17,7 +18,7 @@ export default function Error({
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="text-center max-w-md">
         <a href="/" className="inline-block mb-8">
-          <img src="/images/sf-logo.png" alt="Sure Filter" className="h-10 mx-auto" />
+          <img src={getAssetUrl('images/sf-logo.png')} alt="Sure Filter" className="h-10 mx-auto" />
         </a>
         <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
         <p className="mt-3 text-gray-600">

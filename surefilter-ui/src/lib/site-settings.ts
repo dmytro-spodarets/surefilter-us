@@ -25,6 +25,9 @@ export interface NavigationItem {
 }
 
 export interface SiteSettings {
+  // Branding
+  logoUrl?: string;
+
   // Newsroom
   newsroomTitle?: string;
   newsroomDescription?: string;
@@ -129,6 +132,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 
   // Parse JSON fields
   const parsedSettings: SiteSettings = {
+    logoUrl: settings.logoUrl || undefined,
     newsroomTitle: settings.newsroomTitle || undefined,
     newsroomDescription: settings.newsroomDescription || undefined,
     newsroomHeroImage: settings.newsroomHeroImage || undefined,
@@ -242,6 +246,12 @@ export async function getDefaultSeoMeta() {
     description: settings.defaultMetaDesc,
     keywords: settings.defaultMetaKeywords,
   };
+}
+
+// Helper to get logo URL (used by Header)
+export async function getLogoUrl(): Promise<string | undefined> {
+  const settings = await getSiteSettings();
+  return settings.logoUrl;
 }
 
 // Helper to get active redirects (used by /api/redirects for middleware)

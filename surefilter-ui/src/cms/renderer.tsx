@@ -26,6 +26,7 @@ import ManufacturingFacilities from '../components/sections/ManufacturingFacilit
 import OurCompany from '../components/sections/OurCompany';
 import StatsBand from '../components/sections/StatsBand';
 import AwardsCarousel from '../components/sections/AwardsCarousel';
+import AwardsGallery from '../components/sections/AwardsGallery';
 import ContactHero from '@/components/sections/ContactHero';
 import ContactForm from '@/components/sections/ContactForm';
 import ContactInfo from '@/components/sections/ContactInfo';
@@ -280,6 +281,10 @@ export function renderSection(section: CmsSection) {
     case 'awards_carousel': {
       const d = sectionData as any;
       return <AwardsCarousel title={d?.title} subtitle={d?.subtitle} items={Array.isArray(d?.items) ? d.items : []} />;
+    }
+    case 'awards_gallery': {
+      const d = sectionData as any;
+      return <AwardsGallery title={d?.title} subtitle={d?.subtitle} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'contact_hero': {
       const d = sectionData as any;

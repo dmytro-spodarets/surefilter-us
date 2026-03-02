@@ -42,6 +42,7 @@ const OPTIONS = [
   { value: 'our_company', label: 'About: Our Company (tabs)' },
   { value: 'stats_band', label: 'About: Stats Band' },
   { value: 'awards_carousel', label: 'About: Awards Carousel' },
+  { value: 'awards_gallery', label: 'About: Awards Gallery' },
   { value: 'quality_assurance', label: 'About: Quality Assurance' },
 
   // Content

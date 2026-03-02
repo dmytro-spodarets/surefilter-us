@@ -75,6 +75,7 @@ enum SectionType {
   our_company
   stats_band
   awards_carousel
+  awards_gallery
   contact_hero
   contact_form
   contact_info
@@ -649,7 +650,10 @@ model Resource {
 // Global site settings (single row)
 model SiteSettings {
   id        String   @id @default("site_settings") // Always same ID
-  
+
+  // Site Branding
+  logoUrl              String?   // S3 path, e.g. "images/sf-logo.png"
+
   // Special Pages Settings
   newsroomTitle        String? @default("Newsroom")
   newsroomDescription  String? @db.Text

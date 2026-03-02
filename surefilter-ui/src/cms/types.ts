@@ -37,7 +37,8 @@ export type SectionType =
   | 'manufacturing_facilities'
   | 'our_company'
   | 'stats_band'
-  | 'awards_carousel';
+  | 'awards_carousel'
+  | 'awards_gallery';
 
 export interface CmsSection<T = unknown> {
   id: string;

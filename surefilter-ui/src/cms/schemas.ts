@@ -249,7 +249,6 @@ export const MagnussonMossActSchema = z.object({
   badge: z.string().optional(),
   title: z.string().optional(),
   subtitle: z.string().optional(),
-  image: z.string().optional(),
   mainText: z.string().optional(),
   lawQuote: z.string().optional(),
   lawReference: z.string().optional(),
@@ -261,15 +260,11 @@ export type MagnussonMossActInput = z.infer<typeof MagnussonMossActSchema>;
 
 // LimitedWarrantyDetails - Warranty coverage details
 export const LimitedWarrantyDetailsSchema = z.object({
-  title: z.string().optional(),
-  subtitle: z.string().optional(),
-  image: z.string().optional(),
-  introText: z.string().optional(),
-  promiseTitle: z.string().optional(),
-  promiseText: z.string().optional(),
   warrantyTitle: z.string().optional(),
   warrantyText1: z.string().optional(),
   warrantyText2: z.string().optional(),
+  buttonsTitle: z.string().optional(),
+  buttonsDescription: z.string().optional(),
   primaryButtonText: z.string().optional(),
   primaryButtonUrl: z.string().optional(),
   secondaryButtonText: z.string().optional(),
@@ -364,6 +359,18 @@ export const AwardsCarouselSchema = z.object({
   items: z.array(AwardItemSchema).default([]),
 });
 export type AwardsCarouselInput = z.infer<typeof AwardsCarouselSchema>;
+
+// Awards Gallery (multi-image scrollable gallery)
+export const AwardsGalleryItemSchema = z.object({
+  title: z.string(),
+  image: z.string().optional().default(''),
+});
+export const AwardsGallerySchema = z.object({
+  title: z.string().optional().default(''),
+  subtitle: z.string().optional().default(''),
+  items: z.array(AwardsGalleryItemSchema).default([]),
+});
+export type AwardsGalleryInput = z.infer<typeof AwardsGallerySchema>;
 
 // Contact Us
 export const ContactHeroSchema = z.object({

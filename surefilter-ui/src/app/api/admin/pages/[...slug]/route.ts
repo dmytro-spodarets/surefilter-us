@@ -160,6 +160,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     our_company: { title: 'Our Company', subtitle: '', tabs: [] },
     stats_band: { title: 'Our Numbers', subtitle: '', items: [] },
     awards_carousel: { title: 'Awards', subtitle: '', items: [] },
+    awards_gallery: { title: '', subtitle: '', items: [] },
     contact_hero: { title: 'Contact Us', description: '', image: '' },
     contact_form: { title: 'Send Us a Message', description: '', subjects: [] },
     contact_info: { title: 'Get in Touch', general: { email: '', phone: '', fax: '' }, support: { email: '', phone: '', hours: '' }, address: { name: '', line1: '', line2: '', city: '', region: '', postal: '', country: '' } },

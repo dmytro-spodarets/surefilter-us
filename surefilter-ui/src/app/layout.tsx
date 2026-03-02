@@ -55,12 +55,7 @@ export default async function RootLayout({
       {gtmId && <GoogleTagManager gtmId={gtmId} />}
       <head>
         {/* Preload critical assets for faster LCP */}
-        <link
-          rel="preload"
-          href="/images/sf-logo.png"
-          as="image"
-          type="image/png"
-        />
+{/* Logo preloaded via ManagedImage priority prop */}
       </head>
       <body>
         {children}

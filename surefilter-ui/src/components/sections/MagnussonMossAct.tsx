@@ -1,6 +1,4 @@
-import Image from 'next/image';
 import { ScaleIcon, ShieldCheckIcon, DocumentTextIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { ManagedImage } from '@/components/ui/ManagedImage';
 
 const protections = [
   {
@@ -24,7 +22,6 @@ interface MagnussonMossActProps {
   badge?: string;
   title?: string;
   subtitle?: string;
-  image?: string;
   mainText?: string;
   lawQuote?: string;
   lawReference?: string;
@@ -37,7 +34,6 @@ export default function MagnussonMossAct({
   badge,
   title,
   subtitle,
-  image,
   mainText,
   lawQuote,
   lawReference,
@@ -67,26 +63,8 @@ export default function MagnussonMossAct({
           )}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-center mb-12">
-          {/* Left side - Image */}
-          {image && (
-            <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-xl">
-                <ManagedImage
-                  src={image}
-                  alt="Legal documents and justice scale"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-              </div>
-            </div>
-          )}
-
-          {/* Right side - Content */}
-          <div>
-            <div className="prose prose-lg max-w-none">
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="prose prose-lg max-w-none">
               {mainText && (
                 <p className="text-gray-600 mb-6">
                   {mainText}
@@ -110,7 +88,6 @@ export default function MagnussonMossAct({
               {bottomText && (
                 <p className="text-gray-600" dangerouslySetInnerHTML={{ __html: bottomText }} />
               )}
-            </div>
           </div>
         </div>
 
@@ -137,14 +114,10 @@ export default function MagnussonMossAct({
                 {ctaTitle}
               </h3>
               {ctaText && (
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600">
                   {ctaText}
                 </p>
               )}
-              <div className="inline-flex items-center bg-green-50 border border-green-200 rounded-lg px-4 py-3">
-                <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-green-800 font-medium">The Law is on Your Side</span>
-              </div>
             </div>
           </div>
         )}

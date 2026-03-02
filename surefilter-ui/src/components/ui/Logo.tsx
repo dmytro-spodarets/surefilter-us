@@ -4,9 +4,10 @@ import { ManagedImage } from '@/components/ui/ManagedImage';
 interface LogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  src?: string;
 }
 
-const Logo: React.FC<LogoProps> = ({ className = '', size = 'md' }) => {
+const Logo: React.FC<LogoProps> = ({ className = '', size = 'md', src }) => {
   const sizes = {
     sm: 32,
     md: 40,
@@ -19,9 +20,12 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 'md' }) => {
     lg: 'w-12 h-12',
     xl: 'w-16 h-16',
   };
+
+  if (!src) return null;
+
   return (
     <ManagedImage
-      src="/images/sf-logo.png"
+      src={src}
       alt="Sure Filter Logo"
       width={sizes[size]}
       height={sizes[size]}

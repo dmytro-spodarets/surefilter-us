@@ -26,6 +26,7 @@ import {
   OurCompanySchema,
   StatsBandSchema,
   AwardsCarouselSchema,
+  AwardsGallerySchema,
   ContactHeroSchema,
   ContactFormSchema,
   ContactInfoSchema,
@@ -147,6 +148,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'awards_carousel') {
     const parsed = AwardsCarouselSchema.safeParse(data);
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    await prisma.section.update({ where: { id }, data: { data: parsed.data } });
+  } else if (type === 'awards_gallery') {
+    const parsed = AwardsGallerySchema.safeParse(data);
     if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     await prisma.section.update({ where: { id }, data: { data: parsed.data } });
   } else if (type === 'contact_hero') {

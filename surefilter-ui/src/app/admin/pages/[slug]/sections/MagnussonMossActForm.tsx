@@ -8,7 +8,6 @@ export default function MagnussonMossActForm({ sectionId, initialData }: { secti
     badge: initialData.badge,
     title: initialData.title,
     subtitle: initialData.subtitle,
-    image: initialData.image,
     mainText: initialData.mainText,
     lawQuote: initialData.lawQuote,
     lawReference: initialData.lawReference,
@@ -56,10 +55,6 @@ export default function MagnussonMossActForm({ sectionId, initialData }: { secti
         <div>
           <label className="block text-sm text-gray-700 mb-1">Subtitle</label>
           <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={2} value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Image URL</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm text-gray-700 mb-1">Main Text</label>

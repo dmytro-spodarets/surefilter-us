@@ -599,7 +599,12 @@
 - ⏳ HeroCarouselCms — всё ещё на Swiper.js (TODO: мигрировать на кастомную реализацию)
 - ✅ Shared Sections система
 - ✅ Industry Showcase overrides
-- ✅ CMS формы: PageHeroReverseForm, LimitedWarrantyDetailsForm, MagnussonMossActForm, WarrantyContactForm
+- ✅ CMS формы: PageHeroReverseForm, LimitedWarrantyDetailsForm, MagnussonMossActForm, WarrantyContactForm, AwardsGalleryForm
+- ✅ AwardsGallery — новый CMS-компонент (бесконечная автопрокрутка наград)
+- ✅ Logo URL из SiteSettings (не хардкод), управление в админке
+- ✅ MediaPickerModal возвращает S3 path вместо CDN URL
+- ✅ PageHeroReverse mobile fix (layout по паттерну PageHero)
+- ✅ Warranty cleanup: удалён image из magnusson_moss_act, 6 полей из limited_warranty_details
 
 ### Swiper Migration (3 из 4 карусели)
 - ✅ AwardsCarousel — кастомная реализация (CSS translateX)

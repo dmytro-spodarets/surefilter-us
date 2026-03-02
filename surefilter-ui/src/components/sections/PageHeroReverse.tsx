@@ -38,23 +38,25 @@ const PageHeroReverse: React.FC<PageHeroReverseProps> = ({
     image2 ? { src: image2, alt: image2Alt || '', offset: false } : null,
     image3 ? { src: image3, alt: image3Alt || '', offset: true } : null,
     image4 ? { src: image4, alt: image4Alt || '', offset: false } : null,
-  ].filter((img): img is { src: string; alt: string; offset: boolean } => img !== null); // Показываем только изображения с указанным src
+  ].filter((img): img is { src: string; alt: string; offset: boolean } => img !== null);
 
   return (
     <section className={cn(
-      'relative h-[60vh] min-h-[400px] lg:min-h-[400px] max-h-[600px] lg:lg:min-h-[500px] max-h-[600px] lg:max-h-[700px] bg-gradient-to-br from-gray-200 to-gray-100 flex items-center mt-24',
+      'relative bg-gradient-to-br from-gray-200 to-gray-100 mt-24 pt-8 pb-6 lg:pt-12 lg:pb-6 lg:h-[65vh] lg:min-h-[540px] lg:max-h-[750px] lg:flex lg:items-center',
       className
-    )}>      
+    )}>
+      {/* Background extends behind fixed header */}
+      <div className="absolute inset-0 -top-24 bg-gradient-to-br from-gray-200 to-gray-100 -z-10" />
       {/* Основной контейнер */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex justify-center">
         <div className={cn(
-          "gap-8 lg:gap-8 lg:gap-16 items-center max-w-6xl",
+          "w-full gap-6 lg:gap-16 items-center max-w-6xl",
           gridImages.length > 0 ? "grid grid-cols-1 lg:grid-cols-2" : "flex justify-center"
         )}>
-          
+
           {/* Левая часть - сетка изображений 2x2 */}
           {gridImages.length > 0 && (
-            <div className="grid grid-cols-2 gap-2 lg:gap-4 relative max-w-xx lg:max-w-lg h-fit mx-auto lg:mx-0 order-2 lg:order-1">
+            <div className="grid grid-cols-2 gap-2 lg:gap-4 relative w-full max-w-sm lg:max-w-lg mx-auto lg:mx-0 order-2 lg:order-1">
               {gridImages.map((img, index) => (
                 <div
                   key={index}

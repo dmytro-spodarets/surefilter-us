@@ -52,6 +52,7 @@ interface RedirectRule {
 }
 
 interface SiteSettingsData {
+  logoUrl?: string;
   newsroomTitle?: string;
   newsroomDescription?: string;
   newsroomHeroImage?: string;
@@ -93,6 +94,7 @@ export default function SiteSettingsPage() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [bulkImportText, setBulkImportText] = useState('');
 
+  const [showLogoPicker, setShowLogoPicker] = useState(false);
   const [showNewsroomHeroPicker, setShowNewsroomHeroPicker] = useState(false);
   const [showNewsroomOgImagePicker, setShowNewsroomOgImagePicker] = useState(false);
   const [showNewsArticleHeroPicker, setShowNewsArticleHeroPicker] = useState(false);
@@ -148,6 +150,7 @@ export default function SiteSettingsPage() {
     try {
       setSaving(true);
       const dataToSave = {
+        logoUrl: settings?.logoUrl,
         newsroomTitle: settings?.newsroomTitle,
         newsroomDescription: settings?.newsroomDescription,
         newsroomHeroImage: settings?.newsroomHeroImage,
@@ -602,6 +605,37 @@ export default function SiteSettingsPage() {
         <div className="p-6">
           {activeTab === 'specialPages' && (
             <div className="space-y-8">
+              {/* Site Logo */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Site Logo</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Logo Image</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={settings.logoUrl || ''}
+                        onChange={(e) => handleFieldChange('logoUrl', e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                        placeholder="S3 key or URL"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLogoPicker(true)}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                      >
+                        Browse
+                      </button>
+                    </div>
+                    {settings.logoUrl && (
+                      <div className="mt-2 w-16 h-16 relative border border-gray-200 rounded-lg overflow-hidden bg-white p-1">
+                        <Image src={getAssetUrl(settings.logoUrl)} alt="Logo Preview" fill className="object-contain" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Newsroom Page Settings */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Newsroom Page Settings</h2>
@@ -1820,6 +1854,16 @@ export default function SiteSettingsPage() {
       </div>
 
       {/* Media Pickers */}
+      {showLogoPicker && (
+        <MediaPickerModal
+          isOpen={showLogoPicker}
+          onSelect={(url) => {
+            handleFieldChange('logoUrl', url);
+            setShowLogoPicker(false);
+          }}
+          onClose={() => setShowLogoPicker(false)}
+        />
+      )}
       {showNewsroomHeroPicker && (
         <MediaPickerModal
           isOpen={showNewsroomHeroPicker}

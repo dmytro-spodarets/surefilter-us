@@ -137,10 +137,9 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
   };
 
   const handleSelect = (file: MediaFile) => {
-    if (file.metadata?.cdnUrl) {
-      onSelect(file.metadata.cdnUrl, file.metadata.id);
-      onClose();
-    }
+    // Return S3 key (relative path) — ManagedImage/getAssetUrl will resolve to CDN URL
+    onSelect(file.key, file.metadata?.id);
+    onClose();
   };
 
   const isImage = (mimeType: string) => {

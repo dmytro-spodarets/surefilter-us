@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
 import Icon from '@/components/ui/Icon';
-import { getHeaderNavigation } from '@/lib/site-settings';
+import { getHeaderNavigation, getLogoUrl } from '@/lib/site-settings';
 import MobileMenu from './MobileMenu';
 import HeaderNav from './HeaderNav';
 import ScrollHeader from './ScrollHeader';
@@ -10,7 +10,10 @@ const LOGO_SIZE = 64; // px, всегда одинаковый размер
 
 // Server Component - загружает данные из БД
 export default async function Header() {
-  const navigation = await getHeaderNavigation();
+  const [navigation, logoUrl] = await Promise.all([
+    getHeaderNavigation(),
+    getLogoUrl(),
+  ]);
 
   return (
     <ScrollHeader logoSize={LOGO_SIZE}>
@@ -18,7 +21,7 @@ export default async function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center h-full select-none" tabIndex={-1}>
           <span className="logo-container flex items-center justify-center">
-            <Logo size="xl" />
+            <Logo size="xl" src={logoUrl} />
           </span>
         </Link>
 

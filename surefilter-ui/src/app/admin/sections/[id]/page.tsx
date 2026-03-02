@@ -24,6 +24,7 @@ import ManufacturingFacilitiesForm from '@/app/admin/pages/[slug]/sections/Manuf
 import OurCompanyForm from '@/app/admin/pages/[slug]/sections/OurCompanyForm';
 import StatsBandForm from '@/app/admin/pages/[slug]/sections/StatsBandForm';
 import AwardsCarouselForm from '@/app/admin/pages/[slug]/sections/AwardsCarouselForm';
+import AwardsGalleryForm from '@/app/admin/pages/[slug]/sections/AwardsGalleryForm';
 import ContactHeroForm from '@/app/admin/pages/[slug]/sections/ContactHeroForm';
 import ContactFormForm from '@/app/admin/pages/[slug]/sections/ContactFormForm';
 import ContactInfoForm from '@/app/admin/pages/[slug]/sections/ContactInfoForm';
@@ -232,6 +233,9 @@ export default async function EditSectionById({ params }: { params: Promise<{ id
         )}
         {section.type === 'awards_carousel' && (
           <AwardsCarouselForm sectionId={section.id} initialData={section.data as any} />
+        )}
+        {section.type === 'awards_gallery' && (
+          <AwardsGalleryForm sectionId={section.id} initialData={section.data as any} />
         )}
         {section.type === 'contact_hero' && (
           <ContactHeroForm sectionId={section.id} initialData={section.data as any} />

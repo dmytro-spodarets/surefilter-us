@@ -5,15 +5,11 @@ import type { LimitedWarrantyDetailsInput } from '@/cms/schemas';
 
 export default function LimitedWarrantyDetailsForm({ sectionId, initialData }: { sectionId: string; initialData: LimitedWarrantyDetailsInput }) {
   const [form, setForm] = useState<LimitedWarrantyDetailsInput>({
-    title: initialData.title,
-    subtitle: initialData.subtitle,
-    image: initialData.image,
-    introText: initialData.introText,
-    promiseTitle: initialData.promiseTitle,
-    promiseText: initialData.promiseText,
     warrantyTitle: initialData.warrantyTitle,
     warrantyText1: initialData.warrantyText1,
     warrantyText2: initialData.warrantyText2,
+    buttonsTitle: initialData.buttonsTitle,
+    buttonsDescription: initialData.buttonsDescription,
     primaryButtonText: initialData.primaryButtonText,
     primaryButtonUrl: initialData.primaryButtonUrl,
     secondaryButtonText: initialData.secondaryButtonText,
@@ -49,40 +45,25 @@ export default function LimitedWarrantyDetailsForm({ sectionId, initialData }: {
       {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
       <form onSubmit={onSubmit} className="grid gap-4">
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Title</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Subtitle</label>
-          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={2} value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Image URL</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Intro Text</label>
-          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={3} value={form.introText} onChange={(e) => setForm({ ...form, introText: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Promise Title</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.promiseTitle} onChange={(e) => setForm({ ...form, promiseTitle: e.target.value })} />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Promise Text</label>
-          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={2} value={form.promiseText} onChange={(e) => setForm({ ...form, promiseText: e.target.value })} />
-        </div>
-        <div>
           <label className="block text-sm text-gray-700 mb-1">Warranty Title</label>
-          <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.warrantyTitle} onChange={(e) => setForm({ ...form, warrantyTitle: e.target.value })} />
+          <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.warrantyTitle || ''} onChange={(e) => setForm({ ...form, warrantyTitle: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm text-gray-700 mb-1">Warranty Text 1</label>
-          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={3} value={form.warrantyText1} onChange={(e) => setForm({ ...form, warrantyText1: e.target.value })} />
+          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={3} value={form.warrantyText1 || ''} onChange={(e) => setForm({ ...form, warrantyText1: e.target.value })} />
         </div>
         <div>
           <label className="block text-sm text-gray-700 mb-1">Warranty Text 2</label>
-          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={3} value={form.warrantyText2} onChange={(e) => setForm({ ...form, warrantyText2: e.target.value })} />
+          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={3} value={form.warrantyText2 || ''} onChange={(e) => setForm({ ...form, warrantyText2: e.target.value })} />
+        </div>
+        <h3 className="text-md font-medium text-gray-900 mt-4">Pre-Buttons Section</h3>
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Buttons Title (h3)</label>
+          <input className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.buttonsTitle || ''} onChange={(e) => setForm({ ...form, buttonsTitle: e.target.value })} />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-700 mb-1">Buttons Description</label>
+          <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2" rows={2} value={form.buttonsDescription || ''} onChange={(e) => setForm({ ...form, buttonsDescription: e.target.value })} />
         </div>
         <h3 className="text-md font-medium text-gray-900 mt-4">Buttons</h3>
         <div className="grid grid-cols-2 gap-4">

@@ -7,6 +7,9 @@ import { authOptions } from '@/lib/auth';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 const UpdateSettingsSchema = z.object({
+  // Branding
+  logoUrl: z.string().nullable().optional(),
+
   // Newsroom
   newsroomTitle: z.string().nullable().optional(),
   newsroomDescription: z.string().nullable().optional(),
@@ -120,6 +123,7 @@ export async function GET(request: NextRequest) {
       settings = await prisma.siteSettings.create({
         data: {
           id: 'site_settings',
+          logoUrl: 'images/sf-logo.png',
           newsroomTitle: 'Newsroom',
           newsroomDescription: 'Latest news and updates from Sure Filter',
           resourcesTitle: 'Resources',

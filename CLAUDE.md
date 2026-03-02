@@ -72,7 +72,7 @@ surefilter-us/
 - `Section` — секции страниц (type enum, data JSON)
 - `PageSection` — связь page-section с позицией
 - `SharedSection` — переиспользуемые секции
-- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO, redirects, default meta tags)
+- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO, redirects, default meta tags, logoUrl)
 
 ### Каталог продуктов
 - `Product` — продукты (code, brand, filterType, manufacturerCatalogUrl)
@@ -112,7 +112,7 @@ surefilter-us/
 - `about_with_stats`, `about_news`, `content_with_images`
 - `why_choose`, `quality_assurance`
 - `industries`, `industries_list`, `industry_showcase`
-- `our_company`, `manufacturing_facilities`, `stats_band`, `awards_carousel`
+- `our_company`, `manufacturing_facilities`, `stats_band`, `awards_carousel`, `awards_gallery`
 
 **Контакты:**
 - `contact_hero`, `contact_options`, `contact_form`, `contact_form_info`
@@ -270,6 +270,9 @@ npm run seed:content:force  # С перезаписью
 - Компонент `ManagedImage` — с shimmer placeholder (без retry/error boundary — TODO)
 - Утилита `getAssetUrl()` — конвертирует S3 path в CDN URL
 - Next.js `<Image>` везде вместо `<img>`
+- **Админ-формы**: любое поле Image URL / Image Path обязательно должно иметь кнопку **Browse** рядом с input, которая открывает `MediaPickerModal` для выбора файла из S3. Паттерн: `<div className="flex gap-2"><input .../><button onClick={() => setShowPicker(true)}>Browse</button></div>` + `<MediaPickerModal isOpen={...} onSelect={...} onClose={...} />`
+- **MediaPickerModal** возвращает S3 key (относительный путь, например `images/logo.png`), НЕ полный CDN URL — `ManagedImage`/`getAssetUrl()` конвертируют в CDN URL при рендере
+- **Logo**: URL хранится в `SiteSettings.logoUrl` (БД), не хардкод. Header загружает через `getLogoUrl()`, передаёт в `<Logo src={logoUrl} />`
 
 ### API
 - Валидация через Zod
@@ -355,7 +358,7 @@ npm run seed:content:force  # С перезаписью
 **Где добавить новый тип секции?**
 → 1) Enum в schema.prisma 2) Компонент в sections/ 3) Форма в admin/pages/[slug]/sections/ 4) Обработка в cms/section-renderer.tsx
 
-**Где настройки Header/Footer/Analytics/SEO/Redirects?**
+**Где настройки Header/Footer/Analytics/SEO/Redirects/Logo?**
 → `/admin/settings/site` → `SiteSettings` модель
 
 **Как добавить редирект?**

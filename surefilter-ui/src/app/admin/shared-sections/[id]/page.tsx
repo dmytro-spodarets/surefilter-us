@@ -37,6 +37,7 @@ import ManufacturingFacilitiesForm from '@/app/admin/pages/[slug]/sections/Manuf
 import OurCompanyForm from '@/app/admin/pages/[slug]/sections/OurCompanyForm';
 import StatsBandForm from '@/app/admin/pages/[slug]/sections/StatsBandForm';
 import AwardsCarouselForm from '@/app/admin/pages/[slug]/sections/AwardsCarouselForm';
+import AwardsGalleryForm from '@/app/admin/pages/[slug]/sections/AwardsGalleryForm';
 import QualityAssuranceForm from '@/app/admin/pages/[slug]/sections/QualityAssuranceForm';
 import FormEmbedForm from '@/app/admin/pages/[slug]/sections/FormEmbedForm';
 import SidebarWidgetForm from '@/app/admin/pages/[slug]/sections/SidebarWidgetForm';
@@ -200,6 +201,8 @@ export default function EditSharedSectionPage() {
         return <StatsBandForm {...formProps} />;
       case 'awards_carousel':
         return <AwardsCarouselForm {...formProps} />;
+      case 'awards_gallery':
+        return <AwardsGalleryForm {...formProps} />;
       case 'quality_assurance':
         return <QualityAssuranceForm {...formProps} />;
       case 'form_embed':
