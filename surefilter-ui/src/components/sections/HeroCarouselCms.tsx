@@ -72,7 +72,7 @@ export default function HeroCarouselCms({
   }
 
   return (
-    <section className="relative h-[80dvh] md:h-screen overflow-hidden bg-white">
+    <section className="relative h-[80dvh] md:h-screen overflow-hidden bg-white mb-8 md:mb-0">
       {/* Preload hints for next slides - helps browser prioritize these images */}
       {slides.slice(1, 3).map((slide, index) => {
         if (!slide.image) return null;
@@ -143,7 +143,7 @@ export default function HeroCarouselCms({
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-28 pb-14 sm:pt-24 sm:pb-32">
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 pt-32 pb-14 sm:pt-24 sm:pb-32">
                   {/* Mobile image */}
                   <div className="md:hidden mb-4">
                     <ManagedImage
