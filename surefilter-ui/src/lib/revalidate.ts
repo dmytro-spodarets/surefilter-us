@@ -19,19 +19,25 @@ function getCfClient() {
  * @param tags   Optional cache tags to invalidate, e.g. ['page:home']
  */
 export async function invalidatePages(paths: string[], tags?: string[]) {
-  // 1. Next.js ISR cache
+  console.log('[revalidate] Invalidating paths:', paths, 'tags:', tags);
+
+  // 1. Next.js ISR cache — use 'layout' to revalidate everything at that path
   for (const p of paths) {
-    revalidatePath(p, 'page');
+    revalidatePath(p, 'layout');
   }
   for (const t of tags ?? []) {
     revalidateTag(t);
   }
 
   // 2. CloudFront edge cache
-  if (!distId || paths.length === 0) return;
+  if (!distId) {
+    console.log('[revalidate] No CLOUDFRONT_DISTRIBUTION_ID, skipping CloudFront invalidation');
+    return;
+  }
+  if (paths.length === 0) return;
 
   try {
-    await getCfClient().send(
+    const result = await getCfClient().send(
       new CreateInvalidationCommand({
         DistributionId: distId,
         InvalidationBatch: {
@@ -40,7 +46,8 @@ export async function invalidatePages(paths: string[], tags?: string[]) {
         },
       })
     );
+    console.log('[revalidate] CloudFront invalidation created:', result.Invalidation?.Id);
   } catch (e) {
-    console.error('CloudFront invalidation failed:', e);
+    console.error('[revalidate] CloudFront invalidation failed:', e);
   }
 }

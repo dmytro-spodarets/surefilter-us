@@ -218,8 +218,29 @@ export async function PUT(request: NextRequest) {
       ...metadata,
     });
 
-    // Clear cache after updating settings
+    // Clear in-memory cache
     clearSiteSettingsCache();
+    // Invalidate ISR + CloudFront — site settings affect all pages (header, footer, meta, logo)
+    try {
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/', 'layout'); // Invalidates ALL ISR pages under root layout
+
+      // CloudFront wildcard invalidation
+      const distId = process.env.CLOUDFRONT_DISTRIBUTION_ID;
+      if (distId) {
+        const { CloudFrontClient, CreateInvalidationCommand } = await import('@aws-sdk/client-cloudfront');
+        const cf = new CloudFrontClient({ region: process.env.AWS_REGION || 'us-east-1' });
+        await cf.send(new CreateInvalidationCommand({
+          DistributionId: distId,
+          InvalidationBatch: {
+            Paths: { Quantity: 1, Items: ['/*'] },
+            CallerReference: `settings-${Date.now()}`,
+          },
+        }));
+      }
+    } catch (e) {
+      console.error('Revalidation error:', e);
+    }
 
     return NextResponse.json(settings);
   } catch (error) {

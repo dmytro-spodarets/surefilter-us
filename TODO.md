@@ -605,6 +605,7 @@
 - ✅ MediaPickerModal возвращает S3 path вместо CDN URL
 - ✅ PageHeroReverse mobile fix (layout по паттерну PageHero)
 - ✅ Warranty cleanup: удалён image из magnusson_moss_act, 6 полей из limited_warranty_details
+- ✅ Cache invalidation: site-settings сбрасывает ISR+CF, revalidatePath 'layout', кнопка Clear Cache в админке
 
 ### Swiper Migration (3 из 4 карусели)
 - ✅ AwardsCarousel — кастомная реализация (CSS translateX)

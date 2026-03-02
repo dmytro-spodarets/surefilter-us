@@ -170,7 +170,9 @@ surefilter-us/
 
 ### Админские (`/api/admin/*`)
 - CRUD для pages, sections, products, news, resources, forms
-- Все мутации вызывают `invalidatePages()` — сброс ISR + CloudFront кэша
+- Секции/страницы: `invalidatePages()` сбрасывает ISR (`revalidatePath` layout) + CloudFront кэш только для затронутых страниц
+- Site settings: полный сброс всех кешей (ISR `revalidatePath('/', 'layout')` + CloudFront `/*`) — т.к. header/footer/meta влияют на все страницы
+- `POST /api/admin/cache` — ручной сброс всех кешей (кнопка Clear Cache в Settings)
 - `/api/admin/file-manager/*` — работа с S3
 - `/api/admin/site-settings` — глобальные настройки
 

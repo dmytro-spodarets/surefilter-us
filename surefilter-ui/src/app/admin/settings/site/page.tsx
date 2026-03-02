@@ -94,6 +94,17 @@ export default function SiteSettingsPage() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [bulkImportText, setBulkImportText] = useState('');
 
+  const [clearingCache, setClearingCache] = useState(false);
+  const [cacheResult, setCacheResult] = useState<{
+    ok: boolean;
+    results?: {
+      inMemory: boolean;
+      isr: boolean;
+      cloudfront: { invalidationId?: string; distributionId?: string } | null;
+      timestamp: string;
+    };
+    error?: string;
+  } | null>(null);
   const [showLogoPicker, setShowLogoPicker] = useState(false);
   const [showNewsroomHeroPicker, setShowNewsroomHeroPicker] = useState(false);
   const [showNewsroomOgImagePicker, setShowNewsroomOgImagePicker] = useState(false);
@@ -539,8 +550,74 @@ export default function SiteSettingsPage() {
     return <div className="text-center py-12 text-red-600">Failed to load settings.</div>;
   }
 
+  const handleClearCache = async () => {
+    if (!confirm('Clear all caches (ISR + CloudFront)? Pages may take a few seconds to regenerate.')) return;
+    setClearingCache(true);
+    setCacheResult(null);
+    try {
+      const res = await fetch('/api/admin/cache', { method: 'POST' });
+      const data = await res.json();
+      setCacheResult(data);
+      // Auto-hide after 10 seconds
+      setTimeout(() => setCacheResult(null), 10000);
+    } catch {
+      setCacheResult({ ok: false, error: 'Network error' });
+      setTimeout(() => setCacheResult(null), 10000);
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
   return (
     <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Site Settings</h1>
+        <button
+          type="button"
+          onClick={handleClearCache}
+          disabled={clearingCache}
+          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+        >
+          {clearingCache ? 'Clearing...' : 'Clear Cache'}
+        </button>
+      </div>
+
+      {cacheResult && (
+        <div className={`mb-4 rounded-lg border p-4 ${cacheResult.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className={`font-semibold ${cacheResult.ok ? 'text-green-800' : 'text-red-800'}`}>
+                {cacheResult.ok ? 'Cache cleared successfully' : 'Cache clear failed'}
+              </h3>
+              {cacheResult.results && (
+                <ul className="mt-2 text-sm space-y-1 text-gray-700">
+                  <li>
+                    {cacheResult.results.inMemory ? '✓' : '✗'} In-memory cache (site settings)
+                  </li>
+                  <li>
+                    {cacheResult.results.isr ? '✓' : '✗'} Next.js ISR cache (all pages)
+                  </li>
+                  <li>
+                    {cacheResult.results.cloudfront
+                      ? `✓ CloudFront edge cache — invalidation ${cacheResult.results.cloudfront.invalidationId}`
+                      : '– CloudFront skipped (no distribution ID)'}
+                  </li>
+                </ul>
+              )}
+              {cacheResult.error && !cacheResult.results && (
+                <p className="mt-1 text-sm text-red-700">{cacheResult.error}</p>
+              )}
+              {cacheResult.results?.timestamp && (
+                <p className="mt-2 text-xs text-gray-500">
+                  {new Date(cacheResult.results.timestamp).toLocaleString()}
+                </p>
+              )}
+            </div>
+            <button onClick={() => setCacheResult(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white shadow rounded-lg mb-6">
         <div className="border-b border-gray-200">
           <nav className="flex -mb-px">
