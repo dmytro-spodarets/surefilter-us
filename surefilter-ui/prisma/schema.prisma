@@ -692,6 +692,7 @@ model SiteSettings {
   // Analytics
   gaMeasurementId    String?   // Google Analytics 4 Measurement ID (G-XXXXXXXXXX)
   gtmId              String?   // Google Tag Manager Container ID (GTM-XXXXXXX)
+  termlyWebsiteUUID  String?   // Termly CMP Website UUID
 
   // SEO
   seoRobotsBlock       Boolean @default(false) // Block all crawlers (for staging)

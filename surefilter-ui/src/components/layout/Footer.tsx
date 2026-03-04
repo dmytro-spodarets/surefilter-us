@@ -10,7 +10,7 @@ import {
   FaApple, 
   FaGooglePlay 
 } from 'react-icons/fa';
-import { getFooterContent } from '@/lib/site-settings';
+import { getFooterContent, getTermlyWebsiteUUID } from '@/lib/site-settings';
 
 const iconMap: Record<string, any> = {
   LinkedIn: FaLinkedin,
@@ -23,6 +23,7 @@ const iconMap: Record<string, any> = {
 
 export default async function Footer() {
   const footerData = await getFooterContent();
+  const termlyEnabled = !!(await getTermlyWebsiteUUID());
 
   // Use data from settings (fallbacks are handled in getFooterContent)
   const description = footerData.description || '';
@@ -164,7 +165,7 @@ export default async function Footer() {
               {copyright}
             </p>
             
-            {legalLinks.length > 0 && (
+            {(legalLinks.length > 0 || termlyEnabled) && (
               <div className="flex space-x-6 mt-4 md:mt-0">
                 {legalLinks.map((link) => (
                   <Link
@@ -175,6 +176,14 @@ export default async function Footer() {
                     {link.name}
                   </Link>
                 ))}
+                {termlyEnabled && (
+                  <a
+                    href="#"
+                    className="termly-display-preferences text-gray-400 hover:text-white text-sm transition-colors duration-200"
+                  >
+                    Consent Preferences
+                  </a>
+                )}
               </div>
             )}
           </div>

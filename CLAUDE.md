@@ -19,6 +19,7 @@
 - **Caching:** ISR + CloudFront (on-demand invalidation via `@aws-sdk/client-cloudfront`)
 - **Auth:** NextAuth.js (credentials)
 - **Analytics:** Google Analytics 4 + Google Tag Manager (`@next/third-parties/google`)
+- **Cookie Consent:** Termly CMP (dynamic script via SiteSettings)
 
 ---
 
@@ -287,6 +288,13 @@ npm run seed:content:force  # С перезаписью
 - Применяются только к публичным страницам (admin layout изолирован)
 - `src/lib/analytics.ts` — клиентские хелперы (`trackFormSubmit`, `trackButtonClick`, etc.)
 
+### Cookie Consent (Termly)
+- Termly Website UUID хранится в БД (`SiteSettings.termlyWebsiteUUID`), настраивается в админке Settings → Security
+- `src/components/TermlyCMP.tsx` — клиентский компонент, загружает `app.termly.io/resource-blocker/{UUID}` с `autoBlock=on`
+- Подключён в root layout внутри `<Suspense>`, рендерится только если UUID задан
+- Реинициализируется при клиентской навигации (`usePathname` + `useSearchParams`)
+- Ссылка "Consent Preferences" в Footer (класс `termly-display-preferences`) — появляется только при включённом Termly
+
 ---
 
 ## Известные особенности
@@ -304,7 +312,7 @@ npm run seed:content:force  # С перезаписью
 4. **Docker build**: `NEXT_BUILD_SKIP_DB=1` — Prisma stub, нет подключения к БД при сборке
 5. **Post-deploy warm-up**: `scripts/warm-up.sh` вызывает `/api/warm-up` после старта сервера — обновляет ISR кэш реальными данными из БД (build-time страницы пустые)
 6. **TypeScript**: `ignoreBuildErrors: true` в next.config.ts (из-за FilterType.category workarounds в API/админке)
-7. **Analytics**: GA4 + GTM ID из БД (не env), только публичные страницы
+7. **Analytics**: GA4 + GTM ID + Termly UUID из БД (не env), только публичные страницы
 8. **SEO файлы**: robots.txt, sitemap.xml, llms.txt, llms-full.txt — все динамические из БД
 9. **Default SEO Meta**: title, description, keywords, title suffix (template) — из SiteSettings (БД), не захардкожены. Root layout использует `generateMetadata()` с `getDefaultSeoMeta()`. Если в БД пусто — мета-теги не рендерятся.
 10. **Favicon**: `/public/favicon/` (SVG, PNG, ICO, apple-touch-icon, web-app-manifest). Метаданные `icons` + `manifest` в root layout.
@@ -360,7 +368,7 @@ npm run seed:content:force  # С перезаписью
 **Где добавить новый тип секции?**
 → 1) Enum в schema.prisma 2) Компонент в sections/ 3) Форма в admin/pages/[slug]/sections/ 4) Обработка в cms/section-renderer.tsx
 
-**Где настройки Header/Footer/Analytics/SEO/Redirects/Logo?**
+**Где настройки Header/Footer/Analytics/Cookie Consent/SEO/Redirects/Logo?**
 → `/admin/settings/site` → `SiteSettings` модель
 
 **Как добавить редирект?**

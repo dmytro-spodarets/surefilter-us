@@ -81,6 +81,7 @@ const UpdateSettingsSchema = z.object({
   // Analytics
   gaMeasurementId: z.string().nullable().optional(),
   gtmId: z.string().nullable().optional(),
+  termlyWebsiteUUID: z.string().nullable().optional(),
 
   // SEO
   seoRobotsBlock: z.boolean().optional(),

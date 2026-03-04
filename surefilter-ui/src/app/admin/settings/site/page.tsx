@@ -78,6 +78,7 @@ interface SiteSettingsData {
   catalogPasswordEnabled?: boolean;
   gaMeasurementId?: string;
   gtmId?: string;
+  termlyWebsiteUUID?: string;
   seoRobotsBlock?: boolean;
   llmsSiteDescription?: string;
   defaultMetaTitle?: string;
@@ -184,6 +185,7 @@ export default function SiteSettingsPage() {
         catalogPasswordEnabled: settings?.catalogPasswordEnabled,
         gaMeasurementId: settings?.gaMeasurementId,
         gtmId: settings?.gtmId,
+        termlyWebsiteUUID: settings?.termlyWebsiteUUID,
         seoRobotsBlock: settings?.seoRobotsBlock,
         llmsSiteDescription: settings?.llmsSiteDescription,
         defaultMetaTitle: settings?.defaultMetaTitle,
@@ -1104,6 +1106,25 @@ export default function SiteSettingsPage() {
                       </p>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Cookie Consent (Termly) */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Cookie Consent (Termly)</h2>
+                <p className="text-sm text-gray-500 mb-4">Termly Consent Management Platform. Displays a cookie consent banner on all public pages.</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Website UUID</label>
+                  <input
+                    type="text"
+                    value={settings.termlyWebsiteUUID || ''}
+                    onChange={(e) => handleFieldChange('termlyWebsiteUUID', e.target.value)}
+                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 font-mono"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Found in Termly Dashboard &rarr; Websites &rarr; your site. Leave empty to disable.
+                  </p>
                 </div>
               </div>
 

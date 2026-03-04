@@ -13,6 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-03-04 — Termly CMP: интеграция cookie consent баннера — поле Website UUID в SiteSettings (БД + админка Settings → Security), клиентский компонент TermlyCMP с autoBlock и реинициализацией при навигации, ссылка Consent Preferences в футере
 - 2026-03-02 — Clear Cache: кнопка теперь показывает детальный результат — что почищено (in-memory, ISR, CloudFront), ID инвалидации, timestamp; автоскрытие через 10 сек
 - 2026-03-02 — Cache invalidation fix: site-settings PUT теперь сбрасывает ISR + CloudFront кеш; revalidatePath переключён на 'layout' (вместо 'page') для полной инвалидации; добавлена кнопка Clear Cache в админке Settings + API endpoint POST /api/admin/cache
 - 2026-03-02 — Awards Gallery: новый CMS-компонент `awards_gallery` — бесконечная автопрокрутка наград с паузой при hover, полный CMS pipeline (Prisma enum, Zod schema, админ-форма с Browse, renderer)

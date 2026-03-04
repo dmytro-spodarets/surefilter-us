@@ -57,6 +57,7 @@ export interface SiteSettings {
   // Analytics
   gaMeasurementId?: string;
   gtmId?: string;
+  termlyWebsiteUUID?: string;
 
   // SEO
   seoRobotsBlock?: boolean;
@@ -153,6 +154,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     resourcesOgImage: settings.resourcesOgImage || undefined,
     gaMeasurementId: settings.gaMeasurementId || undefined,
     gtmId: settings.gtmId || undefined,
+    termlyWebsiteUUID: settings.termlyWebsiteUUID || undefined,
     seoRobotsBlock: settings.seoRobotsBlock,
     llmsSiteDescription: settings.llmsSiteDescription || undefined,
     defaultMetaTitle: settings.defaultMetaTitle || undefined,
@@ -222,6 +224,12 @@ export async function getGaMeasurementId(): Promise<string | undefined> {
 export async function getGtmId(): Promise<string | undefined> {
   const settings = await getSiteSettings();
   return settings.gtmId || undefined;
+}
+
+// Helper to get Termly Website UUID
+export async function getTermlyWebsiteUUID(): Promise<string | undefined> {
+  const settings = await getSiteSettings();
+  return settings.termlyWebsiteUUID || undefined;
 }
 
 // Helper to get resources page settings

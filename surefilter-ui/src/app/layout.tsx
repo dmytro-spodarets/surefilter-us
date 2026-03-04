@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
-import { getGaMeasurementId, getGtmId, getDefaultSeoMeta } from '@/lib/site-settings';
+import { getGaMeasurementId, getGtmId, getTermlyWebsiteUUID, getDefaultSeoMeta } from '@/lib/site-settings';
+import TermlyCMP from '@/components/TermlyCMP';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -43,9 +45,11 @@ export default async function RootLayout({
 }) {
   let gaId: string | undefined;
   let gtmId: string | undefined;
+  let termlyUUID: string | undefined;
   try {
     gaId = await getGaMeasurementId();
     gtmId = await getGtmId();
+    termlyUUID = await getTermlyWebsiteUUID();
   } catch {
     // DB unavailable during build — analytics will be injected at runtime via ISR
   }
@@ -59,6 +63,11 @@ export default async function RootLayout({
       </head>
       <body>
         {children}
+        {termlyUUID && (
+          <Suspense fallback={null}>
+            <TermlyCMP websiteUUID={termlyUUID} autoBlock={true} />
+          </Suspense>
+        )}
       </body>
       {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
