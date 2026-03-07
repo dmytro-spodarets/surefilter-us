@@ -1,45 +1,43 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
-const SCRIPT_SRC_BASE = 'https://app.termly.io';
-
-interface TermlyCMPProps {
-  websiteUUID: string;
-  autoBlock?: boolean;
-  masterConsentsOrigin?: string;
+declare global {
+  interface Window {
+    Termly?: {
+      initialize: () => void;
+    };
+  }
 }
 
-export default function TermlyCMP({ autoBlock, masterConsentsOrigin, websiteUUID }: TermlyCMPProps) {
-  const scriptSrc = useMemo(() => {
-    const src = new URL(SCRIPT_SRC_BASE);
-    src.pathname = `/resource-blocker/${websiteUUID}`;
-    if (autoBlock) {
-      src.searchParams.set('autoBlock', 'on');
-    }
-    if (masterConsentsOrigin) {
-      src.searchParams.set('masterConsentsOrigin', masterConsentsOrigin);
-    }
-    return src.toString();
-  }, [autoBlock, masterConsentsOrigin, websiteUUID]);
-
-  const isScriptAdded = useRef(false);
+/**
+ * Reinitializes Termly on client-side navigation.
+ * The Termly resource-blocker script itself is loaded via
+ * <Script strategy="beforeInteractive"> in root layout.tsx
+ * so it's the first script on the page.
+ * This component only handles SPA route-change re-scanning.
+ */
+export default function TermlyCMP() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (isScriptAdded.current || typeof window === 'undefined') return;
-
-    const existingScript = document.querySelector(`script[src="${scriptSrc}"]`);
-    if (existingScript) {
-      isScriptAdded.current = true;
+    // Skip the first render — Termly already initialized when the script loaded
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
 
-    const script = document.createElement('script');
-    script.src = scriptSrc;
-    script.async = true;
-    document.head.appendChild(script);
-    isScriptAdded.current = true;
-  }, [scriptSrc]);
+    if (typeof window !== 'undefined' && window.Termly) {
+      try {
+        window.Termly.initialize();
+      } catch (e) {
+        console.warn('Error initializing Termly:', e);
+      }
+    }
+  }, [pathname, searchParams]);
 
   return null;
 }
