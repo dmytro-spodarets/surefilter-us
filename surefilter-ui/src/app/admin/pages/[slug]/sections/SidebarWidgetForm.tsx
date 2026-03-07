@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import sanitizeHtml from 'sanitize-html';
 import type { SidebarWidgetInput, SidebarWidgetBlock } from '@/cms/schemas';
 
 export default function SidebarWidgetForm({ sectionId, initialData }: { sectionId: string; initialData: SidebarWidgetInput }) {
@@ -268,7 +269,7 @@ export default function SidebarWidgetForm({ sectionId, initialData }: { sectionI
                 {block.htmlContent && (
                   <div className="border border-gray-200 rounded p-3 bg-gray-50">
                     <p className="text-xs text-gray-600 mb-2">Preview:</p>
-                    <div dangerouslySetInnerHTML={{ __html: block.htmlContent }} />
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.htmlContent) }} />
                   </div>
                 )}
               </div>

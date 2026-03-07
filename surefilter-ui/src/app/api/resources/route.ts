@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { publicApiLimiter, getClientIp } from '@/lib/rate-limiter';
 
 // GET /api/resources - List published resources (public)
 export async function GET(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rateCheck = publicApiLimiter.check(ip);
+  if (!rateCheck.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const categorySlug = searchParams.get('category');
     const search = searchParams.get('search');
-    const page = parseInt(searchParams.get('page') || '1');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
     const limit = Math.min(parseInt(searchParams.get('limit') || '12') || 12, 100);
     const skip = (page - 1) * limit;
 

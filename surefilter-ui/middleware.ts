@@ -41,10 +41,14 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Admin authentication
-  if (pathname.startsWith('/admin')) {
+  // Admin authentication — protect admin pages and API routes
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
+      // API routes get 401, pages get redirected to login
+      if (pathname.startsWith('/api/admin')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
       const url = new URL('/login', req.url);
       url.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(url);

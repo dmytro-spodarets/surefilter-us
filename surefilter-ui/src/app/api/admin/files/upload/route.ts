@@ -22,9 +22,15 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const folder = formData.get('folder') as string || '';
+    const rawFolder = (formData.get('folder') as string || '').replace(/\\/g, '/');
     const altText = formData.get('altText') as string || '';
     const tags = formData.get('tags') as string || '';
+
+    // Prevent path traversal in folder param
+    const folder = rawFolder.split('/').filter(seg => seg && seg !== '.' && seg !== '..').join('/');
+    if (rawFolder !== folder && rawFolder !== '') {
+      return NextResponse.json({ error: 'Invalid folder path' }, { status: 400 });
+    }
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });

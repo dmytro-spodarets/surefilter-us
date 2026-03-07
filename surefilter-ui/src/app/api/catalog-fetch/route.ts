@@ -1,8 +1,15 @@
 import { NextRequest } from 'next/server';
 import { fetchAndParseCatalog } from '@/lib/catalog-parser';
 import { validateFetchUrl } from '@/lib/url-validator';
+import { publicApiLimiter, getClientIp } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rl = publicApiLimiter.check(`catalog-fetch:${ip}`);
+  if (!rl.allowed) {
+    return Response.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const rawUrl = request.nextUrl.searchParams.get('url');
 
   if (!rawUrl) {

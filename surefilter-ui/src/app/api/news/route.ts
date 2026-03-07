@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { publicApiLimiter, getClientIp } from '@/lib/rate-limiter';
 
 // GET /api/news - Get published articles (public API)
 export async function GET(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rateCheck = publicApiLimiter.check(ip);
+  if (!rateCheck.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type') as 'NEWS' | 'EVENT' | null;
     const categoryId = searchParams.get('categoryId');
     const limit = Math.min(parseInt(searchParams.get('limit') || '20') || 20, 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0') || 0);
     const featured = searchParams.get('featured') === 'true';
 
     const where: any = {

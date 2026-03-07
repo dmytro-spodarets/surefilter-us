@@ -36,21 +36,22 @@ export async function PUT(request: NextRequest) {
     // Move all objects in the folder
     await moveS3Objects(oldPath, newPath);
 
-    // Update database records
-    await prisma.mediaAsset.updateMany({
-      where: {
-        s3Path: {
-          startsWith: oldPath + '/'
-        }
-      },
-      data: {
-        s3Path: {
-          // Replace old path with new path in s3Path
-          // This is a simplified approach - in production you might want more sophisticated path replacement
-        },
-        folder: newPath
-      }
+    // Update database records — replace old path prefix with new path in each asset's s3Path
+    const affectedAssets = await prisma.mediaAsset.findMany({
+      where: { s3Path: { startsWith: oldPath + '/' } },
+      select: { id: true, s3Path: true },
     });
+
+    for (const asset of affectedAssets) {
+      const updatedS3Path = newPath + asset.s3Path.slice(oldPath.length);
+      await prisma.mediaAsset.update({
+        where: { id: asset.id },
+        data: {
+          s3Path: updatedS3Path,
+          folder: newPath,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

@@ -8,9 +8,33 @@ const WARM_UP_PATHS = [
   '/about-us',
   '/contact-us',
   '/warranty',
+  '/privacy-policy',
+  '/terms',
+  // Heavy Duty
   '/heavy-duty',
+  '/heavy-duty/air-filters',
+  '/heavy-duty/oil-filters',
+  '/heavy-duty/fuel-filters',
+  '/heavy-duty/cabin-filters',
+  '/heavy-duty/hydraulic-filters',
+  '/heavy-duty/transmission-filters',
+  '/heavy-duty/separator-filters',
+  // Automotive
   '/automotive',
+  '/automotive/air-filters',
+  '/automotive/oil-filters',
+  '/automotive/fuel-filters',
+  '/automotive/cabin-filters',
+  // Industries
   '/industries',
+  '/industries/agriculture',
+  '/industries/automotive',
+  '/industries/construction',
+  '/industries/heavy-duty-truck',
+  '/industries/industrial-equipment',
+  '/industries/marine',
+  // Catalog & Content
+  '/catalog',
   '/newsroom',
   '/resources',
 ];

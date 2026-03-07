@@ -1,6 +1,41 @@
 import 'server-only';
 import { prisma } from './prisma';
 
+const PRIVATE_IP_RANGES = [
+  /^127\./,                    // localhost
+  /^10\./,                     // 10.0.0.0/8
+  /^172\.(1[6-9]|2\d|3[01])\./, // 172.16.0.0/12
+  /^192\.168\./,               // 192.168.0.0/16
+  /^169\.254\./,               // link-local / AWS metadata
+  /^0\./,                      // 0.0.0.0/8
+  /^::1$/,                     // IPv6 localhost
+  /^fc00:/i,                   // IPv6 private
+  /^fe80:/i,                   // IPv6 link-local
+];
+
+/**
+ * Validates webhook URL: must be https, not targeting private/internal IPs.
+ */
+function validateWebhookUrl(rawUrl: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error('Invalid webhook URL');
+  }
+
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Webhook URL must use HTTPS');
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  if (hostname === 'localhost' || PRIVATE_IP_RANGES.some(r => r.test(hostname))) {
+    throw new Error('Webhook URL must not target private/internal addresses');
+  }
+
+  return parsed.toString();
+}
+
 interface WebhookConfig {
   url: string;
   headers?: Record<string, string>;
@@ -27,6 +62,9 @@ export async function sendWebhook(
   data: any,
   maxRetries: number = 3
 ): Promise<WebhookResult> {
+  // Validate URL to prevent SSRF
+  const validatedUrl = validateWebhookUrl(config.url);
+
   let lastError: string | null = null;
   let lastResponse: any = null;
 
@@ -34,7 +72,7 @@ export async function sendWebhook(
     try {
       console.log(`Webhook attempt ${attempt}/${maxRetries} for submission ${submissionId}`);
 
-      const response = await fetch(config.url, {
+      const response = await fetch(validatedUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,6 +184,9 @@ export async function testWebhook(
   headers?: Record<string, string>
 ): Promise<{ success: boolean; statusCode?: number; error?: string; response?: any }> {
   try {
+    // Validate URL to prevent SSRF
+    const validatedUrl = validateWebhookUrl(url);
+
     const testPayload = {
       test: true,
       submissionId: 'test_' + Date.now(),
@@ -157,7 +198,7 @@ export async function testWebhook(
       },
     };
 
-    const response = await fetch(url, {
+    const response = await fetch(validatedUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

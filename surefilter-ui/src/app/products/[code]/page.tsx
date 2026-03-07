@@ -7,6 +7,13 @@ import { prisma } from '@/lib/prisma';
 import { fetchAndParseCatalog, type CatalogData } from '@/lib/catalog-parser';
 import type { Metadata } from 'next';
 import RelatedProducts from '@/components/sections/RelatedProducts';
+import { unstable_cache } from 'next/cache';
+
+const getCatalogData = unstable_cache(
+  async (catalogUrl: string) => fetchAndParseCatalog(catalogUrl),
+  ['catalog-data'],
+  { revalidate: 86400, tags: ['catalog'] }
+);
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -41,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Try to get catalog data for better metadata
   if (product.manufacturerCatalogUrl) {
     try {
-      const catalogData = await fetchAndParseCatalog(product.manufacturerCatalogUrl);
+      const catalogData = await getCatalogData(product.manufacturerCatalogUrl);
       if (catalogData.title) {
         title = catalogData.title;
       }
@@ -165,7 +172,7 @@ export default async function ProductPage({ params }: PageProps) {
   let catalogError: string | null = null;
 
   try {
-    catalogData = await fetchAndParseCatalog(product.manufacturerCatalogUrl);
+    catalogData = await getCatalogData(product.manufacturerCatalogUrl);
   } catch (error) {
     catalogError = error instanceof Error ? error.message : 'Failed to load product information';
     console.error('Error fetching catalog:', error);

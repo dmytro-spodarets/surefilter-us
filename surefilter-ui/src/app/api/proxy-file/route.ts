@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateFetchUrl } from '@/lib/url-validator';
+import { publicApiLimiter, getClientIp } from '@/lib/rate-limiter';
 
 export async function GET(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rl = publicApiLimiter.check(`proxy-file:${ip}`);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const rawUrl = request.nextUrl.searchParams.get('url');
 
   if (!rawUrl) {

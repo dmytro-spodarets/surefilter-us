@@ -1,67 +1,62 @@
-import HeroCms from '@/components/sections/HeroCms';
-import HeroCarouselCms from '@/components/sections/HeroCarouselCms';
+import dynamic from 'next/dynamic';
+
+// Server components — static imports (no JS bundle impact)
 import FeaturedProductsCms from '@/components/sections/FeaturedProductsCms';
 import FeaturedProductsCatalogCms from '@/components/sections/FeaturedProductsCatalogCms';
 import PopularFiltersCatalogCms from '@/components/sections/PopularFiltersCatalogCms';
 import WhyChooseCms from '@/components/sections/WhyChooseCms';
-import QuickSearchCms from '@/components/sections/QuickSearchCms';
-import SimpleSearch from '@/components/sections/SimpleSearch';
 import IndustriesCms from '@/components/sections/IndustriesCms';
 import IndustriesList from '@/components/sections/IndustriesList';
 import IndustryShowcase from '@/components/sections/IndustryShowcase';
 import AboutNewsCms from '@/components/sections/AboutNewsCms';
-import PageHero from '@/components/sections/PageHero';
-import PageHeroReverse from '@/components/sections/PageHeroReverse';
 import FullScreenHero from '@/components/sections/FullScreenHero';
-import CompactSearchHero from '@/components/sections/CompactSearchHero';
-import SearchHero from '@/components/sections/SearchHero';
 import AboutWithStats from '@/components/sections/AboutWithStats';
 import ContentWithImages from '@/components/sections/ContentWithImages';
 import QualityAssurance from '@/components/sections/QualityAssurance';
 import MagnussonMossAct from '@/components/sections/MagnussonMossAct';
 import LimitedWarrantyDetails from '@/components/sections/LimitedWarrantyDetails';
 import WarrantyContact from '@/components/sections/WarrantyContact';
-import SidebarWidget from '@/components/sections/SidebarWidget';
 import ManufacturingFacilities from '../components/sections/ManufacturingFacilities';
-import OurCompany from '../components/sections/OurCompany';
 import StatsBand from '../components/sections/StatsBand';
-import AwardsCarousel from '../components/sections/AwardsCarousel';
-import AwardsGallery from '../components/sections/AwardsGallery';
 import ContactHero from '@/components/sections/ContactHero';
 import ContactForm from '@/components/sections/ContactForm';
 import ContactInfo from '@/components/sections/ContactInfo';
 import ContactDetails from '@/components/sections/ContactDetails';
 import ContactFormInfo from '@/components/sections/ContactFormInfo';
 import FilterTypesCms from '@/components/sections/FilterTypesCms';
-import prisma from '@/lib/prisma';
 import PopularFilters from '@/components/sections/PopularFilters';
 import ContactOptions from '@/components/sections/ContactOptions';
-import type { CmsSection } from './types';
-import { HeroFullSchema } from './schemas';
 import FilterTypesGrid from '@/components/sections/FilterTypesGrid';
 import FilterTypesImageGrid from '@/components/sections/FilterTypesImageGrid';
 import FormEmbed from '@/components/forms/FormEmbed';
+import SimpleSearch from '@/components/sections/SimpleSearch';
+import HeroCms from '@/components/sections/HeroCms';
+import PageHero from '@/components/sections/PageHero';
+import PageHeroReverse from '@/components/sections/PageHeroReverse';
+import CompactHero from '@/components/sections/CompactHero';
+
+// Client components — dynamic imports (lazy loaded, reduces JS bundle per page)
+const HeroCarouselCms = dynamic(() => import('@/components/sections/HeroCarouselCms'));
+const CompactSearchHero = dynamic(() => import('@/components/sections/CompactSearchHero'));
+const SearchHero = dynamic(() => import('@/components/sections/SearchHero'));
+const QuickSearchCms = dynamic(() => import('@/components/sections/QuickSearchCms'));
+const OurCompany = dynamic(() => import('../components/sections/OurCompany'));
+const AwardsCarousel = dynamic(() => import('../components/sections/AwardsCarousel'));
+const AwardsGallery = dynamic(() => import('@/components/sections/AwardsGallery'));
+const SidebarWidget = dynamic(() => import('@/components/sections/SidebarWidget'));
+
+import type { CmsSection } from './types';
+import { HeroFullSchema } from './schemas';
 
 export function renderSection(section: CmsSection) {
   // If section uses a shared section, use its data instead
-  const sectionData = (section as any).sharedSection 
-    ? (section as any).sharedSection.data 
+  const sectionData = (section as any).sharedSection
+    ? (section as any).sharedSection.data
     : section.data;
-  
-  const sectionType = (section as any).sharedSection 
-    ? (section as any).sharedSection.type 
-    : (section as any).type;
 
-  // Debug logging for shared sections (can be removed in production)
-  // if ((section as any).sharedSection) {
-  //   console.log('Rendering shared section:', {
-  //     sharedSectionId: (section as any).sharedSection.id,
-  //     sharedSectionName: (section as any).sharedSection.name,
-  //     type: sectionType,
-  //     hasData: !!sectionData,
-  //     dataKeys: Object.keys(sectionData || {})
-  //   });
-  // }
+  const sectionType = (section as any).sharedSection
+    ? (section as any).sharedSection.type
+    : (section as any).type;
 
   switch (sectionType) {
     case 'hero_full': {
@@ -99,7 +94,6 @@ export function renderSection(section: CmsSection) {
       return <FilterTypesImageGrid title={d?.title} description={d?.description} columns={d?.columns} variant={d?.variant} items={Array.isArray(d?.items) ? d.items : []} />;
     }
     case 'featured_products': {
-      // Dynamic featured products from DB
       const data = sectionData as any;
       return (
         <FeaturedProductsCms
@@ -111,7 +105,6 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'featured_products_catalog': {
-      // Featured products from catalog
       const data = sectionData as any;
       return (
         <FeaturedProductsCatalogCms
@@ -123,7 +116,6 @@ export function renderSection(section: CmsSection) {
       );
     }
     case 'popular_filters_catalog': {
-      // Popular filters from catalog
       const data = sectionData as any;
       return (
         <PopularFiltersCatalogCms
@@ -158,11 +150,10 @@ export function renderSection(section: CmsSection) {
     }
     case 'industry_showcase': {
       const d = sectionData as any;
-      // Allow page-level overrides
       const pageOverride = section.data as any;
       const industryTitle = pageOverride?.industryTitleOverride || d?.industryTitle || '';
       const industryDescription = pageOverride?.industryDescriptionOverride || d?.industryDescription || '';
-      
+
       return (
         <IndustryShowcase
           industryTitle={industryTitle}
@@ -192,8 +183,8 @@ export function renderSection(section: CmsSection) {
     case 'page_hero': {
       const d = sectionData as any;
       return (
-        <PageHero 
-          title={d?.title || ''} 
+        <PageHero
+          title={d?.title || ''}
           description={d?.description || ''}
           image1={d?.image1}
           image1Alt={d?.image1Alt}
@@ -326,5 +317,3 @@ export function renderSection(section: CmsSection) {
       return null;
   }
 }
-
-

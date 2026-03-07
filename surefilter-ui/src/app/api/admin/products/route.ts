@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Using shared prisma instance from lib/prisma
 
@@ -58,6 +59,9 @@ const ProductSchema = z.object({
 
 // GET /api/admin/products - List all products
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const idsParam = searchParams.get('ids');
@@ -203,9 +207,12 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/products - Create new product
 export async function POST(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
+
   try {
     const body = await request.json();
-    
+
     // Validate input
     const validatedData = ProductSchema.parse(body);
 

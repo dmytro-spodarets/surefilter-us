@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 6 марта 2026 (Security Audit — 25 исправлений)
+**Последнее обновление:** 7 марта 2026 (Security & Performance Audit — 25+14 исправлений)
 
 ---
 
@@ -93,16 +93,8 @@
   - **Формат:** `sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"` (пример для 3-колоночной сетки)
   - **Эффект:** Экономия 40-60% трафика изображений на мобильных
 
-#### 7. Skeleton Loading (`loading.tsx`)
-- [ ] Создать `loading.tsx` с skeleton-компонентами для ключевых маршрутов
-  - **Зачем:** При навигации на `/catalog`, `/products/[code]`, `/newsroom` пользователь видит белый экран
-  - **Файлы для создания:**
-    - `src/app/catalog/loading.tsx` — скелетон сетки карточек продуктов
-    - `src/app/products/[code]/loading.tsx` — скелетон галереи + спецификаций
-    - `src/app/newsroom/loading.tsx` — скелетон карточек новостей
-    - `src/app/resources/loading.tsx` — скелетон списка ресурсов
-  - **Паттерн:** `animate-pulse` на `bg-gray-200` блоках, повторяющих реальный layout
-  - **Важно:** Формы скелетонов должны совпадать с реальным контентом — предотвращает CLS
+#### 7. ~~Skeleton Loading (`loading.tsx`)~~ ✅
+- [x] ~~Создать `loading.tsx` с skeleton-компонентами для ключевых маршрутов~~ — Готово (март 2026, P6): catalog, newsroom, resources + products/[code] уже существовал
 
 #### 8. Модальные окна: body scroll lock + aria
 - [ ] Исправить модальные окна: scroll lock, focus trap, ARIA-атрибуты
@@ -170,16 +162,8 @@
     - В `AwardsCarousel.tsx`: то же — отключать автопрокрутку
     - Оставить: loading spinners, form success/error анимации
 
-#### 14. Lazy Loading below-the-fold секций
-- [ ] Обернуть тяжёлые below-the-fold компоненты в `Suspense` / `next/dynamic`
-  - **Связано с:** Техдолг → UI/UX → "Lazy load секций" (уже есть пункт)
-  - **Приоритетные компоненты:**
-    - `AwardsCarousel.tsx` — клиентский carousel с анимациями
-    - `OurCompany.tsx` — клиентский с табами и большим контентом
-    - `ProductGallery.tsx` — галерея с множественными изображениями
-    - `IndustriesList.tsx` — async DB fetch
-  - **Паттерн:** `const Section = dynamic(() => import('./Section'), { loading: () => <SectionSkeleton /> })`
-  - **Эффект:** Улучшение INP (Interaction to Next Paint) — меньше JS на main thread при загрузке
+#### 14. ~~Lazy Loading below-the-fold секций~~ ✅
+- [x] ~~Обернуть тяжёлые below-the-fold компоненты в `next/dynamic`~~ — Готово (март 2026, P4): 8 client components в CMS renderer переведены на dynamic imports (HeroCarouselCms, CompactSearchHero, SearchHero, QuickSearchCms, OurCompany, AwardsCarousel, AwardsGallery, SidebarWidget). 4 компонента (HeroCms, PageHero, PageHeroReverse, CompactHero) конвертированы в Server Components (P7) — не нуждаются в lazy loading.
 
 #### 15. Swiper → CSS Scroll Snap (HeroCarouselCms)
 - [ ] Мигрировать HeroCarouselCms с Swiper.js на нативный CSS Scroll Snap + минимальный JS
@@ -268,11 +252,21 @@
 ### UI/UX
 - [ ] ManagedImage: error boundary, onError handler (сейчас только shimmer placeholder, нет retry)
 - [ ] Admin: drag-and-drop для секций (сейчас только кнопки вверх/вниз), bulk operations, preview mode
-- [ ] Lazy load секций (dynamic imports) — все 40+ секций импортируются статически в renderer → см. также **Мобильная оптимизация #14**
+- [x] ~~Lazy load секций (dynamic imports)~~ — Готово (март 2026, P4): 8 client components → `next/dynamic`, 4 hero → Server Components
 
 ### Swiper Migration
 - [ ] HeroCarouselCms — единственный компонент, всё ещё использующий Swiper (swiper/react) → см. также **Мобильная оптимизация #15** (CSS Scroll Snap замена)
 - После миграции — удалить `swiper` из package.json
+
+### Performance (из аудита март 2026)
+- [ ] **P5**: Proxy catalog images через S3/CDN — product pages до 5.3MB из-за raw images с surefilter.com (`<Image unoptimized />`). Скачать изображения на S3, убрать `unoptimized`, CloudFront раздаёт оптимизированные версии (5.3MB → ~500KB)
+- [ ] **P9**: Lazy load TinyMCE, Uppy, react-pdf в админке — -330KB admin bundle. Admin-only, низкий приоритет для пользователей
+
+### Security (из аудита март 2026)
+- [ ] **SEC-15**: Убрать `'unsafe-eval'` из CSP (`next.config.ts` script-src) — зависит от совместимости с Termly CMP и GTM. Проверить, что consent баннер и аналитика работают без eval(). Идеал: миграция на nonce-based CSP (Next.js 15 built-in)
+- [ ] **SEC-20**: CSRF для mutation endpoints (double-submit cookie) — admin API защищён middleware + auth, но нет CSRF token. Высокая сложность, низкий риск при маленькой команде админов
+- [ ] **SEC-21**: Hash catalog password (bcrypt) — сейчас plaintext в `SiteSettings.catalogPassword`. Хешировать при сохранении, сравнивать через bcrypt.compare
+- [ ] **SEC-22**: TLS certificate verification для PostgreSQL — `rejectUnauthorized: false` в `prisma.ts`. Подключить AWS RDS CA bundle для полноценной верификации сертификата
 
 ---
 
@@ -395,7 +389,7 @@
 - [ ] S3 OAC вместо OAI (SigV4)
 - [ ] VPC Connector для App Runner (закрыть публичный RDS)
 - [ ] WAF и логи CloudFront
-- [ ] Rate limiting для admin API
+- [x] ~~Rate limiting для admin API~~ — Готово (март 2026): middleware auth + publicApiLimiter на /api/news, /api/resources
 - [ ] Server-side image resize (Sharp, 320/768/1920px variants) — опционально, оценить необходимость
 
 ---
@@ -415,9 +409,10 @@
 - [ ] Web Vitals мониторинг (LCP ≤2.5s, INP ≤200ms, CLS ≤0.1 — актуальные пороги 2026)
 
 ### Security
-- [ ] CSRF protection review
-- [ ] Input sanitization audit
-- [ ] npm audit регулярный
+- [ ] CSRF protection review — SEC-20 (deferred, high complexity: double-submit cookie pattern)
+- [x] ~~Input sanitization audit~~ — Готово (март 2026, SEC-18): CSS whitelist в sanitize.ts, `allowedStyles`
+- [x] ~~npm audit fix~~ — Готово (март 2026, SEC-C4): critical `fast-xml-parser` и moderate `ajv` исправлены
+- [ ] Убрать `'unsafe-eval'` из CSP — SEC-15 (зависит от Termly/GTM совместимости)
 
 ---
 
@@ -652,11 +647,8 @@
   - **Chrome 121+:** Speculation Rules API — `<script type="speculationrules">`
   - **Оценить:** Потребление ресурсов vs выигрыш в производительности
 
-#### 23. Content Security Policy headers
-- [ ] Добавить CSP и security headers
-  - **Связано с:** SEO косвенно — Google учитывает HTTPS и безопасность
-  - **Headers:** `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`
-  - **Где:** `next.config.ts` → `headers()` или middleware
+#### 23. ~~Content Security Policy headers~~ ✅
+- [x] ~~Добавить CSP и security headers~~ — Готово: CSP, HSTS (с preload, SEC-14), X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy — всё в `next.config.ts` headers()
 
 ---
 
@@ -672,6 +664,36 @@
 
 <details>
 <summary>Декабрь 2025 - Март 2026</summary>
+
+### Security & Performance Audit Implementation (March 7, 2026)
+
+**Безопасность (CRITICAL):**
+- ✅ SEC-C1: Auth check на GET в site-settings, products, products/[id] (requireAdmin)
+- ✅ SEC-C2: SSRF валидация в webhook.ts (validateWebhookUrl — HTTPS + private IP block)
+- ✅ SEC-C3: Middleware для /api/admin/* (edge-level auth, 401 для API, redirect для pages)
+- ✅ SEC-C4: npm audit fix (fast-xml-parser critical, ajv moderate)
+- ✅ SEC-H1: Стандартизация auth (middleware защищает все admin routes)
+- ✅ SEC-H2: Валидация callbackUrl (only internal paths, no //)
+- ✅ SEC-H3: Убран .passthrough() из Zod schema → .strict()
+- ✅ SEC-H5: Path traversal fix в file upload (isSafePath)
+- ✅ SEC-H6: Sanitize admin preview (SidebarWidgetForm)
+- ✅ SEC-11: Fix folder rename DB update (s3Path корректно обновляется)
+- ✅ SEC-14: HSTS preload directive
+- ✅ SEC-16: Rate limiting на /api/news, /api/resources (publicApiLimiter 100/min)
+- ✅ SEC-17: Bounds validation на pagination (Math.max offset/page)
+- ✅ SEC-18: CSS whitelist в sanitize.ts (allowedStyles)
+- ✅ SEC-19: JWT maxAge 24h (session.maxAge = 86400)
+- ✅ SEC-M8: Убраны debug console.log из site-settings
+
+**Производительность:**
+- ✅ P1: unstable_cache для catalog parsing (Products TTFB: 2.65s → 0.13s)
+- ✅ P4: Lazy loading CMS секций через next/dynamic (8 client components)
+- ✅ P6: Skeleton loading.tsx для catalog, newsroom, resources
+- ✅ P7: Client → Server components (HeroCms, PageHero, CompactHero, PageHeroReverse — убран 'use client')
+- ✅ P8: Расширен warm-up (9 → 30 путей: все страницы из sitemap)
+- ✅ P10: Проверка unused packages (react-icons, react-pdf используются)
+- ✅ P11: Мемоизация shimmer placeholder (ManagedImage — кеш по размерам)
+- ✅ P12: Fix CLS на /resources (Suspense fallback с skeleton)
 
 ### SEO/GEO Implementation (March 2026)
 - ✅ Default SEO Meta в SiteSettings: title, title suffix (template), description, keywords — из кода в БД, управление в админке

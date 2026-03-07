@@ -1,4 +1,3 @@
-"use client";
 import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface HeroCmsProps {

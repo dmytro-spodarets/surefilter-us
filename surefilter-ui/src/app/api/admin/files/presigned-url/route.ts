@@ -29,10 +29,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File type not allowed' }, { status: 400 });
     }
 
+    // Validate folder path against traversal attacks
+    const normalizedFolder = folder.replace(/\\/g, '/');
+    if (normalizedFolder.includes('..') || normalizedFolder.startsWith('/')) {
+      return NextResponse.json({ error: 'Invalid folder path' }, { status: 400 });
+    }
+
     // Generate unique S3 key
     const timestamp = Date.now();
     const sanitizedName = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const s3Key = `${folder}/${timestamp}_${sanitizedName}`;
+    const s3Key = `${normalizedFolder}/${timestamp}_${sanitizedName}`;
 
     // Generate presigned URL
     const presignedUrl = await generatePresignedUploadUrl(s3Key, contentType);

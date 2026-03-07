@@ -3,25 +3,22 @@
 import Image from 'next/image';
 import { getAssetUrl, isAssetPath } from '@/lib/assets';
 
-// Shimmer placeholder SVG for loading state
-const shimmer = (w: number, h: number) => `
-<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <defs>
-    <linearGradient id="g">
-      <stop stop-color="#f3f4f6" offset="20%" />
-      <stop stop-color="#e5e7eb" offset="50%" />
-      <stop stop-color="#f3f4f6" offset="70%" />
-    </linearGradient>
-  </defs>
-  <rect width="${w}" height="${h}" fill="#f3f4f6" />
-  <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
-  <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
-</svg>`;
+// Shimmer placeholder SVG for loading state — memoized by dimensions
+const shimmerCache = new Map<string, string>();
 
-const toBase64 = (str: string) =>
-  typeof window === 'undefined'
-    ? Buffer.from(str).toString('base64')
-    : window.btoa(str);
+function getShimmerDataUrl(w: number, h: number): string {
+  const key = `${w}x${h}`;
+  const cached = shimmerCache.get(key);
+  if (cached) return cached;
+
+  const svg = `<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><linearGradient id="g"><stop stop-color="#f3f4f6" offset="20%"/><stop stop-color="#e5e7eb" offset="50%"/><stop stop-color="#f3f4f6" offset="70%"/></linearGradient></defs><rect width="${w}" height="${h}" fill="#f3f4f6"/><rect id="r" width="${w}" height="${h}" fill="url(#g)"/><animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"/></svg>`;
+  const b64 = typeof window === 'undefined'
+    ? Buffer.from(svg).toString('base64')
+    : window.btoa(svg);
+  const dataUrl = `data:image/svg+xml;base64,${b64}`;
+  shimmerCache.set(key, dataUrl);
+  return dataUrl;
+}
 
 interface ManagedImageProps {
   src: string;
@@ -56,8 +53,7 @@ export function ManagedImage({
     return null;
   }
 
-  // Generate shimmer placeholder
-  const shimmerDataUrl = `data:image/svg+xml;base64,${toBase64(shimmer(width || 700, height || 475))}`;
+  const shimmerDataUrl = getShimmerDataUrl(width || 700, height || 475);
 
   return (
     <Image

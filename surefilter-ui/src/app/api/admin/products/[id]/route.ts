@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Using shared prisma instance from lib/prisma
 
@@ -59,6 +60,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
+
   const { id } = await params;
   try {
     const product = await prisma.product.findUnique({
@@ -123,6 +127,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
+
   const { id } = await params;
   try {
     const body = await request.json();
@@ -306,6 +313,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
+
   const { id } = await params;
   try {
     // Check if product exists

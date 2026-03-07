@@ -7,7 +7,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/admin';
+  const rawCallback = searchParams.get('callbackUrl') || '/admin';
+  // Prevent open redirect — only allow internal paths
+  const callbackUrl = rawCallback.startsWith('/') && !rawCallback.startsWith('//') ? rawCallback : '/admin';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

@@ -1,5 +1,3 @@
-"use client";
-
 import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';
 

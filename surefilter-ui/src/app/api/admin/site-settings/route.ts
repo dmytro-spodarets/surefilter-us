@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { clearSiteSettingsCache } from '@/lib/site-settings';
 import { z } from 'zod';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 const UpdateSettingsSchema = z.object({
   // Branding
@@ -110,10 +109,13 @@ const UpdateSettingsSchema = z.object({
     isActive: z.boolean(),
     comment: z.string().optional(),
   })).optional(),
-}).passthrough(); // Allow extra fields
+}).strict();
 
 // GET /api/admin/site-settings - Get current settings
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
+
   try {
     let settings = await prisma.siteSettings.findUnique({
       where: { id: 'site_settings' },
@@ -186,17 +188,13 @@ export async function GET(request: NextRequest) {
 
 // PUT /api/admin/site-settings - Update settings
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const body = await request.json();
-    console.log('Received body:', JSON.stringify(body, null, 2));
-    
     const data = UpdateSettingsSchema.parse(body);
-    console.log('Validated data:', JSON.stringify(data, null, 2));
 
     const settings = await prisma.siteSettings.upsert({
       where: { id: 'site_settings' },
@@ -210,7 +208,7 @@ export async function PUT(request: NextRequest) {
     // Log action
     const metadata = getRequestMetadata(request);
     await logAdminAction({
-      userId: (session as any).userId,
+      userId: auth.user.id,
       action: 'UPDATE',
       entityType: 'Settings',
       entityId: 'site_settings',

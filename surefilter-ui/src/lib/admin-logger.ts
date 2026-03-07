@@ -1,3 +1,4 @@
+import 'server-only';
 import { prisma } from './prisma';
 import { AdminAction } from '@/generated/prisma';
 

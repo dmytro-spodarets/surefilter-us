@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { ManagedImage } from '@/components/ui/ManagedImage';
 import { cn } from '@/lib/utils';

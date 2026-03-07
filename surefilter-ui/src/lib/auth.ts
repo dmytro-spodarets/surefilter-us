@@ -3,9 +3,10 @@ import { type NextAuthOptions } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
+import { passwordLimiter } from '@/lib/rate-limiter';
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt', maxAge: 24 * 60 * 60 }, // 24 hours
   providers: [
     Credentials({
       name: 'Credentials',
@@ -15,6 +16,11 @@ export const authOptions: NextAuthOptions = {
       },
       authorize: async (credentials) => {
         if (!credentials?.email || !credentials?.password) return null;
+
+        // Rate limit login attempts by email
+        const rl = passwordLimiter.check(`login:${credentials.email}`);
+        if (!rl.allowed) return null;
+
         const user = await prisma.user.findUnique({ where: { email: credentials.email } });
         if (!user) return null;
         const ok = await bcrypt.compare(credentials.password, user.passwordHash);
