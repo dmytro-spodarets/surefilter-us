@@ -18,7 +18,7 @@
     "@aws-sdk/s3-request-presigner": "^3.705.0",
     "@heroicons/react": "^2.2.0",
     "@next/third-parties": "^16.1.6",
-    "@prisma/adapter-pg": "^7.1.0",
+    "@prisma/adapter-pg": "^7.4.2",
     "@tinymce/tinymce-react": "^6.3.0",
     "@uppy/aws-s3": "^4.3.2",
     "@uppy/core": "^4.3.2",
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@prisma/client": "^7.1.0",
+    "@prisma/client": "^7.4.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/jsdom": "^27.0.0",
     "@types/mime-types": "^2.1.4",
@@ -59,7 +59,7 @@
     "eslint": "^9",
     "eslint-config-next": "^15.5.7",
     "jsdom": "^27.4.0",
-    "prisma": "^7.1.0",
+    "prisma": "^7.4.2",
     "tailwindcss": "^4.1.11",
     "typescript": "^5"
   }
