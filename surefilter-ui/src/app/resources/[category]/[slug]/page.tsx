@@ -12,6 +12,7 @@ export function generateStaticParams() {
   return [];
 }
 
+import { sanitize } from '@/lib/sanitize';
 import { getAssetUrl } from '@/lib/assets';
 import ResourceDownloadForm from './ResourceDownloadForm';
 import RelatedResources from '@/components/sections/RelatedResources';
@@ -170,7 +171,7 @@ export default async function ResourceDetailPage({ params }: PageProps) {
 
               {/* Resource Description */}
               <div className="prose max-w-none mb-8">
-                <div dangerouslySetInnerHTML={{ __html: resource.description }} />
+                <div dangerouslySetInnerHTML={{ __html: sanitize(resource.description) }} />
               </div>
             </div>
 

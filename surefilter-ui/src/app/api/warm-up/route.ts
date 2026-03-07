@@ -18,7 +18,8 @@ const WARM_UP_PATHS = [
 export async function GET(request: Request) {
   // Only allow from localhost (Docker healthcheck / startup script)
   const host = request.headers.get('host') ?? '';
-  if (!host.startsWith('localhost') && !host.startsWith('127.0.0.1')) {
+  const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
+  if (!isLocal) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

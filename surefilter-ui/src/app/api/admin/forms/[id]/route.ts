@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema for form fields
 const FormFieldSchema = z.object({
@@ -40,6 +41,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
 
     const form = await prisma.form.findUnique({
@@ -77,6 +81,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     const body = await request.json();
     const data = UpdateFormSchema.parse(body);
@@ -149,6 +156,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
 
     // Check if form exists

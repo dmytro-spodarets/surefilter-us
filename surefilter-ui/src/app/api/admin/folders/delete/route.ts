@@ -1,22 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { deleteS3Folder } from '@/lib/s3';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
+import path from 'path';
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
     const { searchParams } = new URL(request.url);
     const folderPath = searchParams.get('path');
 
     if (!folderPath) {
       return NextResponse.json({ error: 'Folder path is required' }, { status: 400 });
+    }
+
+    // Prevent path traversal
+    const normalized = path.posix.normalize(folderPath);
+    if (normalized.startsWith('..') || normalized.includes('/../') || normalized.startsWith('/')) {
+      return NextResponse.json({ error: 'Invalid folder path' }, { status: 400 });
     }
 
     // Check if folder contains files

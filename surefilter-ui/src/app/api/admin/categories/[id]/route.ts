@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
-
-// Using shared prisma instance from lib/prisma
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema
 const categorySchema = z.object({
@@ -21,6 +20,9 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const category = await prisma.productCategory.findUnique({
       where: { id: id },
       include: {
@@ -44,7 +46,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching category:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch category', details: error.message },
+      { error: 'Failed to fetch category' },
       { status: 500 }
     );
   }
@@ -57,8 +59,11 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
-    
+
     // Validate input
     const validatedData = categorySchema.parse(body);
 
@@ -122,7 +127,7 @@ export async function PUT(
     }
 
     return NextResponse.json(
-      { error: 'Failed to update category', details: error.message },
+      { error: 'Failed to update category' },
       { status: 500 }
     );
   }
@@ -135,6 +140,9 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     // Check if category exists
     const category = await prisma.productCategory.findUnique({
       where: { id: id },
@@ -178,7 +186,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting category:', error);
     return NextResponse.json(
-      { error: 'Failed to delete category', details: error.message },
+      { error: 'Failed to delete category' },
       { status: 500 }
     );
   }

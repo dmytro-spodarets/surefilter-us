@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 const CreateCategorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -15,6 +16,9 @@ const CreateCategorySchema = z.object({
 // GET /api/admin/resource-categories - List all categories
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { searchParams } = new URL(request.url);
     const isActive = searchParams.get('isActive');
 
@@ -49,6 +53,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/resource-categories - Create new category
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     const data = CreateCategorySchema.parse(body);
 

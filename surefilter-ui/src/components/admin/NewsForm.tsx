@@ -23,7 +23,7 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
   const [loading, setLoading] = useState(false);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [mediaFieldTarget, setMediaFieldTarget] = useState<'featuredImage' | 'ogImage' | null>(null);
-  const [tinymceApiKey, setTinymceApiKey] = useState('no-api-key');
+  const [tinymceApiKey, setTinymceApiKey] = useState('');
   
   const [formData, setFormData] = useState({
     slug: '',
@@ -57,7 +57,6 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
 
   useEffect(() => {
     fetchCategories();
-    fetchTinymceConfig();
     if (initialData) {
       setFormData({
         ...initialData,
@@ -80,15 +79,12 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
     }
   };
 
-  const fetchTinymceConfig = async () => {
-    try {
-      const response = await fetch('/api/config/tinymce');
-      const data = await response.json();
-      setTinymceApiKey(data.apiKey);
-    } catch (error) {
-      console.error('Error fetching TinyMCE config:', error);
-    }
-  };
+  useEffect(() => {
+    fetch('/api/admin/config/tinymce')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.apiKey) setTinymceApiKey(data.apiKey); })
+      .catch(() => {});
+  }, []);
 
   const generateSlug = (title: string) => {
     return title

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
-
-// Using shared prisma instance from lib/prisma
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema
 const categorySchema = z.object({
@@ -17,6 +16,9 @@ const categorySchema = z.object({
 // GET /api/admin/categories - List all categories
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const isActive = searchParams.get('isActive');
@@ -72,7 +74,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching categories:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch categories', details: error.message },
+      { error: 'Failed to fetch categories' },
       { status: 500 }
     );
   }
@@ -81,6 +83,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/categories - Create new category
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     
     // Validate input
@@ -128,7 +133,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to create category', details: error.message },
+      { error: 'Failed to create category' },
       { status: 500 }
     );
   }

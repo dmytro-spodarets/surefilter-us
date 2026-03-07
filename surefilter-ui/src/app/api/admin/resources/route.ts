@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { invalidatePages } from '@/lib/revalidate';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 const CreateResourceSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -27,6 +28,9 @@ const CreateResourceSchema = z.object({
 // GET /api/admin/resources - List all resources
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const categoryId = searchParams.get('categoryId');
@@ -101,6 +105,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/resources - Create new resource
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     const data = CreateResourceSchema.parse(body);
 

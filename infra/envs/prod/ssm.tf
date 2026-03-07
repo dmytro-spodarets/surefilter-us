@@ -21,6 +21,17 @@ resource "aws_ssm_parameter" "nextauth_secret" {
   value = random_password.nextauth.result
 }
 
+resource "random_password" "server_actions_key" {
+  length  = 32
+  special = false
+}
+
+resource "aws_ssm_parameter" "server_actions_encryption_key" {
+  name  = "/surefilter/NEXT_SERVER_ACTIONS_ENCRYPTION_KEY"
+  type  = "SecureString"
+  value = random_password.server_actions_key.result
+}
+
 resource "random_password" "origin_secret" {
   length  = 32
   special = false

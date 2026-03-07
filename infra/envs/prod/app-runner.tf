@@ -31,6 +31,7 @@ resource "aws_apprunner_service" "surefilter" {
           NEXTAUTH_SECRET   = aws_ssm_parameter.nextauth_secret.arn
           ORIGIN_SECRET     = aws_ssm_parameter.origin_secret.arn
           TINYMCE_API_KEY   = aws_ssm_parameter.tinymce_api_key.arn
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY = aws_ssm_parameter.server_actions_encryption_key.arn
           # CloudFront distribution ID for on-demand cache invalidation
           # Loaded from SSM to break App Runner ↔ CloudFront dependency cycle
           CLOUDFRONT_DISTRIBUTION_ID = aws_ssm_parameter.cloudfront_distribution_id.arn

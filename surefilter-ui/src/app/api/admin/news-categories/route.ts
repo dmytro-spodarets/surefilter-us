@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
+
+const newsCategorySchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  slug: z.string().min(1, 'Slug is required').max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase with hyphens'),
+  description: z.string().max(500).optional().nullable(),
+  color: z.string().max(20).optional().nullable(),
+  icon: z.string().max(50).optional().nullable(),
+  position: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
 
 // GET /api/admin/news-categories - Get all categories
 export async function GET() {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const categories = await prisma.newsCategory.findMany({
       orderBy: [
         { position: 'asc' },
@@ -29,20 +44,22 @@ export async function GET() {
 // POST /api/admin/news-categories - Create new category
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, slug, description, color, icon, position, isActive } = body;
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
-    // Validate required fields
-    if (!name || !slug) {
+    const body = await request.json();
+    const parsed = newsCategorySchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Name and slug are required' },
+        { error: 'Validation failed', details: parsed.error.issues },
         { status: 400 }
       );
     }
+    const data = parsed.data;
 
     // Check if slug already exists
     const existing = await prisma.newsCategory.findUnique({
-      where: { slug }
+      where: { slug: data.slug }
     });
 
     if (existing) {
@@ -54,13 +71,13 @@ export async function POST(request: NextRequest) {
 
     const category = await prisma.newsCategory.create({
       data: {
-        name,
-        slug,
-        description: description || null,
-        color: color || null,
-        icon: icon || null,
-        position: position ?? 0,
-        isActive: isActive ?? true
+        name: data.name,
+        slug: data.slug,
+        description: data.description || null,
+        color: data.color || null,
+        icon: data.icon || null,
+        position: data.position,
+        isActive: data.isActive,
       }
     });
 

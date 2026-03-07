@@ -201,6 +201,9 @@ CLOUDFRONT_DISTRIBUTION_ID="..."   # For on-demand cache invalidation
 # TinyMCE (для редактора контента)
 NEXT_PUBLIC_TINYMCE_API_KEY="..."
 
+# Security
+NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="..."  # Stable key for Server Actions encryption across deploys
+
 # Build-time only (Dockerfile)
 NEXT_BUILD_SKIP_DB="1"             # Skip DB during Docker build
 ```
@@ -281,6 +284,14 @@ npm run seed:content:force  # С перезаписью
 - Валидация через Zod
 - Ответы: `{ data }` или `{ error, message }`
 - Логирование через `logAdminAction()`
+- **Auth**: `requireAdmin()` + `isUnauthorized()` из `src/lib/require-admin.ts` — единый хелпер для всех admin API routes
+- **Rate limiting**: `src/lib/rate-limiter.ts` — in-memory, IP-based (formSubmitLimiter, passwordLimiter, publicApiLimiter)
+- **SSRF prevention**: `src/lib/url-validator.ts` — domain whitelist + private IP blocking для proxy/fetch endpoints
+- **HTML sanitization**: `src/lib/sanitize.ts` — sanitize-html для всех `dangerouslySetInnerHTML` в публичных страницах
+- **ReDoS protection**: `safe-regex2` проверяет пользовательские regex-паттерны перед исполнением
+- **Path traversal**: folder operations (create/delete/rename) нормализуют и валидируют пути
+- **Security headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy в `next.config.ts`
+- **server-only**: импорт `'server-only'` в auth.ts, s3.ts, revalidate.ts, webhook.ts, site-settings.ts, require-admin.ts, rate-limiter.ts, url-validator.ts
 
 ### Analytics
 - GA4 и GTM ID хранятся только в БД (SiteSettings), не в env

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema for form fields
 const FormFieldSchema = z.object({
@@ -37,6 +38,9 @@ const CreateFormSchema = z.object({
 // GET /api/admin/forms - List all forms
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { searchParams } = new URL(request.url);
     const isActive = searchParams.get('isActive');
     const search = searchParams.get('search');
@@ -80,6 +84,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/forms - Create new form
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     const data = CreateFormSchema.parse(body);
 

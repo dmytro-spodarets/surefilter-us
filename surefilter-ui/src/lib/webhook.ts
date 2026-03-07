@@ -1,3 +1,4 @@
+import 'server-only';
 import { prisma } from './prisma';
 
 interface WebhookConfig {
@@ -45,6 +46,7 @@ export async function sendWebhook(
           timestamp: new Date().toISOString(),
           data,
         }),
+        signal: AbortSignal.timeout(5000),
       });
 
       const responseText = await response.text();
@@ -88,7 +90,7 @@ export async function sendWebhook(
 
     // Exponential backoff before retry (except on last attempt)
     if (attempt < maxRetries) {
-      const backoffMs = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s, etc.
+      const backoffMs = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // 2s, 4s, 8s + jitter
       console.log(`Waiting ${backoffMs}ms before retry...`);
       await new Promise(resolve => setTimeout(resolve, backoffMs));
     }
@@ -163,6 +165,7 @@ export async function testWebhook(
         ...headers,
       },
       body: JSON.stringify(testPayload),
+      signal: AbortSignal.timeout(10000),
     });
 
     const responseText = await response.text();

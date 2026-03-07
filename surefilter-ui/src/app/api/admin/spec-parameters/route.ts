@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
-
-// Using shared prisma instance from lib/prisma
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema
 const specParameterSchema = z.object({
@@ -17,6 +16,9 @@ const specParameterSchema = z.object({
 // GET /api/admin/spec-parameters - List all spec parameters
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category');
@@ -87,7 +89,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching spec parameters:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch spec parameters', details: error.message },
+      { error: 'Failed to fetch spec parameters' },
       { status: 500 }
     );
   }
@@ -96,6 +98,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/spec-parameters - Create new spec parameter
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     
     // Validate input
@@ -139,7 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to create spec parameter', details: error.message },
+      { error: 'Failed to create spec parameter' },
       { status: 500 }
     );
   }

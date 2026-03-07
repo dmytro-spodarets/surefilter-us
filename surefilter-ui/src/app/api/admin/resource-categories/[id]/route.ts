@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 const UpdateCategorySchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
@@ -18,6 +19,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
 
     const category = await prisma.resourceCategory.findUnique({
@@ -54,6 +58,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     const body = await request.json();
     const data = UpdateCategorySchema.parse(body);
@@ -119,6 +126,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
 
     // Check if category exists

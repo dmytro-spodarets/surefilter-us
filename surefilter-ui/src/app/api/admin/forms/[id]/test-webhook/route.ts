@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { testWebhook } from '@/lib/webhook';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // POST /api/admin/forms/[id]/test-webhook - Test webhook configuration
 export async function POST(
@@ -8,6 +9,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
 
     // Get form
@@ -53,14 +57,13 @@ export async function POST(
         success: false,
         message: 'Webhook test failed',
         statusCode: result.statusCode,
-        error: result.error,
-        response: result.response,
+        error: 'Webhook delivery failed',
       });
     }
   } catch (error: any) {
     console.error('Error testing webhook:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to test webhook' },
+      { error: 'Failed to test webhook' },
       { status: 500 }
     );
   }

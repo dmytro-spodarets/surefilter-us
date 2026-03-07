@@ -1,37 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { validateFetchUrl } from '@/lib/url-validator';
 
 export async function GET(request: NextRequest) {
-  const url = request.nextUrl.searchParams.get('url');
-  
-  if (!url) {
+  const rawUrl = request.nextUrl.searchParams.get('url');
+
+  if (!rawUrl) {
     return NextResponse.json({ error: 'Missing URL parameter' }, { status: 400 });
   }
 
+  const url = validateFetchUrl(rawUrl);
+  if (!url) {
+    return NextResponse.json({ error: 'URL not allowed' }, { status: 403 });
+  }
+
   try {
-    // Fetch the file from CDN
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; SureFilterBot/1.0)',
       },
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch file: ${response.status}`);
+      return NextResponse.json({ error: 'Failed to fetch file' }, { status: 502 });
     }
 
-    // Get the file data
     const fileData = await response.arrayBuffer();
     const contentType = response.headers.get('content-type') || 'application/pdf';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://surefilter.us';
 
-    // Return with CORS headers
     return new NextResponse(fileData, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': siteUrl,
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
+        'Cache-Control': 'public, max-age=86400',
       },
     });
   } catch (error) {
@@ -43,12 +48,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Handle OPTIONS for CORS preflight
 export async function OPTIONS(request: NextRequest) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://surefilter.us';
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': siteUrl,
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

@@ -12,6 +12,7 @@ export function generateStaticParams() {
   return [];
 }
 
+import { sanitize } from '@/lib/sanitize';
 import { getAssetUrl } from '@/lib/assets';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -242,7 +243,7 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
             <div className="p-8">
               <div 
                 className="text-gray-700 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                dangerouslySetInnerHTML={{ __html: sanitize(article.content) }}
               />
             </div>
 

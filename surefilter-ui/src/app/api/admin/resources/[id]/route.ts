@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { invalidatePages } from '@/lib/revalidate';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 const UpdateResourceSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
@@ -30,6 +31,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
 
     const resource = await prisma.resource.findUnique({
@@ -75,6 +79,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     const body = await request.json();
     const data = UpdateResourceSchema.parse(body);
@@ -208,6 +215,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
 
     const resource = await prisma.resource.findUnique({

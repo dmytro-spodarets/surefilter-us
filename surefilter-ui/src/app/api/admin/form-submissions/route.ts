@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // GET /api/admin/form-submissions - List all submissions
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { searchParams } = new URL(request.url);
     const formId = searchParams.get('formId');
     const webhookSent = searchParams.get('webhookSent');

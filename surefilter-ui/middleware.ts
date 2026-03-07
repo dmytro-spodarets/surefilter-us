@@ -19,7 +19,7 @@ export async function middleware(req: NextRequest) {
   const isAppRunnerDomain = host.includes('awsapprunner.com');
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-  const isFromCloudFront = !!headerFromCf && (!originSecret || headerFromCf === originSecret);
+  const isFromCloudFront = !!originSecret && headerFromCf === originSecret;
 
   // If request hits App Runner domain directly and is not coming via CloudFront (missing/invalid header),
   // redirect to the canonical domain to enforce viewer access only via CloudFront.

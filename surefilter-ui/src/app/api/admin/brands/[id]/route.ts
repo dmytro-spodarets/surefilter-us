@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
-
-// Using shared prisma instance from lib/prisma
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema
 const brandSchema = z.object({
@@ -22,6 +21,9 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const brand = await prisma.brand.findUnique({
       where: { id },
       include: {
@@ -44,7 +46,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching brand:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch brand', details: error.message },
+      { error: 'Failed to fetch brand' },
       { status: 500 }
     );
   }
@@ -57,6 +59,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     
     // Validate input
@@ -134,7 +139,7 @@ export async function PUT(
     }
 
     return NextResponse.json(
-      { error: 'Failed to update brand', details: error.message },
+      { error: 'Failed to update brand' },
       { status: 500 }
     );
   }
@@ -147,6 +152,9 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     // Check if brand exists
     const brand = await prisma.brand.findUnique({
       where: { id: id },
@@ -186,7 +194,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting brand:', error);
     return NextResponse.json(
-      { error: 'Failed to delete brand', details: error.message },
+      { error: 'Failed to delete brand' },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 import { ScaleIcon, ShieldCheckIcon, DocumentTextIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { sanitize } from '@/lib/sanitize';
 
 const protections = [
   {
@@ -86,7 +87,7 @@ export default function MagnussonMossAct({
               )}
               
               {bottomText && (
-                <p className="text-gray-600" dangerouslySetInnerHTML={{ __html: bottomText }} />
+                <p className="text-gray-600" dangerouslySetInnerHTML={{ __html: sanitize(bottomText) }} />
               )}
           </div>
         </div>

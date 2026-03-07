@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
-
-// Using shared prisma instance from lib/prisma
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema
 const specParameterSchema = z.object({
@@ -21,6 +20,9 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const parameter = await prisma.specParameter.findUnique({
       where: { id: id },
       include: {
@@ -43,7 +45,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching spec parameter:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch spec parameter', details: error.message },
+      { error: 'Failed to fetch spec parameter' },
       { status: 500 }
     );
   }
@@ -56,6 +58,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     
     // Validate input
@@ -117,7 +122,7 @@ export async function PUT(
     }
 
     return NextResponse.json(
-      { error: 'Failed to update spec parameter', details: error.message },
+      { error: 'Failed to update spec parameter' },
       { status: 500 }
     );
   }
@@ -130,6 +135,9 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     // Check if parameter exists
     const parameter = await prisma.specParameter.findUnique({
       where: { id: id },
@@ -169,7 +177,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting spec parameter:', error);
     return NextResponse.json(
-      { error: 'Failed to delete spec parameter', details: error.message },
+      { error: 'Failed to delete spec parameter' },
       { status: 500 }
     );
   }

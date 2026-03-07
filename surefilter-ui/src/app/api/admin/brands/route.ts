@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from "@/lib/prisma";
-
-// Using shared prisma instance from lib/prisma
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // Validation schema
 const brandSchema = z.object({
@@ -18,6 +17,9 @@ const brandSchema = z.object({
 // GET /api/admin/brands - List all brands
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const isActive = searchParams.get('isActive');
@@ -72,7 +74,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching brands:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch brands', details: error.message },
+      { error: 'Failed to fetch brands' },
       { status: 500 }
     );
   }
@@ -81,6 +83,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/brands - Create new brand
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     
     // Validate input
@@ -135,7 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to create brand', details: error.message },
+      { error: 'Failed to create brand' },
       { status: 500 }
     );
   }

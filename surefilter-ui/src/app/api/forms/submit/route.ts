@@ -2,11 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendWebhookAsync } from '@/lib/webhook';
 import { z } from 'zod';
+import { formSubmitLimiter, getClientIp } from '@/lib/rate-limiter';
+import safe from 'safe-regex2';
 
 // POST /api/forms/submit - Submit form (public)
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const ip = getClientIp(request);
+    const rateCheck = formSubmitLimiter.check(`form:${ip}`);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many submissions. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateCheck.retryAfterMs / 1000)) } }
+      );
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
     const { formId, data, additionalData } = body;
 
     if (!formId || !data) {
@@ -54,7 +70,7 @@ export async function POST(request: NextRequest) {
           break;
 
         case 'phone':
-          const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+          const phoneRegex = /^\+?[\d\s\-\(\)]{7,20}$/;
           if (!phoneRegex.test(value)) {
             validationErrors.push(`${field.label} must be a valid phone number`);
           }
@@ -68,8 +84,16 @@ export async function POST(request: NextRequest) {
           if (field.validation?.maxLength && value.length > field.validation.maxLength) {
             validationErrors.push(`${field.label} must be no more than ${field.validation.maxLength} characters`);
           }
-          if (field.validation?.pattern && !new RegExp(field.validation.pattern).test(value)) {
-            validationErrors.push(`${field.label} format is invalid`);
+          if (field.validation?.pattern) {
+            try {
+              if (!safe(field.validation.pattern)) {
+                console.warn(`Unsafe regex pattern in form field ${field.id}: ${field.validation.pattern}`);
+              } else if (!new RegExp(field.validation.pattern).test(value)) {
+                validationErrors.push(`${field.label} format is invalid`);
+              }
+            } catch {
+              // Invalid regex pattern — skip validation
+            }
           }
           break;
       }

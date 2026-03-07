@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { invalidatePages } from '@/lib/revalidate';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 
 // GET /api/admin/news/[id] - Get single article
 export async function GET(
@@ -8,6 +9,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     const article = await prisma.newsArticle.findUnique({
       where: { id },
@@ -39,6 +43,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -138,6 +145,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     // Check if article exists
     const article = await prisma.newsArticle.findUnique({

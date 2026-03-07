@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 import { invalidatePages } from '@/lib/revalidate';
 
 // GET /api/admin/news - Get all articles with filters
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type') as 'NEWS' | 'EVENT' | null;
     const status = searchParams.get('status') as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null;
@@ -49,6 +51,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/news - Create new article
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const body = await request.json();
     const {
       slug,

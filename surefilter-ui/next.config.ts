@@ -61,6 +61,39 @@ const nextConfig: NextConfig = {
     return config;
   },
   
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.termly.io https://*.google-analytics.com https://*.googletagmanager.com https://js.hs-scripts.com https://js.hsforms.net https://js.hs-banner.com https://js.hs-analytics.net https://js.hubspot.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' blob: data: https://assets.surefilter.us https://*.google-analytics.com https://*.googletagmanager.com https://surefilter-static-prod.s3.amazonaws.com https://surefilter-static-prod.s3.us-east-1.amazonaws.com https://www.surefilter.com https://surefilter.com https://track.hubspot.com",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://app.termly.io https://api.hubspot.com https://forms.hubspot.com",
+              "frame-src 'self' https://app.termly.io https://www.youtube.com https://player.vimeo.com",
+              "frame-ancestors 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "upgrade-insecure-requests",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
+
   // Оптимизация изображений (Best practices December 2025)
   images: {
     remotePatterns: [

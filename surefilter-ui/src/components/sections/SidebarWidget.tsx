@@ -1,5 +1,7 @@
 'use client';
 
+import { sanitize } from '@/lib/sanitize';
+
 interface SidebarWidgetItem {
   label?: string;
   value?: string;
@@ -90,7 +92,7 @@ function CustomHtmlWidget({ htmlContent }: { htmlContent?: string }) {
   return (
     <div 
       className="rounded-xl overflow-hidden"
-      dangerouslySetInnerHTML={{ __html: htmlContent }} 
+      dangerouslySetInnerHTML={{ __html: sanitize(htmlContent) }} 
     />
   );
 }

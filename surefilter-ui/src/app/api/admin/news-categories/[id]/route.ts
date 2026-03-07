@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
+
+const newsCategoryUpdateSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  slug: z.string().min(1).max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase with hyphens').optional(),
+  description: z.string().max(500).optional().nullable(),
+  color: z.string().max(20).optional().nullable(),
+  icon: z.string().max(50).optional().nullable(),
+  position: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+});
 
 // GET /api/admin/news-categories/[id] - Get single category
 export async function GET(
@@ -7,6 +19,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     const category = await prisma.newsCategory.findUnique({
       where: { id },
@@ -40,9 +55,19 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     const body = await request.json();
-    const { name, slug, description, color, icon, position, isActive } = body;
+    const parsed = newsCategoryUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.issues },
+        { status: 400 }
+      );
+    }
+    const data = parsed.data;
 
     // Check if category exists
     const existing = await prisma.newsCategory.findUnique({
@@ -57,10 +82,10 @@ export async function PUT(
     }
 
     // Check if slug is taken by another category
-    if (slug && slug !== existing.slug) {
+    if (data.slug && data.slug !== existing.slug) {
       const slugTaken = await prisma.newsCategory.findFirst({
         where: {
-          slug,
+          slug: data.slug,
           id: { not: id }
         }
       });
@@ -76,13 +101,13 @@ export async function PUT(
     const category = await prisma.newsCategory.update({
       where: { id },
       data: {
-        name: name ?? existing.name,
-        slug: slug ?? existing.slug,
-        description: description !== undefined ? description : existing.description,
-        color: color !== undefined ? color : existing.color,
-        icon: icon !== undefined ? icon : existing.icon,
-        position: position !== undefined ? position : existing.position,
-        isActive: isActive !== undefined ? isActive : existing.isActive
+        name: data.name ?? existing.name,
+        slug: data.slug ?? existing.slug,
+        description: data.description !== undefined ? data.description : existing.description,
+        color: data.color !== undefined ? data.color : existing.color,
+        icon: data.icon !== undefined ? data.icon : existing.icon,
+        position: data.position !== undefined ? data.position : existing.position,
+        isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
       }
     });
 
@@ -102,6 +127,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
+
     const { id } = await params;
     // Check if category exists
     const category = await prisma.newsCategory.findUnique({

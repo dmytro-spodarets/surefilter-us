@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { moveS3Objects } from '@/lib/s3';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
+import path from 'path';
 
 export async function PUT(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
     const { oldPath, newName } = await request.json();
 
@@ -20,13 +17,19 @@ export async function PUT(request: NextRequest) {
 
     // Validate new folder name
     if (!/^[a-zA-Z0-9\s\-_]+$/.test(newName)) {
-      return NextResponse.json({ 
-        error: 'Folder name can only contain letters, numbers, spaces, hyphens, and underscores' 
+      return NextResponse.json({
+        error: 'Folder name can only contain letters, numbers, spaces, hyphens, and underscores'
       }, { status: 400 });
     }
 
+    // Prevent path traversal on oldPath
+    const normalizedOld = path.posix.normalize(oldPath);
+    if (normalizedOld.startsWith('..') || normalizedOld.includes('/../') || normalizedOld.startsWith('/')) {
+      return NextResponse.json({ error: 'Invalid folder path' }, { status: 400 });
+    }
+
     // Calculate new path
-    const pathParts = oldPath.split('/');
+    const pathParts = normalizedOld.split('/');
     pathParts[pathParts.length - 1] = newName;
     const newPath = pathParts.join('/');
 
