@@ -13,7 +13,8 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
-- 2026-03-07 — Termly CMP fix: убрана повторная инициализация при SPA-навигации — баннер cookie consent больше не показывается при каждом переходе между страницами
+- 2026-03-07 — CSP update: расширена Content-Security-Policy для Termly (*.termly.io вместо app.termly.io — consent API на us.consent.api.termly.io), HubSpot (*.hubspot.com, *.hsforms.net, *.hscollectedforms.net, *.usemessages.com, *.hsappstatic.net, *.hs-scripts.com), Ahrefs (analytics.ahrefs.com), localhost MinIO (img-src)
+- 2026-03-07 — Termly CMP fix: код приведён к официальной документации Next.js 15/16, autoBlock отключён (не работает в Next.js из-за порядка загрузки скриптов), CSP fix устранил причину повторного показа баннера (consent API был заблокирован)
 - 2026-03-07 — Prisma 7.4.2: обновлены все Prisma пакеты до единой версии (prisma, @prisma/client, @prisma/adapter-pg), исправлен Docker build (WASM module error)
 - 2026-03-07 — ISR fix: revalidate literal в [slug]/page.tsx — устранено предупреждение Next.js AST-анализа при re-export
 - 2026-03-07 — Security Audit (round 3): rate limiting на /api/catalog-fetch и /api/proxy-file (publicApiLimiter), rate limiting на NextAuth login (passwordLimiter в authorize callback), path traversal fix в presigned-url endpoint, server-only import в admin-logger.ts и catalog-parser.ts

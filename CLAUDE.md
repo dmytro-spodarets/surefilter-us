@@ -302,9 +302,12 @@ npm run seed:content:force  # С перезаписью
 
 ### Cookie Consent (Termly)
 - Termly Website UUID хранится в БД (`SiteSettings.termlyWebsiteUUID`), настраивается в админке Settings → Security
-- `src/components/TermlyCMP.tsx` — клиентский компонент, загружает `app.termly.io/resource-blocker/{UUID}` с `autoBlock=on`
+- `src/components/TermlyCMP.tsx` — клиентский компонент по официальной документации Termly для Next.js 15/16
+- Загружает `app.termly.io/resource-blocker/{UUID}` без `autoBlock` (autoBlock не работает в Next.js — скрипт не может быть первым из-за bootstrap скриптов фреймворка)
+- Для CCPA autoBlock не требуется — закон требует только opt-out возможность, не предварительную блокировку скриптов
 - Подключён в root layout внутри `<Suspense>`, рендерится только если UUID задан
-- Скрипт загружается один раз при монтировании, НЕ реинициализируется при SPA-навигации (Termly хранит consent в cookies)
+- Скрипт загружается один раз при монтировании, `initialize()` вызывается при SPA-навигации (пересканирует скрипты, НЕ показывает баннер повторно — consent хранится в cookies)
+- CSP `connect-src` ОБЯЗАТЕЛЬНО должен включать `https://*.termly.io` (не только `app.termly.io`) — consent API на `us.consent.api.termly.io`
 - Ссылка "Consent Preferences" в Footer (класс `termly-display-preferences`) — появляется только при включённом Termly
 
 ---
