@@ -13,7 +13,7 @@
 - **Framework:** Next.js 15.5.x (App Router, Server Components)
 - **React:** 19.0.0
 - **Styling:** Tailwind CSS 4.1.11
-- **Database:** PostgreSQL + Prisma ORM 7.1.0 (с pg adapter)
+- **Database:** PostgreSQL + Prisma ORM 7.4.2 (с pg adapter)
 - **Storage:** AWS S3 + CloudFront CDN
 - **Hosting:** AWS App Runner
 - **Caching:** ISR + CloudFront (on-demand invalidation via `@aws-sdk/client-cloudfront`)
@@ -304,7 +304,7 @@ npm run seed:content:force  # С перезаписью
 - Termly Website UUID хранится в БД (`SiteSettings.termlyWebsiteUUID`), настраивается в админке Settings → Security
 - `src/components/TermlyCMP.tsx` — клиентский компонент, загружает `app.termly.io/resource-blocker/{UUID}` с `autoBlock=on`
 - Подключён в root layout внутри `<Suspense>`, рендерится только если UUID задан
-- Реинициализируется при клиентской навигации (`usePathname` + `useSearchParams`)
+- Скрипт загружается один раз при монтировании, НЕ реинициализируется при SPA-навигации (Termly хранит consent в cookies)
 - Ссылка "Consent Preferences" в Footer (класс `termly-display-preferences`) — появляется только при включённом Termly
 
 ---

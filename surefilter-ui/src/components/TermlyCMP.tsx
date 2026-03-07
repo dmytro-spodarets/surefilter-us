@@ -1,15 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-
-declare global {
-  interface Window {
-    Termly?: {
-      initialize: () => void;
-    };
-  }
-}
 
 const SCRIPT_SRC_BASE = 'https://app.termly.io';
 
@@ -33,7 +24,6 @@ export default function TermlyCMP({ autoBlock, masterConsentsOrigin, websiteUUID
   }, [autoBlock, masterConsentsOrigin, websiteUUID]);
 
   const isScriptAdded = useRef(false);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
 
   useEffect(() => {
     if (isScriptAdded.current || typeof window === 'undefined') return;
@@ -47,33 +37,9 @@ export default function TermlyCMP({ autoBlock, masterConsentsOrigin, websiteUUID
     const script = document.createElement('script');
     script.src = scriptSrc;
     script.async = true;
-    scriptRef.current = script;
     document.head.appendChild(script);
     isScriptAdded.current = true;
-
-    return () => {
-      if (scriptRef.current && scriptRef.current.parentNode) {
-        try {
-          scriptRef.current.parentNode.removeChild(scriptRef.current);
-        } catch (e) {
-          console.warn('Failed to remove Termly script:', e);
-        }
-      }
-    };
   }, [scriptSrc]);
-
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.Termly) {
-      try {
-        window.Termly.initialize();
-      } catch (e) {
-        console.warn('Error initializing Termly:', e);
-      }
-    }
-  }, [pathname, searchParams]);
 
   return null;
 }
