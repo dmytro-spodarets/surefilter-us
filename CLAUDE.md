@@ -176,6 +176,7 @@ surefilter-us/
 - `POST /api/admin/cache` — ручной сброс всех кешей (кнопка Clear Cache в Settings)
 - `/api/admin/file-manager/*` — работа с S3
 - `/api/admin/site-settings` — глобальные настройки
+- `GET /api/admin/config/tinymce` — TinyMCE API key (runtime из SSM, admin-only)
 
 ---
 
@@ -198,8 +199,8 @@ NEXT_PUBLIC_CDN_URL="https://assets.surefilter.us"
 NEXT_PUBLIC_SITE_URL="https://surefilter.us"
 CLOUDFRONT_DISTRIBUTION_ID="..."   # For on-demand cache invalidation
 
-# TinyMCE (для редактора контента)
-NEXT_PUBLIC_TINYMCE_API_KEY="..."
+# TinyMCE (для редактора контента в админке)
+TINYMCE_API_KEY="..."              # Runtime secret, загружается через /api/admin/config/tinymce
 
 # Security
 NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="..."  # Stable key for Server Actions encryption across deploys
