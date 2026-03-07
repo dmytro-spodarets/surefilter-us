@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import Script from 'next/script';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import { getGaMeasurementId, getGtmId, getTermlyWebsiteUUID, getDefaultSeoMeta } from '@/lib/site-settings';
 import TermlyCMP from '@/components/TermlyCMP';
@@ -58,20 +57,11 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       {gtmId && <GoogleTagManager gtmId={gtmId} />}
-      <head>
-        {/* Termly CMP must be the first script to block unapproved content */}
-        {termlyUUID && (
-          <Script
-            src={`https://app.termly.io/resource-blocker/${termlyUUID}?autoBlock=on`}
-            strategy="beforeInteractive"
-          />
-        )}
-      </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         {termlyUUID && (
           <Suspense fallback={null}>
-            <TermlyCMP />
+            <TermlyCMP websiteUUID={termlyUUID} autoBlock />
           </Suspense>
         )}
       </body>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 declare global {
@@ -11,25 +11,63 @@ declare global {
   }
 }
 
-/**
- * Reinitializes Termly on client-side navigation.
- * The Termly resource-blocker script itself is loaded via
- * <Script strategy="beforeInteractive"> in root layout.tsx
- * so it's the first script on the page.
- * This component only handles SPA route-change re-scanning.
- */
-export default function TermlyCMP() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const isFirstRender = useRef(true);
+const SCRIPT_SRC_BASE = 'https://app.termly.io';
+
+interface TermlyCMPProps {
+  websiteUUID: string;
+  autoBlock?: boolean;
+  masterConsentsOrigin?: string;
+}
+
+export default function TermlyCMP({ autoBlock, masterConsentsOrigin, websiteUUID }: TermlyCMPProps) {
+  const scriptSrc = useMemo(() => {
+    const src = new URL(SCRIPT_SRC_BASE);
+    src.pathname = `/resource-blocker/${websiteUUID}`;
+    if (autoBlock) {
+      src.searchParams.set('autoBlock', 'on');
+    }
+    if (masterConsentsOrigin) {
+      src.searchParams.set('masterConsentsOrigin', masterConsentsOrigin);
+    }
+    return src.toString();
+  }, [autoBlock, masterConsentsOrigin, websiteUUID]);
+
+  const isScriptAdded = useRef(false);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
 
   useEffect(() => {
-    // Skip the first render — Termly already initialized when the script loaded
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (isScriptAdded.current || typeof window === 'undefined') return;
+
+    // Check if script already exists
+    const existingScript = document.querySelector(`script[src="${scriptSrc}"]`);
+    if (existingScript) {
+      isScriptAdded.current = true;
       return;
     }
 
+    const script = document.createElement('script');
+    script.src = scriptSrc;
+    script.async = true;
+    scriptRef.current = script;
+    document.head.appendChild(script);
+    isScriptAdded.current = true;
+
+    return () => {
+      // Cleanup function to remove script if component unmounts
+      if (scriptRef.current && scriptRef.current.parentNode) {
+        try {
+          scriptRef.current.parentNode.removeChild(scriptRef.current);
+        } catch (e) {
+          console.warn('Failed to remove Termly script:', e);
+        }
+      }
+    };
+  }, [scriptSrc]);
+
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
     if (typeof window !== 'undefined' && window.Termly) {
       try {
         window.Termly.initialize();
