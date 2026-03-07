@@ -46,7 +46,8 @@ resource "aws_s3_bucket_cors_configuration" "file_manager" {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "POST", "PUT", "DELETE", "HEAD"]
     allowed_origins = [
-      "https://new.surefilter.us",
+      "https://surefilter.us",
+      "https://www.surefilter.us",
       "https://assets.surefilter.us",
       "http://localhost:3000"
     ]

@@ -1,6 +1,11 @@
 resource "aws_acm_certificate" "site" {
-  domain_name       = "new.surefilter.us"
-  validation_method = "DNS"
+  domain_name               = "surefilter.us"
+  subject_alternative_names = ["www.surefilter.us", "new.surefilter.us"]
+  validation_method         = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_record" "acm_validation" {
@@ -11,7 +16,10 @@ resource "aws_route53_record" "acm_validation" {
       type   = dvo.resource_record_type
     }
   }
-  zone_id = "Z003662317J6SYETHU44S"
+  # Validation records go into the zone that owns each domain:
+  # - surefilter.us and www.surefilter.us → main zone
+  # - new.surefilter.us → delegated sub-zone
+  zone_id = each.key == "new.surefilter.us" ? "Z003662317J6SYETHU44S" : aws_route53_zone.main.zone_id
   name    = each.value.name
   type    = each.value.type
   ttl     = 60

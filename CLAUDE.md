@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 2 марта 2026
+> Последнее обновление: 6 марта 2026
 
 ---
 
@@ -195,7 +195,7 @@ AWS_SECRET_ACCESS_KEY="..."
 
 # CDN / Caching
 NEXT_PUBLIC_CDN_URL="https://assets.surefilter.us"
-NEXT_PUBLIC_SITE_URL="https://new.surefilter.us"
+NEXT_PUBLIC_SITE_URL="https://surefilter.us"
 CLOUDFRONT_DISTRIBUTION_ID="..."   # For on-demand cache invalidation
 
 # TinyMCE (для редактора контента)

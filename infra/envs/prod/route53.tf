@@ -45,10 +45,12 @@ resource "aws_route53_record" "ns_assets" {
 # A Records
 # -----------------------------------------------------------------------------
 
-# Root domain
-resource "aws_route53_record" "root_a" {
+# Root domain → CloudFront (alias records in cloudfront.tf: alias_a, alias_aaaa)
+
+# Old site (HostGator) — accessible via old.surefilter.us
+resource "aws_route53_record" "old_a" {
   zone_id = aws_route53_zone.main.zone_id
-  name    = "surefilter.us"
+  name    = "old.surefilter.us"
   type    = "A"
   ttl     = 3600
   records = ["216.172.190.75"]
@@ -268,20 +270,14 @@ resource "aws_route53_record" "root_mx" {
 # CNAME Records
 # -----------------------------------------------------------------------------
 
-resource "aws_route53_record" "www_cname" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "www.surefilter.us"
-  type    = "CNAME"
-  ttl     = 3600
-  records = ["surefilter.us"]
-}
+# www.surefilter.us → CloudFront (alias records in cloudfront.tf: www_alias_a, www_alias_aaaa)
 
 resource "aws_route53_record" "ftp_cname" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "ftp.surefilter.us"
   type    = "CNAME"
   ttl     = 3600
-  records = ["surefilter.us"]
+  records = ["old.surefilter.us"]
 }
 
 # Email identity (eoidentity)

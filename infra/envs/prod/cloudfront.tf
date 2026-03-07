@@ -113,9 +113,9 @@ EOT
 resource "aws_cloudfront_distribution" "site" {
   enabled         = true
   is_ipv6_enabled = true
-  comment         = "surefilter new.surefilter.us"
+  comment         = "surefilter surefilter.us"
 
-  aliases = ["new.surefilter.us"]
+  aliases = ["surefilter.us", "www.surefilter.us", "new.surefilter.us"]
 
   origin {
     domain_name = local.origin_domain
@@ -215,7 +215,54 @@ resource "aws_cloudfront_distribution" "site" {
 # CloudFront access logs bucket (standard logs)
 // removed logs bucket to simplify
 
+# surefilter.us → CloudFront (main zone)
 resource "aws_route53_record" "alias_a" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "surefilter.us"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "alias_aaaa" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "surefilter.us"
+  type    = "AAAA"
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# www.surefilter.us → CloudFront (main zone)
+resource "aws_route53_record" "www_alias_a" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www.surefilter.us"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "www_alias_aaaa" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "www.surefilter.us"
+  type    = "AAAA"
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# new.surefilter.us → CloudFront (delegated sub-zone, for 301 redirect)
+resource "aws_route53_record" "new_alias_a" {
   zone_id = "Z003662317J6SYETHU44S"
   name    = "new.surefilter.us"
   type    = "A"
@@ -226,7 +273,7 @@ resource "aws_route53_record" "alias_a" {
   }
 }
 
-resource "aws_route53_record" "alias_aaaa" {
+resource "aws_route53_record" "new_alias_aaaa" {
   zone_id = "Z003662317J6SYETHU44S"
   name    = "new.surefilter.us"
   type    = "AAAA"

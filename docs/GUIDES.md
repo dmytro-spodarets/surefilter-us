@@ -54,7 +54,7 @@ npm run dev
 DATABASE_URL="postgresql://user:password@host:5432/database?schema=public"
 
 # Auth
-NEXTAUTH_URL=https://new.surefilter.us
+NEXTAUTH_URL=https://surefilter.us
 NEXTAUTH_SECRET=your_secret_here
 
 # AWS S3
@@ -65,7 +65,7 @@ AWS_SECRET_ACCESS_KEY=your_secret
 
 # CDN & Site
 NEXT_PUBLIC_CDN_URL=https://assets.surefilter.us
-NEXT_PUBLIC_SITE_URL=https://new.surefilter.us
+NEXT_PUBLIC_SITE_URL=https://surefilter.us
 
 # TinyMCE
 NEXT_PUBLIC_TINYMCE_API_KEY=your_api_key

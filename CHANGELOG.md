@@ -13,6 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-03-06 — Domain Migration: переключение основного домена с new.surefilter.us на surefilter.us — ACM сертификат (SAN: www + new), CloudFront aliases, Route53 DNS (root → CloudFront, old.surefilter.us → HostGator), App Runner env vars, middleware redirect (www/new → canonical 301), S3 CORS, CI/CD workflows, ENFORCE_ORIGIN включён
 - 2026-03-04 — Termly CMP: интеграция cookie consent баннера — поле Website UUID в SiteSettings (БД + админка Settings → Security), клиентский компонент TermlyCMP с autoBlock и реинициализацией при навигации, ссылка Consent Preferences в футере
 - 2026-03-02 — Clear Cache: кнопка теперь показывает детальный результат — что почищено (in-memory, ISR, CloudFront), ID инвалидации, timestamp; автоскрытие через 10 сек
 - 2026-03-02 — Cache invalidation fix: site-settings PUT теперь сбрасывает ISR + CloudFront кеш; revalidatePath переключён на 'layout' (вместо 'page') для полной инвалидации; добавлена кнопка Clear Cache в админке Settings + API endpoint POST /api/admin/cache

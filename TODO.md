@@ -369,7 +369,7 @@
 
 #### 🟡 CloudFront — использовать известный distribution ID
 - [ ] Заменить lookup по comment на прямой ID или SSM
-  - **Сейчас:** `aws cloudfront list-distributions --query "...?Comment=='surefilter new.surefilter.us'..."` — хрупко
+  - **Сейчас:** `aws cloudfront list-distributions --query "...?Comment=='surefilter surefilter.us'..."` — хрупко
   - **Варианты:**
     - GitHub secret `CLOUDFRONT_DISTRIBUTION_ID` (простейший)
     - SSM parameter (уже есть `/surefilter/CLOUDFRONT_DISTRIBUTION_ID`)
@@ -449,8 +449,8 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Sure Filter",
-      "url": "https://new.surefilter.us",
-      "logo": "https://new.surefilter.us/images/sf-logo.png",
+      "url": "https://surefilter.us",
+      "logo": "https://surefilter.us/images/sf-logo.png",
       "description": "...",
       "contactPoint": { "@type": "ContactPoint", "contactType": "customer service" },
       "sameAs": ["...social links..."]

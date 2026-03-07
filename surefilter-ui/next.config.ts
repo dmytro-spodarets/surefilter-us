@@ -80,7 +80,7 @@ const nextConfig: NextConfig = {
       // CloudFront CDN - main site
       {
         protocol: 'https',
-        hostname: 'new.surefilter.us',
+        hostname: 'surefilter.us',
       },
       // CloudFront CDN - assets subdomain
       {

@@ -30,6 +30,17 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(canonicalUrl.toString(), 301);
   }
 
+  // Redirect non-canonical domains (www, new) to the canonical domain
+  if (siteUrl) {
+    const canonicalHost = new URL(siteUrl).host; // e.g. "surefilter.us"
+    if (host && host !== canonicalHost && !isAppRunnerDomain) {
+      const canonicalUrl = new URL(siteUrl);
+      canonicalUrl.pathname = req.nextUrl.pathname;
+      canonicalUrl.search = req.nextUrl.search;
+      return NextResponse.redirect(canonicalUrl.toString(), 301);
+    }
+  }
+
   // Admin authentication
   if (pathname.startsWith('/admin')) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });

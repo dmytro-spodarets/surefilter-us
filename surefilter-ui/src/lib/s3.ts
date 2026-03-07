@@ -100,7 +100,7 @@ export async function uploadToS3(
       return `http://localhost:9000/${BUCKET_NAME}/${key}`;
     }
     
-    const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL || 'https://new.surefilter.us';
+    const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL || 'https://assets.surefilter.us';
     return `${cdnUrl}/${key}`;
   } catch (error) {
     console.error('Error uploading to S3:', error);
