@@ -47,14 +47,14 @@ export async function POST(request: NextRequest) {
 
     // Validate submitted data against form fields
     const fields = form.fields as any[];
-    const validationErrors: string[] = [];
+    const validationErrors: Array<{ fieldId: string; message: string }> = [];
 
     for (const field of fields) {
       const value = data[field.id];
 
       // Check required fields
       if (field.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
-        validationErrors.push(`${field.label} is required`);
+        validationErrors.push({ fieldId: field.id, message: `${field.label} is required` });
         continue;
       }
 
@@ -66,31 +66,31 @@ export async function POST(request: NextRequest) {
         case 'email':
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
-            validationErrors.push(`${field.label} must be a valid email`);
+            validationErrors.push({ fieldId: field.id, message: `${field.label} must be a valid email` });
           }
           break;
 
         case 'phone':
           const phoneRegex = /^\+?[\d\s\-\(\)]{7,20}$/;
           if (!phoneRegex.test(value)) {
-            validationErrors.push(`${field.label} must be a valid phone number`);
+            validationErrors.push({ fieldId: field.id, message: `${field.label} must be a valid phone number` });
           }
           break;
 
         case 'text':
         case 'textarea':
           if (field.validation?.minLength && value.length < field.validation.minLength) {
-            validationErrors.push(`${field.label} must be at least ${field.validation.minLength} characters`);
+            validationErrors.push({ fieldId: field.id, message: `${field.label} must be at least ${field.validation.minLength} characters` });
           }
           if (field.validation?.maxLength && value.length > field.validation.maxLength) {
-            validationErrors.push(`${field.label} must be no more than ${field.validation.maxLength} characters`);
+            validationErrors.push({ fieldId: field.id, message: `${field.label} must be no more than ${field.validation.maxLength} characters` });
           }
           if (field.validation?.pattern) {
             try {
               if (!safe(field.validation.pattern)) {
                 console.warn(`Unsafe regex pattern in form field ${field.id}: ${field.validation.pattern}`);
               } else if (!new RegExp(field.validation.pattern).test(value)) {
-                validationErrors.push(`${field.label} format is invalid`);
+                validationErrors.push({ fieldId: field.id, message: `${field.label} format is invalid` });
               }
             } catch {
               // Invalid regex pattern — skip validation
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     if (validationErrors.length > 0) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validationErrors },
+        { error: 'Validation failed', fieldErrors: validationErrors },
         { status: 400 }
       );
     }

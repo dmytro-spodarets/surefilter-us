@@ -16,7 +16,7 @@
 - **Database:** PostgreSQL + Prisma ORM 7.4.2 (с pg adapter)
 - **Storage:** AWS S3 + CloudFront CDN
 - **Hosting:** AWS App Runner + EC2 (newsletters server)
-- **Email:** Amazon SES (news.surefilter.us — newsletters)
+- **Email:** Amazon SES (news.surefilter.us — newsletters, mail.surefilter.us — transactional)
 - **Caching:** ISR + CloudFront (on-demand invalidation via `@aws-sdk/client-cloudfront`)
 - **Auth:** NextAuth.js (credentials)
 - **Analytics:** Google Analytics 4 + Google Tag Manager (`@next/third-parties/google`)
@@ -190,31 +190,44 @@ surefilter-us/
 - **new.surefilter.us** — legacy alias (делегированная зона, тоже → CloudFront)
 - **assets.surefilter.us** — CDN для файлов (отдельный CloudFront → S3 `surefilter-files-prod`)
 - **newsletters.surefilter.us** — EC2 сервер (Elastic IP)
-- **news.surefilter.us** — SES sending domain (DKIM, custom MAIL FROM)
-- **link.news.surefilter.us** — SES tracking domain (HTTPS через CloudFront → awstrack.me)
+- **news.surefilter.us** — SES sending domain for newsletters (DKIM, custom MAIL FROM)
+- **mail.surefilter.us** — SES sending domain for transactional emails (DKIM, custom MAIL FROM)
+- **link.news.surefilter.us** — SES tracking domain for newsletters (HTTPS через CloudFront → awstrack.me)
+- **link.mail.surefilter.us** — SES tracking domain for transactional (HTTPS через CloudFront → awstrack.me)
 - **surefilter.eu / .co / .net** — 301 redirect → surefilter.us (зоны созданы, ожидается NS делегация у регистратора)
 
 ### Ключевые сервисы
 - **App Runner** `surefilter-prod` — 1 vCPU / 2 GB, порт 3000, образ из ECR
 - **EC2** `surefilter-prod` — t4g.medium (ARM64), Ubuntu 24.04 LTS, Elastic IP, `newsletters.surefilter.us`
 - **RDS** PostgreSQL 15 — `db.t4g.micro`, 20 GB, публичный доступ (временно)
-- **CloudFront** — 3 дистрибуции: site (surefilter.us), assets (assets.surefilter.us), SES tracking (link.news.surefilter.us)
+- **CloudFront** — 4 дистрибуции: site (surefilter.us), assets (assets.surefilter.us), SES newsletter tracking (link.news.surefilter.us), SES transactional tracking (link.mail.surefilter.us)
 - **S3** — 3 бакета: `surefilter-static-prod`, `surefilter-files-prod`, `surefilter-db-backups-prod`
-- **SES** — domain identity `news.surefilter.us`, DKIM 2048-bit, custom MAIL FROM (`bounce.news.surefilter.us`), dedicated IP pool (managed), configuration set `surefilter-newsletter` с VDM, suppression list, SNS notifications
+- **SES** — 2 domain identities:
+  - `news.surefilter.us` — newsletters: DKIM 2048-bit, custom MAIL FROM (`bounce.news.surefilter.us`), dedicated IP pool `surefilter-newsletter` (managed), config set `surefilter-newsletter` с VDM, suppression list, SNS notifications, tracking domain
+  - `mail.surefilter.us` — transactional: DKIM 2048-bit, custom MAIL FROM (`bounce.mail.surefilter.us`), dedicated IP pool `surefilter-transactional` (managed), config set `surefilter-transactional` с VDM, suppression list, tracking domain `link.mail.surefilter.us`, без SNS
 - **ECR** `surefilter` — Docker registry
 - **SSM Parameter Store** — DATABASE_URL, NEXTAUTH_SECRET, ORIGIN_SECRET, TINYMCE_API_KEY, CLOUDFRONT_DISTRIBUTION_ID и др.
 
-### Email (SES) — news.surefilter.us
-- **DKIM**: Easy DKIM 2048-bit (3 CNAME записи, auto-rotation)
+### Email (SES) — news.surefilter.us & mail.surefilter.us
+- **DKIM**: Easy DKIM 2048-bit (3 CNAME записи, auto-rotation) — оба домена
+- **DMARC**: наследуется от `_dmarc.surefilter.us` (CNAME → hosteddmarc.dmarc-dns.com) — оба домена
+
+**news.surefilter.us** (newsletters — listmonk):
 - **SPF**: custom MAIL FROM `bounce.news.surefilter.us` → `v=spf1 include:amazonses.com -all`
-- **DMARC**: наследуется от `_dmarc.surefilter.us` (CNAME → hosteddmarc.dmarc-dns.com)
+- **Config Set**: `surefilter-newsletter` — TLS required, dedicated IP pool `surefilter-newsletter` (managed), VDM enabled, suppression (BOUNCE+COMPLAINT), Auto Validation (HIGH, включён через консоль)
 - **Tracking**: `link.news.surefilter.us` → CloudFront → `r.us-east-1.awstrack.me` (HTTPS)
-- **Config Set**: `surefilter-newsletter` — TLS required, dedicated IP pool (managed), VDM enabled, suppression (BOUNCE+COMPLAINT), Auto Validation (HIGH, включён через консоль)
-- **Bounce handling**: identity-level notifications (не config set event destinations) — listmonk ожидает стандартный SES формат; SNS → HTTPS → `https://newsletters.surefilter.us/webhooks/service/ses`
+- **Bounce handling**: identity-level notifications → SNS → HTTPS → `https://newsletters.surefilter.us/webhooks/service/ses`
 - **SNS Topic**: `surefilter-ses-notifications` (unified bounce + complaint → listmonk webhook)
-- **SMTP IAM user**: `surefilter-ses-smtp` (restricted to `news.surefilter.us` identity)
-- **SMTP credentials**: `tofu output ses_smtp_user` / `tofu output -raw ses_smtp_password`
+- **SMTP IAM user**: `surefilter-ses-smtp`, credentials: `tofu output ses_smtp_user` / `tofu output -raw ses_smtp_password`
 - **SMTP endpoint**: `email-smtp.us-east-1.amazonaws.com:587` (STARTTLS)
+
+**mail.surefilter.us** (transactional — App Runner via AWS SDK):
+- **SPF**: custom MAIL FROM `bounce.mail.surefilter.us` → `v=spf1 include:amazonses.com -all`
+- **Config Set**: `surefilter-transactional` — TLS required, dedicated IP pool `surefilter-transactional` (managed), VDM enabled, suppression (BOUNCE+COMPLAINT)
+- **Tracking**: `link.mail.surefilter.us` → CloudFront → `r.us-east-1.awstrack.me` (HTTPS)
+- **Bounce handling**: suppression list only (без SNS)
+- **FROM**: `noreply@mail.surefilter.us` (default, настраивается в SiteSettings)
+- **Auth**: App Runner IAM role (`ses:SendEmail`, `ses:SendRawEmail`)
 
 ### Newsletter Server (listmonk)
 - **EC2**: `newsletters.surefilter.us` (t4g.medium, Ubuntu 24.04 LTS)
@@ -337,7 +350,7 @@ npm run seed:content:force  # С перезаписью
 - **ReDoS protection**: `safe-regex2` проверяет пользовательские regex-паттерны перед исполнением
 - **Path traversal**: folder operations (create/delete/rename) нормализуют и валидируют пути
 - **Security headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy в `next.config.ts`
-- **server-only**: импорт `'server-only'` в auth.ts, s3.ts, revalidate.ts, webhook.ts, site-settings.ts, require-admin.ts, rate-limiter.ts, url-validator.ts
+- **server-only**: импорт `'server-only'` в auth.ts, s3.ts, revalidate.ts, webhook.ts, email.ts, site-settings.ts, require-admin.ts, rate-limiter.ts, url-validator.ts
 
 ### Analytics
 - GA4 и GTM ID хранятся только в БД (SiteSettings), не в env
@@ -354,6 +367,19 @@ npm run seed:content:force  # С перезаписью
 - Скрипт загружается один раз при монтировании, `initialize()` вызывается при SPA-навигации (пересканирует скрипты, НЕ показывает баннер повторно — consent хранится в cookies)
 - CSP `connect-src` ОБЯЗАТЕЛЬНО должен включать `https://*.termly.io` (не только `app.termly.io`) — consent API на `us.consent.api.termly.io`
 - Ссылка "Consent Preferences" в Footer (класс `termly-display-preferences`) — появляется только при включённом Termly
+
+### Email-уведомления о заполнении форм
+- **Механизм**: AWS SES v2 SDK (`@aws-sdk/client-sesv2`) — отправка через IAM role App Runner (без ключей/паролей)
+- **SES identity**: `mail.surefilter.us` (transactional), config set `surefilter-transactional`
+- **From-адрес**: настраивается в `/admin/settings/site` → Security → Email Notifications (`SiteSettings.formNotificationFromEmail`). Default: `noreply@mail.surefilter.us`
+- **Получатели**: поле `notifyEmail` в конструкторе форм (`/admin/forms`) — поддержка нескольких email через запятую
+- **Код**: `src/lib/email.ts` — `sendFormNotificationEmail()`, `sendFormNotificationEmailAsync()` (fire-and-forget), `retryEmail()`
+- **Шаблон письма**: HTML-письмо с брендированным хедером (Sure Filter), таблицей заполненных полей, метаданными (IP, страница), plain-text fallback
+- **Тема**: `SURE FILTER — New "Form Name" Form Submission`
+- **Retry**: ручной retry из админки (`/admin/forms/[id]/submissions` → кнопка Retry Email), API: `POST /api/admin/form-submissions/[id]/retry-email`
+- **Статус**: `emailSent` + `emailError` в `FormSubmission` — отображаются в таблице сабмитов и модале деталей
+- **IAM**: `ses:SendEmail` + `ses:SendRawEmail` на `Resource: "*"` (нужно для identity + configuration-set)
+- **Валидация email**: парсинг запятых + regex-валидация каждого адреса в `parseEmails()` (не в Zod — Zod принимает любую строку)
 
 ---
 
@@ -428,7 +454,7 @@ npm run seed:content:force  # С перезаписью
 **Где добавить новый тип секции?**
 → 1) Enum в schema.prisma 2) Компонент в sections/ 3) Форма в admin/pages/[slug]/sections/ 4) Обработка в cms/section-renderer.tsx
 
-**Где настройки Header/Footer/Analytics/Cookie Consent/SEO/Redirects/Logo?**
+**Где настройки Header/Footer/Analytics/Cookie Consent/SEO/Redirects/Logo/Email Notifications?**
 → `/admin/settings/site` → `SiteSettings` модель
 
 **Как добавить редирект?**

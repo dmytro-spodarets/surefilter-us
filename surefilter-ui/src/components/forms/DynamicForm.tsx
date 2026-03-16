@@ -79,6 +79,18 @@ export default function DynamicForm({
     }
   };
 
+  // Scroll to first field with error
+  const scrollToFirstError = (fieldErrors: Record<string, string>) => {
+    if (!formConfig) return;
+    const firstErrorFieldId = formConfig.fields.find(f => fieldErrors[f.id])?.id;
+    if (firstErrorFieldId) {
+      const el = document.getElementById(`form-field-${firstErrorFieldId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  };
+
   // Validate form data
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -105,11 +117,11 @@ export default function DynamicForm({
         }
       }
 
-      // Phone validation
+      // Phone validation (aligned with server: +optional, 7-20 digits/spaces/dashes/parens)
       if (field.type === 'phone') {
-        const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+        const phoneRegex = /^\+?[\d\s\-\(\)]{7,20}$/;
         if (!phoneRegex.test(value)) {
-          newErrors[field.id] = 'Please enter a valid phone number';
+          newErrors[field.id] = 'Please enter a valid phone number (7-20 digits)';
         }
       }
 
@@ -135,7 +147,25 @@ export default function DynamicForm({
     });
 
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Map server-side validation errors to per-field display
+  const mapServerErrors = (fieldErrors: Array<{ fieldId: string; message: string }>) => {
+    if (!fieldErrors?.length) return;
+
+    const newErrors: Record<string, string> = {};
+    for (const { fieldId, message } of fieldErrors) {
+      newErrors[fieldId] = message;
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(prev => ({ ...prev, ...newErrors }));
+      scrollToFirstError(newErrors);
+    }
   };
 
   // Handle form submission
@@ -168,6 +198,12 @@ export default function DynamicForm({
       const result = await response.json();
 
       if (!response.ok) {
+        // Map server validation errors to per-field display
+        if (result.fieldErrors && Array.isArray(result.fieldErrors)) {
+          mapServerErrors(result.fieldErrors);
+          // Don't show generic banner — errors are shown per-field
+          return;
+        }
         throw new Error(result.error || 'Failed to submit form');
       }
 

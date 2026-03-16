@@ -343,8 +343,8 @@ resource "aws_iam_access_key" "ses_smtp" {
 
 # =============================================================================
 # Amazon SES — transactional emails from mail.surefilter.us
-# Dedicated IP pool, DKIM, custom MAIL FROM, suppression, VDM
-# No tracking domain, no SNS notifications (suppression list is sufficient)
+# Dedicated IP pool, DKIM, custom MAIL FROM, suppression, VDM, HTTPS tracking
+# No SNS notifications (suppression list is sufficient)
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -422,8 +422,129 @@ resource "aws_route53_record" "ses_mail_mail_from_spf" {
 }
 
 # -----------------------------------------------------------------------------
-# Configuration Set — transactional: dedicated IP pool, suppression, VDM
-# No tracking domain (not needed for form notifications)
+# Custom tracking domain — HTTPS click/open tracking via link.mail.surefilter.us
+# CloudFront fronts SES tracking endpoint to enable HTTPS
+# -----------------------------------------------------------------------------
+
+resource "aws_acm_certificate" "ses_mail_tracking" {
+  domain_name       = "link.mail.surefilter.us"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name    = "SES Mail Tracking Domain Certificate"
+    Purpose = "transactional"
+  }
+}
+
+resource "aws_route53_record" "ses_mail_tracking_acm_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.ses_mail_tracking.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  zone_id = aws_route53_zone.main.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  ttl     = 60
+  records = [each.value.record]
+}
+
+resource "aws_acm_certificate_validation" "ses_mail_tracking" {
+  certificate_arn         = aws_acm_certificate.ses_mail_tracking.arn
+  validation_record_fqdns = [for r in aws_route53_record.ses_mail_tracking_acm_validation : r.fqdn]
+
+  timeouts {
+    create = "10m"
+  }
+}
+
+resource "aws_cloudfront_distribution" "ses_mail_tracking" {
+  enabled         = true
+  is_ipv6_enabled = true
+  comment         = "HTTPS proxy for SES tracking — link.mail.surefilter.us"
+
+  aliases = ["link.mail.surefilter.us"]
+
+  origin {
+    domain_name = "r.${var.aws_region}.awstrack.me"
+    origin_id   = "ses-mail-tracking"
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "ses-mail-tracking"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+
+    forwarded_values {
+      query_string = true
+      headers      = ["Host"]
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl     = 0
+    default_ttl = 0
+    max_ttl     = 0
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate_validation.ses_mail_tracking.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  tags = {
+    Name    = "surefilter-ses-mail-tracking"
+    Purpose = "transactional"
+  }
+}
+
+# DNS: link.mail.surefilter.us → CloudFront
+resource "aws_route53_record" "ses_mail_tracking_a" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "link.mail.surefilter.us"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.ses_mail_tracking.domain_name
+    zone_id                = aws_cloudfront_distribution.ses_mail_tracking.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "ses_mail_tracking_aaaa" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "link.mail.surefilter.us"
+  type    = "AAAA"
+  alias {
+    name                   = aws_cloudfront_distribution.ses_mail_tracking.domain_name
+    zone_id                = aws_cloudfront_distribution.ses_mail_tracking.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Configuration Set — transactional: dedicated IP pool, suppression, VDM, tracking
 # -----------------------------------------------------------------------------
 
 resource "aws_sesv2_configuration_set" "transactional" {
@@ -442,6 +563,10 @@ resource "aws_sesv2_configuration_set" "transactional" {
 
   sending_options {
     sending_enabled = true
+  }
+
+  tracking_options {
+    custom_redirect_domain = "link.mail.surefilter.us"
   }
 
   # Suppression list — automatically suppress bounced and complained addresses

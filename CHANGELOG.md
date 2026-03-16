@@ -13,6 +13,9 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-03-16 — Email-уведомления о заполнении форм: реализована отправка через AWS SES v2 SDK (src/lib/email.ts), HTML-шаблон с брендингом, поддержка нескольких получателей через запятую в notifyEmail, From-адрес из SiteSettings (formNotificationFromEmail), retry из админки (retry-email endpoint), отображение emailError в submissions, IAM policy для App Runner (ses:SendEmail), CSP fix для hsforms.com
+- 2026-03-16 — SES transactional identity: mail.surefilter.us — DKIM 2048-bit, custom MAIL FROM (bounce.mail.surefilter.us), dedicated IP pool surefilter-transactional (managed), config set surefilter-transactional с VDM, suppression list и HTTPS tracking (link.mail.surefilter.us → CloudFront → awstrack.me), IAM policy обновлена для App Runner, email.ts default FROM изменён на noreply@mail.surefilter.us
+- 2026-03-16 — DNS cleanup: удалена legacy A-запись mail.surefilter.us → 192.185.16.232 (HostGator)
 - 2026-03-16 — SES bounce/complaint handling: unified SNS topic → HTTPS subscription → listmonk webhook (/webhooks/service/ses), identity-level notifications with original headers (не config set event destinations — listmonk ожидает стандартный SES формат)
 - 2026-03-16 — SES SMTP credentials: IAM user surefilter-ses-smtp с ses:SendRawEmail, credentials в tofu output
 - 2026-03-16 — listmonk setup script: scripts/setup-listmonk.sh — Docker, Nginx reverse proxy, Let's Encrypt SSL, auto-generated credentials

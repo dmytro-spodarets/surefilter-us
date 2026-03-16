@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 16 марта 2026 (Инфраструктура: EC2, SES, redirect domains, DMARC)
+**Последнее обновление:** 16 марта 2026 (Email-уведомления о заполнении форм)
 
 ---
 
@@ -397,6 +397,7 @@
 - [x] ~~**SNS subscriptions**~~: настроено — unified SNS topic → HTTPS → listmonk webhook
 
 ### Завершено (март 2026 — инфраструктура)
+- [x] Email-уведомления о заполнении форм (AWS SES v2 SDK, HTML-шаблон, множественные получатели, retry, From из SiteSettings)
 - [x] EC2 instance (t4g.medium, Ubuntu 24.04 LTS, Elastic IP, SSH key, newsletters.surefilter.us)
 - [x] Amazon SES (news.surefilter.us — DKIM, SPF, MAIL FROM, dedicated IP pool, VDM, suppression, tracking)
 - [x] SES tracking HTTPS (CloudFront → link.news.surefilter.us → awstrack.me)

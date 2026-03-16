@@ -12,7 +12,7 @@ interface BaseFieldProps {
 // Text Input Component
 export function TextInput({ field, value, onChange, error }: BaseFieldProps) {
   return (
-    <div className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
+    <div id={`form-field-${field.id}`} className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -43,7 +43,7 @@ export function TextInput({ field, value, onChange, error }: BaseFieldProps) {
 // Email Input Component
 export function EmailInput({ field, value, onChange, error }: BaseFieldProps) {
   return (
-    <div className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
+    <div id={`form-field-${field.id}`} className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -71,7 +71,7 @@ export function EmailInput({ field, value, onChange, error }: BaseFieldProps) {
 // Phone Input Component
 export function PhoneInput({ field, value, onChange, error }: BaseFieldProps) {
   return (
-    <div className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
+    <div id={`form-field-${field.id}`} className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -99,7 +99,7 @@ export function PhoneInput({ field, value, onChange, error }: BaseFieldProps) {
 // Textarea Component
 export function Textarea({ field, value, onChange, error }: BaseFieldProps) {
   return (
-    <div className="w-full">
+    <div id={`form-field-${field.id}`} className="w-full">
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -129,7 +129,7 @@ export function Textarea({ field, value, onChange, error }: BaseFieldProps) {
 // Select Dropdown Component
 export function SelectField({ field, value, onChange, error }: BaseFieldProps) {
   return (
-    <div className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
+    <div id={`form-field-${field.id}`} className={`${field.width === 'half' ? 'w-full md:w-[calc(50%-0.5rem)]' : 'w-full'}`}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -172,7 +172,7 @@ export function CheckboxField({ field, value, onChange, error }: BaseFieldProps)
   };
 
   return (
-    <div className="w-full">
+    <div id={`form-field-${field.id}`} className="w-full">
       <label className="block text-sm font-medium text-gray-700 mb-2">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -203,7 +203,7 @@ export function CheckboxField({ field, value, onChange, error }: BaseFieldProps)
 // Radio Buttons Component
 export function RadioField({ field, value, onChange, error }: BaseFieldProps) {
   return (
-    <div className="w-full">
+    <div id={`form-field-${field.id}`} className="w-full">
       <label className="block text-sm font-medium text-gray-700 mb-2">
         {field.label}
         {field.required && <span className="text-red-500 ml-1">*</span>}

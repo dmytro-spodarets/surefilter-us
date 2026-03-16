@@ -82,6 +82,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' data:",
               "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.termly.io https://*.hubspot.com https://*.hsforms.net https://*.hscollectedforms.net https://*.usemessages.com https://*.hsappstatic.net https://analytics.ahrefs.com",
               "frame-src 'self' https://*.termly.io https://*.hubspot.com https://www.youtube.com https://player.vimeo.com",
+              "worker-src 'self' blob: https://unpkg.com",
               "frame-ancestors 'none'",
               "object-src 'none'",
               "base-uri 'self'",
