@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 7 марта 2026 (Security & Performance Audit — 25+14 исправлений, Prisma 7.4.2, Termly CMP fix)
+**Последнее обновление:** 16 марта 2026 (Инфраструктура: EC2, SES, redirect domains, DMARC)
 
 ---
 
@@ -391,6 +391,18 @@
 - [ ] WAF и логи CloudFront
 - [x] ~~Rate limiting для admin API~~ — Готово (март 2026): middleware auth + publicApiLimiter на /api/news, /api/resources
 - [ ] Server-side image resize (Sharp, 320/768/1920px variants) — опционально, оценить необходимость
+- [ ] **Redirect domains — NS делегация**: прописать NS серверы у регистраторов surefilter.eu / .co / .net, затем раскомментировать ACM validation + CloudFront redirect distribution + DNS alias записи в terraform (3 файла с TODO: Uncomment)
+- [ ] **SES production access**: запросить выход из sandbox в AWS Console (SES → Account dashboard), если ещё не сделано
+- [ ] **SES Auto Validation**: перенести в Terraform когда провайдер добавит поддержку (включено вручную через консоль, threshold: HIGH)
+- [x] ~~**SNS subscriptions**~~: настроено — unified SNS topic → HTTPS → listmonk webhook
+
+### Завершено (март 2026 — инфраструктура)
+- [x] EC2 instance (t4g.medium, Ubuntu 24.04 LTS, Elastic IP, SSH key, newsletters.surefilter.us)
+- [x] Amazon SES (news.surefilter.us — DKIM, SPF, MAIL FROM, dedicated IP pool, VDM, suppression, tracking)
+- [x] SES tracking HTTPS (CloudFront → link.news.surefilter.us → awstrack.me)
+- [x] Redirect domains Route53 зоны (surefilter.eu, .co, .net)
+- [x] DMARC fix (TXT → CNAME hosteddmarc)
+- [x] SPF update (include:_spf.google.com + include:amazonses.com)
 
 ---
 

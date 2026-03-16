@@ -56,6 +56,15 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      {termlyUUID && (
+        <head>
+          <link
+            rel="preload"
+            href={`https://app.termly.io/resource-blocker/${termlyUUID}?autoBlock=on`}
+            as="script"
+          />
+        </head>
+      )}
       {gtmId && <GoogleTagManager gtmId={gtmId} />}
       <body suppressHydrationWarning>
         {children}

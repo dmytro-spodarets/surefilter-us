@@ -333,7 +333,7 @@ resource "aws_route53_record" "root_txt" {
   type    = "TXT"
   ttl     = 3600
   records = [
-    "v=spf1 a mx include:websitewelcome.com ~all",
+    "v=spf1 include:_spf.google.com include:amazonses.com ~all",
     "google-site-verification=eTL6IP54rfesp4J4dTrIwl09v1QVaHtKYLyDu0PANXk",
   ]
 }
@@ -349,13 +349,13 @@ resource "aws_route53_record" "dkim_default_txt" {
   ]
 }
 
-# DMARC
-resource "aws_route53_record" "dmarc_txt" {
+# DMARC (hosted DMARC via dmarc-dns.com)
+resource "aws_route53_record" "dmarc_cname" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "_dmarc.surefilter.us"
-  type    = "TXT"
+  type    = "CNAME"
   ttl     = 3600
-  records = ["v=DMARC1;p=none"]
+  records = ["_dmarc.w58qyponzzxg96zn-surefilter-us.hosteddmarc.dmarc-dns.com"]
 }
 
 # aapex subdomain TXT — SPF

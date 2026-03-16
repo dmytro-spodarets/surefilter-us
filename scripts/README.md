@@ -119,7 +119,75 @@ chmod +x scripts/sync-s3-to-minio.sh
 
 ---
 
-## Другие скрипты
+## setup-listmonk.sh
 
-_Будут добавлены по мере необходимости_
+Полная автоматическая установка [listmonk](https://listmonk.app/) (self-hosted newsletter manager) на EC2 сервер.
+
+### Целевой сервер
+
+- **EC2**: `surefilter-prod` (t4g.medium, Ubuntu 24.04 LTS ARM64)
+- **Домен**: `newsletters.surefilter.us`
+- **DNS**: Elastic IP, Route53 A-запись (настроена через Terraform)
+
+### Что устанавливает
+
+| Компонент | Версия | Назначение |
+|-----------|--------|------------|
+| Docker + Compose | Latest (official repo) | Контейнеризация |
+| Nginx | Ubuntu package | Reverse proxy |
+| Certbot | Ubuntu package | SSL (Let's Encrypt) |
+| listmonk | Latest Docker image | Newsletter app (порт 9000) |
+| PostgreSQL | 17-alpine | База данных listmonk |
+
+### Что настраивает
+
+1. **Docker** — из официального репозитория (DEB822 формат для Ubuntu 24.04)
+2. **listmonk** — `docker-compose.yml` в `/opt/listmonk/`, порт привязан к `127.0.0.1:9000`
+3. **PostgreSQL** — в Docker, данные в named volume `listmonk-data`
+4. **Пароли** — автогенерация (DB + admin), сохраняются в `/opt/listmonk/.env`
+5. **Nginx** — reverse proxy `newsletters.surefilter.us` → `127.0.0.1:9000`
+6. **SSL** — Let's Encrypt через `certbot --nginx`, auto-redirect HTTP → HTTPS
+7. **Auto-renewal** — systemd timer для обновления сертификата
+
+### Использование
+
+```bash
+# Скопировать на сервер
+scp -i ~/.ssh/surefilter-prod.pem scripts/setup-listmonk.sh \
+  ubuntu@$(cd infra/envs/prod && tofu output -raw ec2_public_ip):/home/ubuntu/
+
+# Подключиться и запустить
+ssh -i ~/.ssh/surefilter-prod.pem ubuntu@<EC2_IP>
+sudo bash setup-listmonk.sh
+```
+
+### После установки
+
+- **URL**: `https://newsletters.surefilter.us`
+- **Credentials**: `cat /opt/listmonk/.env`
+
+### Управление
+
+```bash
+cd /opt/listmonk
+
+# Логи
+docker compose logs -f
+
+# Перезапуск
+docker compose restart
+
+# Обновление listmonk
+docker compose pull && docker compose up -d
+
+# Бэкап БД
+docker exec listmonk_db pg_dump -U listmonk listmonk > backup.sql
+```
+
+### Безопасность
+
+- Порт `9000` listmonk привязан к `127.0.0.1` — не доступен снаружи напрямую
+- PostgreSQL привязан к `127.0.0.1:5432` — только локальный доступ
+- Nginx проксирует весь трафик с HTTPS
+- Пароли в `.env` с правами `600` (только root)
 

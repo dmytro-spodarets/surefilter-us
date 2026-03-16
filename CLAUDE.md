@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 7 марта 2026
+> Последнее обновление: 16 марта 2026
 
 ---
 
@@ -15,7 +15,8 @@
 - **Styling:** Tailwind CSS 4.1.11
 - **Database:** PostgreSQL + Prisma ORM 7.4.2 (с pg adapter)
 - **Storage:** AWS S3 + CloudFront CDN
-- **Hosting:** AWS App Runner
+- **Hosting:** AWS App Runner + EC2 (newsletters server)
+- **Email:** Amazon SES (news.surefilter.us — newsletters)
 - **Caching:** ISR + CloudFront (on-demand invalidation via `@aws-sdk/client-cloudfront`)
 - **Auth:** NextAuth.js (credentials)
 - **Analytics:** Google Analytics 4 + Google Tag Manager (`@next/third-parties/google`)
@@ -58,7 +59,8 @@ surefilter-us/
 │   │   ├── schema.prisma       # Схема БД
 │   │   └── migrations/         # Миграции
 │   └── prisma.config.ts        # Prisma 7 config (в корне проекта!)
-├── infra/                      # OpenTofu инфраструктура
+├── infra/                      # OpenTofu инфраструктура (AWS)
+│   └── envs/prod/              # 18 .tf файлов (App Runner, CloudFront, RDS, SES, EC2, Route53, etc.)
 ├── docker/                     # Docker Compose для локальной разработки
 ├── scripts/                    # Вспомогательные скрипты
 └── docs/                       # Документация
@@ -177,6 +179,49 @@ surefilter-us/
 - `/api/admin/file-manager/*` — работа с S3
 - `/api/admin/site-settings` — глобальные настройки
 - `GET /api/admin/config/tinymce` — TinyMCE API key (runtime из SSM, admin-only)
+
+---
+
+## AWS Инфраструктура (OpenTofu)
+
+### Домены и DNS
+- **surefilter.us** — основной домен (Route53 → CloudFront → App Runner)
+- **www.surefilter.us** — alias на основной CloudFront
+- **new.surefilter.us** — legacy alias (делегированная зона, тоже → CloudFront)
+- **assets.surefilter.us** — CDN для файлов (отдельный CloudFront → S3 `surefilter-files-prod`)
+- **newsletters.surefilter.us** — EC2 сервер (Elastic IP)
+- **news.surefilter.us** — SES sending domain (DKIM, custom MAIL FROM)
+- **link.news.surefilter.us** — SES tracking domain (HTTPS через CloudFront → awstrack.me)
+- **surefilter.eu / .co / .net** — 301 redirect → surefilter.us (зоны созданы, ожидается NS делегация у регистратора)
+
+### Ключевые сервисы
+- **App Runner** `surefilter-prod` — 1 vCPU / 2 GB, порт 3000, образ из ECR
+- **EC2** `surefilter-prod` — t4g.medium (ARM64), Ubuntu 24.04 LTS, Elastic IP, `newsletters.surefilter.us`
+- **RDS** PostgreSQL 15 — `db.t4g.micro`, 20 GB, публичный доступ (временно)
+- **CloudFront** — 3 дистрибуции: site (surefilter.us), assets (assets.surefilter.us), SES tracking (link.news.surefilter.us)
+- **S3** — 3 бакета: `surefilter-static-prod`, `surefilter-files-prod`, `surefilter-db-backups-prod`
+- **SES** — domain identity `news.surefilter.us`, DKIM 2048-bit, custom MAIL FROM (`bounce.news.surefilter.us`), dedicated IP pool (managed), configuration set `surefilter-newsletter` с VDM, suppression list, SNS notifications
+- **ECR** `surefilter` — Docker registry
+- **SSM Parameter Store** — DATABASE_URL, NEXTAUTH_SECRET, ORIGIN_SECRET, TINYMCE_API_KEY, CLOUDFRONT_DISTRIBUTION_ID и др.
+
+### Email (SES) — news.surefilter.us
+- **DKIM**: Easy DKIM 2048-bit (3 CNAME записи, auto-rotation)
+- **SPF**: custom MAIL FROM `bounce.news.surefilter.us` → `v=spf1 include:amazonses.com -all`
+- **DMARC**: наследуется от `_dmarc.surefilter.us` (CNAME → hosteddmarc.dmarc-dns.com)
+- **Tracking**: `link.news.surefilter.us` → CloudFront → `r.us-east-1.awstrack.me` (HTTPS)
+- **Config Set**: `surefilter-newsletter` — TLS required, dedicated IP pool (managed), VDM enabled, suppression (BOUNCE+COMPLAINT), Auto Validation (HIGH, включён через консоль)
+- **Bounce handling**: identity-level notifications (не config set event destinations) — listmonk ожидает стандартный SES формат; SNS → HTTPS → `https://newsletters.surefilter.us/webhooks/service/ses`
+- **SNS Topic**: `surefilter-ses-notifications` (unified bounce + complaint → listmonk webhook)
+- **SMTP IAM user**: `surefilter-ses-smtp` (restricted to `news.surefilter.us` identity)
+- **SMTP credentials**: `tofu output ses_smtp_user` / `tofu output -raw ses_smtp_password`
+- **SMTP endpoint**: `email-smtp.us-east-1.amazonaws.com:587` (STARTTLS)
+
+### Newsletter Server (listmonk)
+- **EC2**: `newsletters.surefilter.us` (t4g.medium, Ubuntu 24.04 LTS)
+- **App**: [listmonk](https://listmonk.app/) в Docker (`/opt/listmonk/`)
+- **Nginx**: reverse proxy HTTPS → `127.0.0.1:9000`
+- **SSL**: Let's Encrypt (certbot, auto-renewal)
+- **Setup script**: `scripts/setup-listmonk.sh`
 
 ---
 

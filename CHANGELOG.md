@@ -13,6 +13,15 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-03-16 — SES bounce/complaint handling: unified SNS topic → HTTPS subscription → listmonk webhook (/webhooks/service/ses), identity-level notifications with original headers (не config set event destinations — listmonk ожидает стандартный SES формат)
+- 2026-03-16 — SES SMTP credentials: IAM user surefilter-ses-smtp с ses:SendRawEmail, credentials в tofu output
+- 2026-03-16 — listmonk setup script: scripts/setup-listmonk.sh — Docker, Nginx reverse proxy, Let's Encrypt SSL, auto-generated credentials
+- 2026-03-16 — SES tracking HTTPS: CloudFront дистрибуция перед SES tracking endpoint для link.news.surefilter.us — ACM сертификат, redirect-to-https, TTL=0 для точного трекинга кликов
+- 2026-03-16 — Amazon SES настройка: domain identity news.surefilter.us — DKIM 2048-bit, custom MAIL FROM (bounce.news.surefilter.us), dedicated IP pool (managed), configuration set surefilter-newsletter с VDM, suppression list (BOUNCE+COMPLAINT), Auto Validation (HIGH), SNS topics для bounces/complaints, tracking domain link.news.surefilter.us
+- 2026-03-16 — EC2 instance: t4g.medium Ubuntu 24.04 LTS (ARM64), Elastic IP, SSH key auto-generated (tls_private_key), DNS newsletters.surefilter.us → EC2
+- 2026-03-16 — Redirect domains: Route53 зоны для surefilter.eu, surefilter.co, surefilter.net — CloudFront дистрибуция с CF Function для 301 redirect → surefilter.us (закомментировано до NS делегации у регистратора)
+- 2026-03-16 — DMARC fix: _dmarc.surefilter.us переключён с TXT на CNAME → hosteddmarc.dmarc-dns.com
+- 2026-03-16 — SPF update: root TXT обновлён на v=spf1 include:_spf.google.com include:amazonses.com ~all
 - 2026-03-07 — CSP update: расширена Content-Security-Policy для Termly (*.termly.io вместо app.termly.io — consent API на us.consent.api.termly.io), HubSpot (*.hubspot.com, *.hsforms.net, *.hscollectedforms.net, *.usemessages.com, *.hsappstatic.net, *.hs-scripts.com), Ahrefs (analytics.ahrefs.com), localhost MinIO (img-src)
 - 2026-03-07 — Termly CMP fix: код приведён к официальной документации Next.js 15/16, autoBlock отключён (не работает в Next.js из-за порядка загрузки скриптов), CSP fix устранил причину повторного показа баннера (consent API был заблокирован)
 - 2026-03-07 — Prisma 7.4.2: обновлены все Prisma пакеты до единой версии (prisma, @prisma/client, @prisma/adapter-pg), исправлен Docker build (WASM module error)
