@@ -92,6 +92,9 @@ const UpdateSettingsSchema = z.object({
   defaultMetaDesc: z.string().nullable().optional(),
   defaultMetaKeywords: z.string().nullable().optional(),
 
+  // Email Notifications
+  formNotificationFromEmail: z.string().nullable().optional(),
+
   // Security
   catalogPassword: z.string().nullable().optional(),
   catalogPasswordEnabled: z.boolean().optional(),

@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.termly.io https://*.google-analytics.com https://*.googletagmanager.com https://*.hs-scripts.com https://*.hsforms.net https://*.hs-banner.com https://*.hs-analytics.net https://*.hubspot.com https://*.hscollectedforms.net https://*.usemessages.com https://*.hsappstatic.net https://analytics.ahrefs.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' blob: data: http://localhost:9000 https://assets.surefilter.us https://*.google-analytics.com https://*.googletagmanager.com https://surefilter-static-prod.s3.amazonaws.com https://surefilter-static-prod.s3.us-east-1.amazonaws.com https://www.surefilter.com https://surefilter.com https://*.termly.io https://*.hubspot.com https://*.hsforms.net",
+              "img-src 'self' blob: data: http://localhost:9000 https://assets.surefilter.us https://*.google-analytics.com https://*.googletagmanager.com https://surefilter-static-prod.s3.amazonaws.com https://surefilter-static-prod.s3.us-east-1.amazonaws.com https://www.surefilter.com https://surefilter.com https://*.termly.io https://*.hubspot.com https://*.hsforms.net https://*.hsforms.com",
               "font-src 'self' data:",
               "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.termly.io https://*.hubspot.com https://*.hsforms.net https://*.hscollectedforms.net https://*.usemessages.com https://*.hsappstatic.net https://analytics.ahrefs.com",
               "frame-src 'self' https://*.termly.io https://*.hubspot.com https://www.youtube.com https://player.vimeo.com",

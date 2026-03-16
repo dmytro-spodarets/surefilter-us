@@ -31,7 +31,7 @@ const UpdateFormSchema = z.object({
   redirectUrl: z.string().url().optional().or(z.literal('')).nullable(),
   webhookUrl: z.string().url().optional().or(z.literal('')).nullable(),
   webhookHeaders: z.record(z.string(), z.string()).optional().nullable(),
-  notifyEmail: z.string().email().optional().or(z.literal('')).nullable(),
+  notifyEmail: z.string().optional().or(z.literal('')).nullable(),
   isActive: z.boolean().optional(),
 });
 

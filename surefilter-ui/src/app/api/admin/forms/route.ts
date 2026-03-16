@@ -31,7 +31,7 @@ const CreateFormSchema = z.object({
   redirectUrl: z.string().url().optional().or(z.literal('')),
   webhookUrl: z.string().url().optional().or(z.literal('')),
   webhookHeaders: z.record(z.string(), z.string()).optional(),
-  notifyEmail: z.string().email().optional().or(z.literal('')),
+  notifyEmail: z.string().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
 
