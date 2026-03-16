@@ -35,19 +35,26 @@ export function validateFetchUrl(rawUrl: string): string | null {
     return null;
   }
 
-  // Only allow https
+  // Only allow https (and http in development for MinIO)
   if (parsed.protocol !== 'https:') {
-    return null;
+    if (process.env.NODE_ENV === 'development' && parsed.protocol === 'http:' && parsed.hostname === 'localhost') {
+      // Allow local MinIO in development
+    } else {
+      return null;
+    }
   }
 
-  // Block private/internal IPs
+  // Block private/internal IPs (except localhost in development)
   const hostname = parsed.hostname.toLowerCase();
-  if (hostname === 'localhost' || PRIVATE_IP_RANGES.some(r => r.test(hostname))) {
+  const isDevLocalhost = process.env.NODE_ENV === 'development' && hostname === 'localhost';
+  if (!isDevLocalhost && (hostname === 'localhost' || PRIVATE_IP_RANGES.some(r => r.test(hostname)))) {
     return null;
   }
 
-  // Check against allowed domains
-  if (!ALLOWED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d))) {
+  // Check against allowed domains (localhost allowed in dev for MinIO)
+  const isAllowed = ALLOWED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d))
+    || (process.env.NODE_ENV === 'development' && hostname === 'localhost');
+  if (!isAllowed) {
     return null;
   }
 
