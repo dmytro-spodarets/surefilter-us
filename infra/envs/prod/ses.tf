@@ -341,6 +341,130 @@ resource "aws_iam_access_key" "ses_smtp" {
   user = aws_iam_user.ses_smtp.name
 }
 
+# =============================================================================
+# Amazon SES — transactional emails from mail.surefilter.us
+# Dedicated IP pool, DKIM, custom MAIL FROM, suppression, VDM
+# No tracking domain, no SNS notifications (suppression list is sufficient)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Dedicated IP Pool (managed) — isolated reputation for transactional emails
+# -----------------------------------------------------------------------------
+
+resource "aws_sesv2_dedicated_ip_pool" "transactional" {
+  pool_name    = "surefilter-transactional"
+  scaling_mode = "MANAGED"
+
+  tags = {
+    Name    = "surefilter-transactional"
+    Purpose = "transactional"
+  }
+}
+
+# -----------------------------------------------------------------------------
+# SES Domain Identity — mail.surefilter.us
+# -----------------------------------------------------------------------------
+
+resource "aws_sesv2_email_identity" "mail" {
+  email_identity         = "mail.surefilter.us"
+  configuration_set_name = aws_sesv2_configuration_set.transactional.configuration_set_name
+
+  dkim_signing_attributes {
+    next_signing_key_length = "RSA_2048_BIT"
+  }
+
+  tags = {
+    Name        = "mail.surefilter.us"
+    Environment = "production"
+    Purpose     = "transactional"
+  }
+}
+
+# -----------------------------------------------------------------------------
+# DKIM — 3 CNAME records for Easy DKIM verification
+# -----------------------------------------------------------------------------
+
+resource "aws_route53_record" "ses_mail_dkim" {
+  count   = 3
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "${aws_sesv2_email_identity.mail.dkim_signing_attributes[0].tokens[count.index]}._domainkey.mail.surefilter.us"
+  type    = "CNAME"
+  ttl     = 3600
+  records = ["${aws_sesv2_email_identity.mail.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"]
+}
+
+# -----------------------------------------------------------------------------
+# Custom MAIL FROM domain — for SPF alignment
+# -----------------------------------------------------------------------------
+
+resource "aws_sesv2_email_identity_mail_from_attributes" "mail" {
+  email_identity         = aws_sesv2_email_identity.mail.email_identity
+  mail_from_domain       = "bounce.mail.surefilter.us"
+  behavior_on_mx_failure = "USE_DEFAULT_VALUE"
+}
+
+# MX record for MAIL FROM domain
+resource "aws_route53_record" "ses_mail_mail_from_mx" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "bounce.mail.surefilter.us"
+  type    = "MX"
+  ttl     = 3600
+  records = ["10 feedback-smtp.${var.aws_region}.amazonses.com"]
+}
+
+# SPF record for MAIL FROM domain
+resource "aws_route53_record" "ses_mail_mail_from_spf" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "bounce.mail.surefilter.us"
+  type    = "TXT"
+  ttl     = 3600
+  records = ["v=spf1 include:amazonses.com -all"]
+}
+
+# -----------------------------------------------------------------------------
+# Configuration Set — transactional: dedicated IP pool, suppression, VDM
+# No tracking domain (not needed for form notifications)
+# -----------------------------------------------------------------------------
+
+resource "aws_sesv2_configuration_set" "transactional" {
+  configuration_set_name = "surefilter-transactional"
+
+  depends_on = [aws_sesv2_account_vdm_attributes.main]
+
+  delivery_options {
+    tls_policy        = "REQUIRE"
+    sending_pool_name = aws_sesv2_dedicated_ip_pool.transactional.pool_name
+  }
+
+  reputation_options {
+    reputation_metrics_enabled = true
+  }
+
+  sending_options {
+    sending_enabled = true
+  }
+
+  # Suppression list — automatically suppress bounced and complained addresses
+  suppression_options {
+    suppressed_reasons = ["BOUNCE", "COMPLAINT"]
+  }
+
+  # VDM per-config-set: engagement tracking + optimized shared delivery
+  vdm_options {
+    dashboard_options {
+      engagement_metrics = "ENABLED"
+    }
+    guardian_options {
+      optimized_shared_delivery = "ENABLED"
+    }
+  }
+
+  tags = {
+    Name    = "surefilter-transactional"
+    Purpose = "transactional"
+  }
+}
+
 # -----------------------------------------------------------------------------
 # Outputs
 # -----------------------------------------------------------------------------
@@ -348,6 +472,16 @@ resource "aws_iam_access_key" "ses_smtp" {
 output "ses_identity_arn" {
   value       = aws_sesv2_email_identity.news.arn
   description = "SES identity ARN for news.surefilter.us"
+}
+
+output "ses_mail_identity_arn" {
+  value       = aws_sesv2_email_identity.mail.arn
+  description = "SES identity ARN for mail.surefilter.us"
+}
+
+output "ses_transactional_configuration_set" {
+  value       = aws_sesv2_configuration_set.transactional.configuration_set_name
+  description = "SES configuration set name for transactional emails"
 }
 
 output "ses_configuration_set" {

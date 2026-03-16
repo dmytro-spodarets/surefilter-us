@@ -76,6 +76,7 @@ interface SiteSettingsData {
   footerContent?: FooterContent;
   catalogPassword?: string;
   catalogPasswordEnabled?: boolean;
+  formNotificationFromEmail?: string;
   gaMeasurementId?: string;
   gtmId?: string;
   termlyWebsiteUUID?: string;
@@ -183,6 +184,7 @@ export default function SiteSettingsPage() {
         resourcesOgImage: settings?.resourcesOgImage,
         catalogPassword: settings?.catalogPassword,
         catalogPasswordEnabled: settings?.catalogPasswordEnabled,
+        formNotificationFromEmail: settings?.formNotificationFromEmail,
         gaMeasurementId: settings?.gaMeasurementId,
         gtmId: settings?.gtmId,
         termlyWebsiteUUID: settings?.termlyWebsiteUUID,
@@ -1689,6 +1691,27 @@ export default function SiteSettingsPage() {
 
           {activeTab === 'security' && (
             <div className="space-y-8">
+              {/* Email Notifications */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Email Notifications</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  Configure the sender address for form submission notifications sent via Amazon SES.
+                </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">From Email Address</label>
+                  <input
+                    type="email"
+                    value={settings?.formNotificationFromEmail || ''}
+                    onChange={(e) => handleFieldChange('formNotificationFromEmail', e.target.value)}
+                    placeholder="noreply@news.surefilter.us"
+                    className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Must be an address on a verified SES domain (e.g. <code>news.surefilter.us</code>). Leave empty to use default <code>noreply@news.surefilter.us</code>.
+                  </p>
+                </div>
+              </div>
+
               {/* Catalog Password Protection */}
               <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Catalog Password Protection</h2>

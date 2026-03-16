@@ -75,3 +75,25 @@ resource "aws_iam_role_policy_attachment" "apprunner_service_cloudfront_attach" 
   policy_arn = aws_iam_policy.cloudfront_invalidation.arn
 }
 
+# Allow App Runner to send emails via SES (form submission notifications)
+resource "aws_iam_policy" "ses_send_email" {
+  name        = "surefilter-ses-send-email"
+  description = "Allow App Runner to send emails via SES from news and mail identities"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect   = "Allow",
+      Action   = ["ses:SendEmail", "ses:SendRawEmail"],
+      Resource = [
+        aws_sesv2_email_identity.news.arn,
+        aws_sesv2_email_identity.mail.arn,
+      ],
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "apprunner_service_ses_attach" {
+  role       = aws_iam_role.apprunner_service_role.name
+  policy_arn = aws_iam_policy.ses_send_email.arn
+}
+

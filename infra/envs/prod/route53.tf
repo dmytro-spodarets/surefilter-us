@@ -73,14 +73,6 @@ resource "aws_route53_record" "special_a" {
   records = ["192.185.16.232"]
 }
 
-resource "aws_route53_record" "mail_a" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "mail.surefilter.us"
-  type    = "A"
-  ttl     = 3600
-  records = ["192.185.16.232"]
-}
-
 resource "aws_route53_record" "test_a" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "test.surefilter.us"

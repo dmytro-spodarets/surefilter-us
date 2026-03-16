@@ -55,6 +55,9 @@ export interface SiteSettings {
   resourcesMetaDesc?: string;
   resourcesOgImage?: string;
   
+  // Email Notifications
+  formNotificationFromEmail?: string;
+
   // Analytics
   gaMeasurementId?: string;
   gtmId?: string;
@@ -153,6 +156,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     resourcesMetaTitle: settings.resourcesMetaTitle || undefined,
     resourcesMetaDesc: settings.resourcesMetaDesc || undefined,
     resourcesOgImage: settings.resourcesOgImage || undefined,
+    formNotificationFromEmail: settings.formNotificationFromEmail || undefined,
     gaMeasurementId: settings.gaMeasurementId || undefined,
     gtmId: settings.gtmId || undefined,
     termlyWebsiteUUID: settings.termlyWebsiteUUID || undefined,
@@ -267,5 +271,11 @@ export async function getLogoUrl(): Promise<string | undefined> {
 export async function getActiveRedirects(): Promise<RedirectRule[]> {
   const settings = await getSiteSettings();
   return (settings.redirects || []).filter(r => r.isActive);
+}
+
+// Helper to get form notification sender email (used by email.ts)
+export async function getFormNotificationFromEmail(): Promise<string> {
+  const settings = await getSiteSettings();
+  return settings.formNotificationFromEmail || 'noreply@mail.surefilter.us';
 }
 

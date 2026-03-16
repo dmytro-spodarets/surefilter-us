@@ -12,6 +12,7 @@ interface Submission {
   webhookSent: boolean;
   webhookError?: string;
   emailSent: boolean;
+  emailError?: string;
   createdAt: string;
 }
 
@@ -84,6 +85,33 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
     } catch (error) {
       console.error('Error retrying webhook:', error);
       alert('Failed to retry webhook');
+    }
+  };
+
+  const handleRetryEmail = async (submissionId: string) => {
+    if (!confirm('Retry sending email notification for this submission?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/form-submissions/${submissionId}/retry-email`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) throw new Error('Failed to retry email');
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Email notification sent successfully!');
+      } else {
+        alert(`Email failed: ${result.error || 'Unknown error'}`);
+      }
+
+      fetchFormAndSubmissions();
+    } catch (error) {
+      console.error('Error retrying email:', error);
+      alert('Failed to retry email notification');
     }
   };
 
@@ -230,11 +258,15 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
                           Webhook ✗
                         </span>
                       ) : null}
-                      {submission.emailSent && (
+                      {submission.emailSent ? (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
                           Email ✓
                         </span>
-                      )}
+                      ) : submission.emailError ? (
+                        <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">
+                          Email ✗
+                        </span>
+                      ) : null}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -250,7 +282,16 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
                         className="text-orange-600 hover:text-orange-900 mr-3"
                         title="Retry webhook"
                       >
-                        🔄 Retry
+                        🔄 Webhook
+                      </button>
+                    )}
+                    {submission.emailError && (
+                      <button
+                        onClick={() => handleRetryEmail(submission.id)}
+                        className="text-orange-600 hover:text-orange-900 mr-3"
+                        title="Retry email notification"
+                      >
+                        🔄 Email
                       </button>
                     )}
                     <button
@@ -332,10 +373,18 @@ export default function FormSubmissionsPage({ params }: { params: Promise<{ id: 
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-500">Email Sent:</span>
-                    <span className={selectedSubmission.emailSent ? 'text-green-600' : 'text-gray-400'}>
-                      {selectedSubmission.emailSent ? 'Yes' : 'No'}
+                    <span className={selectedSubmission.emailSent ? 'text-green-600' : selectedSubmission.emailError ? 'text-red-600' : 'text-gray-400'}>
+                      {selectedSubmission.emailSent ? 'Yes' : selectedSubmission.emailError ? 'Failed' : 'No'}
                     </span>
                   </div>
+                  {selectedSubmission.emailError && (
+                    <div className="pt-2 border-t">
+                      <span className="text-gray-500 block mb-1">Email Error:</span>
+                      <code className="text-xs text-red-600 bg-red-50 p-2 rounded block overflow-x-auto">
+                        {selectedSubmission.emailError}
+                      </code>
+                    </div>
+                  )}
                 </div>
               </div>
 

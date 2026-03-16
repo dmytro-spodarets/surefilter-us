@@ -689,6 +689,9 @@ model SiteSettings {
   catalogPassword      String? // Password to access catalog page (plain text for simplicity)
   catalogPasswordEnabled Boolean @default(false) // Enable/disable password protection
 
+  // Email Notifications (SES)
+  formNotificationFromEmail String? // From address for form submission notifications, e.g. "noreply@news.surefilter.us"
+
   // Analytics
   gaMeasurementId    String?   // Google Analytics 4 Measurement ID (G-XXXXXXXXXX)
   gtmId              String?   // Google Tag Manager Container ID (GTM-XXXXXXX)

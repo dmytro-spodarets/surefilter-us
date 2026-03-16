@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendWebhookAsync } from '@/lib/webhook';
+import { sendFormNotificationEmailAsync } from '@/lib/email';
 import { z } from 'zod';
 import { formSubmitLimiter, getClientIp } from '@/lib/rate-limiter';
 import safe from 'safe-regex2';
@@ -145,8 +146,14 @@ export async function POST(request: NextRequest) {
 
     // Send email notification asynchronously (if configured)
     if (form.notifyEmail) {
-      sendEmailNotificationAsync(submission.id, form.notifyEmail, form.name, fullData)
-        .catch(err => console.error('Email notification failed:', err));
+      sendFormNotificationEmailAsync(
+        submission.id,
+        form.notifyEmail,
+        form.name,
+        fullData,
+        fields.map((f: any) => ({ id: f.id, label: f.label, type: f.type })),
+        { ip: ipAddress, referer: referer || undefined }
+      );
     }
 
     // Return success response
@@ -164,36 +171,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Async email notification sender
-async function sendEmailNotificationAsync(
-  submissionId: string,
-  email: string,
-  formName: string,
-  data: any
-) {
-  try {
-    // TODO: Implement actual email sending (using Resend, SendGrid, etc.)
-    // For now, just log and mark as sent
-    console.log(`Email notification would be sent to: ${email}`);
-    console.log(`Form: ${formName}`);
-    console.log('Data:', data);
-
-    await prisma.formSubmission.update({
-      where: { id: submissionId },
-      data: {
-        emailSent: true,
-      },
-    });
-  } catch (error: any) {
-    console.error('Email notification failed:', error);
-    
-    await prisma.formSubmission.update({
-      where: { id: submissionId },
-      data: {
-        emailSent: false,
-        emailError: error.message,
-      },
-    });
-  }
-}
 
