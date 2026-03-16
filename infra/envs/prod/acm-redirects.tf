@@ -48,18 +48,17 @@ resource "aws_route53_record" "redirect_acm_validation" {
   records = [each.value.record]
 }
 
-# TODO: Uncomment after NS records are set at domain registrars and DNS propagates
-# resource "aws_acm_certificate_validation" "redirect" {
-#   certificate_arn         = aws_acm_certificate.redirect.arn
-#   validation_record_fqdns = [for r in aws_route53_record.redirect_acm_validation : r.fqdn]
-#
-#   timeouts {
-#     create = "30m"
-#   }
-#
-#   depends_on = [aws_route53_record.redirect_acm_validation]
-# }
+resource "aws_acm_certificate_validation" "redirect" {
+  certificate_arn         = aws_acm_certificate.redirect.arn
+  validation_record_fqdns = [for r in aws_route53_record.redirect_acm_validation : r.fqdn]
 
-# output "redirect_acm_certificate_arn" {
-#   value = aws_acm_certificate.redirect.arn
-# }
+  timeouts {
+    create = "30m"
+  }
+
+  depends_on = [aws_route53_record.redirect_acm_validation]
+}
+
+output "redirect_acm_certificate_arn" {
+  value = aws_acm_certificate.redirect.arn
+}
