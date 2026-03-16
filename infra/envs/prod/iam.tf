@@ -84,10 +84,7 @@ resource "aws_iam_policy" "ses_send_email" {
     Statement = [{
       Effect   = "Allow",
       Action   = ["ses:SendEmail", "ses:SendRawEmail"],
-      Resource = [
-        aws_sesv2_email_identity.news.arn,
-        aws_sesv2_email_identity.mail.arn,
-      ],
+      Resource = "*",
     }]
   })
 }
