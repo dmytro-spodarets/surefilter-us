@@ -304,7 +304,7 @@ export default function DynamicForm({
         <p className="text-gray-600 mb-6">{formConfig.description}</p>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Form Fields */}
         <div className="flex flex-wrap gap-4">
           {formConfig.fields.map((field) => (
