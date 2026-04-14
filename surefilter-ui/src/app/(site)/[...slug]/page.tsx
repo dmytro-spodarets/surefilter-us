@@ -5,6 +5,7 @@ import { renderSection } from '@/cms/renderer';
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { notFound, redirect, permanentRedirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { getActiveRedirects } from '@/lib/site-settings';
 
 export const revalidate = 86400;
@@ -71,6 +72,11 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug?:
     }
     // Call redirect outside try/catch — redirect() throws a special Next.js error
     if (redirectMatch) {
+      // Opt out of prerendering for this request — works around Next.js bug
+      // where redirect()/permanentRedirect() duplicates the Location header in
+      // prerendered (ISR) responses (vercel/next.js#82117). Envoy (App Runner)
+      // then merges both into `Location: /foo,/foo`.
+      await headers();
       if (redirectMatch.statusCode === 301) {
         permanentRedirect(redirectMatch.destination);
       } else {

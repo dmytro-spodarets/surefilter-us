@@ -79,6 +79,11 @@ resource "aws_instance" "main" {
     Name        = "surefilter-prod"
     Environment = "production"
   }
+
+  # Prevent instance recreation when AMI updates — listmonk data lives on root volume
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }
 
 # Elastic IP — static address so DNS stays valid across instance stop/start
@@ -97,6 +102,88 @@ resource "aws_route53_record" "newsletters_a" {
   type    = "A"
   ttl     = 300
   records = [aws_eip.main.public_ip]
+}
+
+# =============================================================================
+# AWS Backup — daily snapshots of EC2 instance (listmonk data protection)
+# =============================================================================
+
+resource "aws_backup_vault" "ec2" {
+  name = "surefilter-ec2-backup"
+
+  tags = {
+    Name        = "surefilter-ec2-backup"
+    Environment = "production"
+  }
+}
+
+resource "aws_backup_plan" "ec2" {
+  name = "surefilter-ec2-backup"
+
+  # Daily snapshots — keep 7 days
+  rule {
+    rule_name         = "daily"
+    target_vault_name = aws_backup_vault.ec2.name
+    schedule          = "cron(0 5 * * ? *)" # Daily at 5:00 UTC (1:00 AM ET)
+
+    lifecycle {
+      delete_after = 7
+    }
+  }
+
+  # Weekly snapshot (Sunday) — keep 30 days
+  rule {
+    rule_name         = "weekly"
+    target_vault_name = aws_backup_vault.ec2.name
+    schedule          = "cron(0 4 ? * 1 *)" # Sunday at 4:00 UTC
+
+    lifecycle {
+      delete_after = 30
+    }
+  }
+
+  tags = {
+    Name = "surefilter-ec2-backup"
+  }
+}
+
+# IAM role for AWS Backup
+resource "aws_iam_role" "backup" {
+  name = "surefilter-backup-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = { Service = "backup.amazonaws.com" }
+      Action = "sts:AssumeRole"
+    }]
+  })
+
+  tags = {
+    Name = "surefilter-backup-role"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "backup" {
+  role       = aws_iam_role.backup.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+}
+
+resource "aws_iam_role_policy_attachment" "backup_restore" {
+  role       = aws_iam_role.backup.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores"
+}
+
+# Assign EC2 instance to backup plan
+resource "aws_backup_selection" "ec2" {
+  name         = "surefilter-ec2"
+  iam_role_arn = aws_iam_role.backup.arn
+  plan_id      = aws_backup_plan.ec2.id
+
+  resources = [
+    aws_instance.main.arn,
+  ]
 }
 
 output "ec2_public_ip" {

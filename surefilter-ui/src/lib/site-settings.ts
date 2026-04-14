@@ -276,6 +276,6 @@ export async function getActiveRedirects(): Promise<RedirectRule[]> {
 // Helper to get form notification sender email (used by email.ts)
 export async function getFormNotificationFromEmail(): Promise<string> {
   const settings = await getSiteSettings();
-  return settings.formNotificationFromEmail || 'noreply@mail.surefilter.us';
+  return settings.formNotificationFromEmail || 'noreply@notify.surefilter.us';
 }
 

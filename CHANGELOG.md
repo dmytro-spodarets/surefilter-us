@@ -13,6 +13,17 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-04-14 — Redirect fix: workaround для Next.js bug #82117 (дублирование Location header в prerendered ISR-страницах при вызове redirect()/permanentRedirect() — envoy склеивал в `/foo,/foo`). В catch-all [...slug] добавлен await headers() перед редиректом для опт-аута из prerender только в момент матча редиректа
+- 2026-03-30 — surefilter.net email auth: DMARC (CNAME → hosteddmarc.dmarc-dns.com), Google Workspace DKIM (google._domainkey TXT, 2048-bit RSA)
+- 2026-03-30 — SES notify.surefilter.us: новый transactional identity — DKIM 2048-bit, custom MAIL FROM (bounce.notify.surefilter.us), dedicated IP pool surefilter-transactional, config set surefilter-transactional с tracking link.notify.surefilter.us (CloudFront → awstrack.me), suppression list; mail.surefilter.us переназначен на newsletters (config set surefilter-mail, SNS bounce/complaint → listmonk), default FROM в email.ts изменён на noreply@notify.surefilter.us
+- 2026-03-30 — Apollo.io tracking: link.surefilter.net CNAME → jolly-kale.aploconnect.com
+- 2026-03-30 — EC2 backup: AWS Backup для newsletters.surefilter.us — daily (7 дней) + weekly (30 дней), lifecycle ignore_changes=[ami] для защиты от пересоздания инстанса
+- 2026-03-30 — SES subdomain redirects: news.surefilter.us и mail.surefilter.us → 301 → surefilter.us (CloudFront Function edge redirect)
+- 2026-03-30 — Google Workspace DNS: MX + SPF для surefilter.eu/.co/.net, Google site verification для .co и .net
+- 2026-03-30 — Redirect domains live: surefilter.eu/.co/.net (+www) → 301 → surefilter.us — CloudFront Function (edge redirect), ACM сертификат, Route53 зоны с A+AAAA alias записями, NS делегация у регистраторов завершена
+- 2026-03-30 — Form validation UX: единый стиль валидации (noValidate + JS-only), per-field ошибки с красной рамкой и текстом, scroll к первой ошибке, server→client error mapping через fieldErrors, Phone input фильтрация ввода (только цифры/+/скобки/дефис) + regex 7-20 символов
+- 2026-03-30 — CSP update: worker-src для PDF.js worker (unpkg.com), script-src для PDF.js fallback, hsforms.com в img-src
+- 2026-03-30 — PDF preview fix: url-validator разрешает localhost в development для MinIO
 - 2026-03-16 — Email-уведомления о заполнении форм: реализована отправка через AWS SES v2 SDK (src/lib/email.ts), HTML-шаблон с брендингом, поддержка нескольких получателей через запятую в notifyEmail, From-адрес из SiteSettings (formNotificationFromEmail), retry из админки (retry-email endpoint), отображение emailError в submissions, IAM policy для App Runner (ses:SendEmail), CSP fix для hsforms.com
 - 2026-03-16 — SES transactional identity: mail.surefilter.us — DKIM 2048-bit, custom MAIL FROM (bounce.mail.surefilter.us), dedicated IP pool surefilter-transactional (managed), config set surefilter-transactional с VDM, suppression list и HTTPS tracking (link.mail.surefilter.us → CloudFront → awstrack.me), IAM policy обновлена для App Runner, email.ts default FROM изменён на noreply@mail.surefilter.us
 - 2026-03-16 — DNS cleanup: удалена legacy A-запись mail.surefilter.us → 192.185.16.232 (HostGator)

@@ -59,6 +59,9 @@ resource "aws_cloudfront_distribution" "redirect" {
     "www.surefilter.co",
     "surefilter.net",
     "www.surefilter.net",
+    "news.surefilter.us",
+    "mail.surefilter.us",
+    "notify.surefilter.us",
   ]
 
   # Dummy origin — CloudFront requires at least one, but the CF Function

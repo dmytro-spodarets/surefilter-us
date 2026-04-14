@@ -342,32 +342,16 @@ resource "aws_iam_access_key" "ses_smtp" {
 }
 
 # =============================================================================
-# Amazon SES — transactional emails from mail.surefilter.us
-# Dedicated IP pool, DKIM, custom MAIL FROM, suppression, VDM, HTTPS tracking
-# No SNS notifications (suppression list is sufficient)
+# Amazon SES — mail.surefilter.us (newsletters, same as news.surefilter.us)
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Dedicated IP Pool (managed) — isolated reputation for transactional emails
-# -----------------------------------------------------------------------------
-
-resource "aws_sesv2_dedicated_ip_pool" "transactional" {
-  pool_name    = "surefilter-transactional"
-  scaling_mode = "MANAGED"
-
-  tags = {
-    Name    = "surefilter-transactional"
-    Purpose = "transactional"
-  }
-}
-
-# -----------------------------------------------------------------------------
-# SES Domain Identity — mail.surefilter.us
+# SES Domain Identity — mail.surefilter.us (newsletters via listmonk)
 # -----------------------------------------------------------------------------
 
 resource "aws_sesv2_email_identity" "mail" {
   email_identity         = "mail.surefilter.us"
-  configuration_set_name = aws_sesv2_configuration_set.transactional.configuration_set_name
+  configuration_set_name = aws_sesv2_configuration_set.mail.configuration_set_name
 
   dkim_signing_attributes {
     next_signing_key_length = "RSA_2048_BIT"
@@ -376,7 +360,7 @@ resource "aws_sesv2_email_identity" "mail" {
   tags = {
     Name        = "mail.surefilter.us"
     Environment = "production"
-    Purpose     = "transactional"
+    Purpose     = "newsletter"
   }
 }
 
@@ -436,7 +420,7 @@ resource "aws_acm_certificate" "ses_mail_tracking" {
 
   tags = {
     Name    = "SES Mail Tracking Domain Certificate"
-    Purpose = "transactional"
+    Purpose = "newsletter"
   }
 }
 
@@ -516,7 +500,7 @@ resource "aws_cloudfront_distribution" "ses_mail_tracking" {
 
   tags = {
     Name    = "surefilter-ses-mail-tracking"
-    Purpose = "transactional"
+    Purpose = "newsletter"
   }
 }
 
@@ -544,9 +528,252 @@ resource "aws_route53_record" "ses_mail_tracking_aaaa" {
 }
 
 # -----------------------------------------------------------------------------
-# Configuration Set — transactional: dedicated IP pool, suppression, VDM, tracking
+# Configuration Set — mail: newsletters via listmonk (like surefilter-newsletter)
 # -----------------------------------------------------------------------------
 
+resource "aws_sesv2_configuration_set" "mail" {
+  configuration_set_name = "surefilter-mail"
+
+  depends_on = [aws_sesv2_account_vdm_attributes.main]
+
+  delivery_options {
+    tls_policy        = "REQUIRE"
+    sending_pool_name = aws_sesv2_dedicated_ip_pool.newsletter.pool_name
+  }
+
+  reputation_options {
+    reputation_metrics_enabled = true
+  }
+
+  sending_options {
+    sending_enabled = true
+  }
+
+  tracking_options {
+    custom_redirect_domain = "link.mail.surefilter.us"
+  }
+
+  suppression_options {
+    suppressed_reasons = ["BOUNCE", "COMPLAINT"]
+  }
+
+  vdm_options {
+    dashboard_options {
+      engagement_metrics = "ENABLED"
+    }
+    guardian_options {
+      optimized_shared_delivery = "ENABLED"
+    }
+  }
+
+  tags = {
+    Name    = "surefilter-mail"
+    Purpose = "newsletter"
+  }
+}
+
+# SNS notifications for mail.surefilter.us (bounce + complaint → listmonk webhook)
+resource "aws_ses_identity_notification_topic" "mail_bounce" {
+  topic_arn                = aws_sns_topic.ses_notifications.arn
+  notification_type        = "Bounce"
+  identity                 = aws_sesv2_email_identity.mail.email_identity
+  include_original_headers = true
+}
+
+resource "aws_ses_identity_notification_topic" "mail_complaint" {
+  topic_arn                = aws_sns_topic.ses_notifications.arn
+  notification_type        = "Complaint"
+  identity                 = aws_sesv2_email_identity.mail.email_identity
+  include_original_headers = true
+}
+
+# =============================================================================
+# Amazon SES — notify.surefilter.us (transactional: form notifications)
+# Dedicated IP pool, DKIM, custom MAIL FROM, suppression, VDM
+# No tracking, no SNS — suppression list only
+# =============================================================================
+
+resource "aws_sesv2_email_identity" "notify" {
+  email_identity         = "notify.surefilter.us"
+  configuration_set_name = aws_sesv2_configuration_set.transactional.configuration_set_name
+
+  dkim_signing_attributes {
+    next_signing_key_length = "RSA_2048_BIT"
+  }
+
+  tags = {
+    Name        = "notify.surefilter.us"
+    Environment = "production"
+    Purpose     = "transactional"
+  }
+}
+
+# DKIM — 3 CNAME records
+resource "aws_route53_record" "ses_notify_dkim" {
+  count   = 3
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "${aws_sesv2_email_identity.notify.dkim_signing_attributes[0].tokens[count.index]}._domainkey.notify.surefilter.us"
+  type    = "CNAME"
+  ttl     = 3600
+  records = ["${aws_sesv2_email_identity.notify.dkim_signing_attributes[0].tokens[count.index]}.dkim.amazonses.com"]
+}
+
+# Custom MAIL FROM domain — for SPF alignment
+resource "aws_sesv2_email_identity_mail_from_attributes" "notify" {
+  email_identity         = aws_sesv2_email_identity.notify.email_identity
+  mail_from_domain       = "bounce.notify.surefilter.us"
+  behavior_on_mx_failure = "USE_DEFAULT_VALUE"
+}
+
+resource "aws_route53_record" "ses_notify_mail_from_mx" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "bounce.notify.surefilter.us"
+  type    = "MX"
+  ttl     = 3600
+  records = ["10 feedback-smtp.${var.aws_region}.amazonses.com"]
+}
+
+resource "aws_route53_record" "ses_notify_mail_from_spf" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "bounce.notify.surefilter.us"
+  type    = "TXT"
+  ttl     = 3600
+  records = ["v=spf1 include:amazonses.com -all"]
+}
+
+# -----------------------------------------------------------------------------
+# Custom tracking domain — HTTPS click/open tracking via link.notify.surefilter.us
+# -----------------------------------------------------------------------------
+
+resource "aws_acm_certificate" "ses_notify_tracking" {
+  domain_name       = "link.notify.surefilter.us"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name    = "SES Notify Tracking Domain Certificate"
+    Purpose = "transactional"
+  }
+}
+
+resource "aws_route53_record" "ses_notify_tracking_acm_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.ses_notify_tracking.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  zone_id = aws_route53_zone.main.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  ttl     = 60
+  records = [each.value.record]
+}
+
+resource "aws_acm_certificate_validation" "ses_notify_tracking" {
+  certificate_arn         = aws_acm_certificate.ses_notify_tracking.arn
+  validation_record_fqdns = [for r in aws_route53_record.ses_notify_tracking_acm_validation : r.fqdn]
+
+  timeouts {
+    create = "10m"
+  }
+}
+
+resource "aws_cloudfront_distribution" "ses_notify_tracking" {
+  enabled         = true
+  is_ipv6_enabled = true
+  comment         = "HTTPS proxy for SES tracking — link.notify.surefilter.us"
+
+  aliases = ["link.notify.surefilter.us"]
+
+  origin {
+    domain_name = "r.${var.aws_region}.awstrack.me"
+    origin_id   = "ses-notify-tracking"
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "ses-notify-tracking"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+
+    forwarded_values {
+      query_string = true
+      headers      = ["Host"]
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl     = 0
+    default_ttl = 0
+    max_ttl     = 0
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate_validation.ses_notify_tracking.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  tags = {
+    Name    = "surefilter-ses-notify-tracking"
+    Purpose = "transactional"
+  }
+}
+
+# DNS: link.notify.surefilter.us → CloudFront
+resource "aws_route53_record" "ses_notify_tracking_a" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "link.notify.surefilter.us"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.ses_notify_tracking.domain_name
+    zone_id                = aws_cloudfront_distribution.ses_notify_tracking.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "ses_notify_tracking_aaaa" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "link.notify.surefilter.us"
+  type    = "AAAA"
+  alias {
+    name                   = aws_cloudfront_distribution.ses_notify_tracking.domain_name
+    zone_id                = aws_cloudfront_distribution.ses_notify_tracking.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# Dedicated IP Pool (managed) — isolated reputation for transactional emails
+resource "aws_sesv2_dedicated_ip_pool" "transactional" {
+  pool_name    = "surefilter-transactional"
+  scaling_mode = "MANAGED"
+
+  tags = {
+    Name    = "surefilter-transactional"
+    Purpose = "transactional"
+  }
+}
+
+# Configuration Set — transactional: no tracking (privacy), suppression only
 resource "aws_sesv2_configuration_set" "transactional" {
   configuration_set_name = "surefilter-transactional"
 
@@ -566,15 +793,13 @@ resource "aws_sesv2_configuration_set" "transactional" {
   }
 
   tracking_options {
-    custom_redirect_domain = "link.mail.surefilter.us"
+    custom_redirect_domain = "link.notify.surefilter.us"
   }
 
-  # Suppression list — automatically suppress bounced and complained addresses
   suppression_options {
     suppressed_reasons = ["BOUNCE", "COMPLAINT"]
   }
 
-  # VDM per-config-set: engagement tracking + optimized shared delivery
   vdm_options {
     dashboard_options {
       engagement_metrics = "ENABLED"
@@ -601,12 +826,22 @@ output "ses_identity_arn" {
 
 output "ses_mail_identity_arn" {
   value       = aws_sesv2_email_identity.mail.arn
-  description = "SES identity ARN for mail.surefilter.us"
+  description = "SES identity ARN for mail.surefilter.us (newsletters)"
+}
+
+output "ses_notify_identity_arn" {
+  value       = aws_sesv2_email_identity.notify.arn
+  description = "SES identity ARN for notify.surefilter.us (transactional)"
 }
 
 output "ses_transactional_configuration_set" {
   value       = aws_sesv2_configuration_set.transactional.configuration_set_name
-  description = "SES configuration set name for transactional emails"
+  description = "SES configuration set name for transactional emails (notify.surefilter.us)"
+}
+
+output "ses_mail_configuration_set" {
+  value       = aws_sesv2_configuration_set.mail.configuration_set_name
+  description = "SES configuration set name for mail.surefilter.us newsletters"
 }
 
 output "ses_configuration_set" {

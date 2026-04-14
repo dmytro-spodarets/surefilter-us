@@ -11,6 +11,9 @@ resource "aws_acm_certificate" "redirect" {
     "www.surefilter.co",
     "surefilter.net",
     "www.surefilter.net",
+    "news.surefilter.us",
+    "mail.surefilter.us",
+    "notify.surefilter.us",
   ]
   validation_method = "DNS"
 
@@ -39,7 +42,9 @@ resource "aws_route53_record" "redirect_acm_validation" {
     ? aws_route53_zone.redirect_eu.zone_id
     : contains(["surefilter.co", "www.surefilter.co"], each.key)
     ? aws_route53_zone.redirect_co.zone_id
-    : aws_route53_zone.redirect_net.zone_id
+    : contains(["surefilter.net", "www.surefilter.net"], each.key)
+    ? aws_route53_zone.redirect_net.zone_id
+    : aws_route53_zone.main.zone_id  # news/mail.surefilter.us → main zone
   )
 
   name    = each.value.name
