@@ -427,10 +427,12 @@ npm run seed:content:force  # С перезаписью
 11. **Meta Tags Fallback Chain**: Все страницы используют `generateMetadata()` → данные из БД → если undefined, Next.js наследует из root layout `title.default`/`title.template`. Не дублировать suffix в `generateMetadata()` дочерних страниц — root layout `title.template` делает это автоматически.
 9. **URL Redirects**: управляются из админки (`/admin/settings/site` → вкладка Redirects)
    - Хранятся в `SiteSettings.redirects` (JSON)
-   - Логика редиректов в catch-all page `(site)/[...slug]/page.tsx` (не в middleware — Edge Runtime не поддерживает fetch на App Runner)
-   - `permanentRedirect()` для 301 (отправляет 308), `redirect()` для 302 (отправляет 307) — SEO-эквиваленты
-   - **Важно**: `redirect()`/`permanentRedirect()` бросают специальные Next.js ошибки — вызывать ВНЕ try/catch
-   - Поддержка bulk import, case-insensitive matching, query params preserved
+   - Логика редиректов в [src/middleware.ts](surefilter-ui/src/middleware.ts) с `export const runtime = 'nodejs'` — прямой доступ к БД через `getActiveRedirects()`, `NextResponse.redirect(url, 301|302)` до рендера страницы
+   - **Требует** `experimental.nodeMiddleware: true` в `next.config.ts` (stable в Next.js 15.5+)
+   - **НЕ в page.tsx** — Next.js bug [#82117](https://github.com/vercel/next.js/issues/82117): `redirect()`/`permanentRedirect()` в prerendered ISR-странице дублирует Location header, envoy (App Runner) склеивает в `/foo,/foo`
+   - **Расположение файла**: `src/middleware.ts` (НЕ в корне проекта — с src/-layout Next.js ищет middleware только в src/)
+   - Кэширование — через `getSiteSettings()` (module-level cache в `lib/site-settings.ts`, сбрасывается `clearSiteSettingsCache()` при сохранении в админке → ISR revalidate + CloudFront invalidation)
+   - Поддержка bulk import, case-insensitive matching, query params preserved для relative destinations
 10. **Custom Error Pages**: `not-found.tsx` (404 с Header/Footer), `error.tsx` (runtime, client component), `global-error.tsx` (root layout fallback с inline styles)
    - 404: `robots: { index: false, follow: true }` — не индексируется, но ссылки следуются
    - `error.tsx` — client component, не может использовать Header/Footer (async server components)

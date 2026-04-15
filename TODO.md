@@ -23,10 +23,6 @@
   - Компоненты: Header, HeroCms, SearchHero, CompactSearchHero, QuickSearchCms, SimpleSearch
   - TODO-маркер: `TODO: Uncomment when catalog is ready`
 
-- [ ] **Перенести URL redirects в middleware** — workaround `await headers()` в [...slug]/page.tsx временно лечит Next.js bug [#82117](https://github.com/vercel/next.js/issues/82117) (дублирование Location header в prerendered ISR-редиректах)
-  - Правильное решение: обрабатывать редиректы из `SiteSettings.redirects` в `middleware.ts` с `export const runtime = 'nodejs'` — не зависит от бага, редирект не попадает в ISR-кэш, быстрее (нет рендера 404)
-  - Требует: in-memory TTL-кэш для `getActiveRedirects()` (1 мин), сузить matcher (исключить `/api/*`, `/_next/*`, `/admin/*`), проверить работу Prisma в Node middleware
-  - Сделать после перехода на Fargate (заодно проверим Node runtime в middleware)
 
 ---
 

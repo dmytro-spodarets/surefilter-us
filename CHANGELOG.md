@@ -13,7 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
-- 2026-04-14 — Redirect fix: workaround для Next.js bug #82117 (дублирование Location header в prerendered ISR-страницах при вызове redirect()/permanentRedirect() — envoy склеивал в `/foo,/foo`). В catch-all [...slug] добавлен await headers() перед редиректом для опт-аута из prerender только в момент матча редиректа
+- 2026-04-14 — Redirect fix: URL-редиректы из SiteSettings.redirects вынесены из catch-all [...slug]/page.tsx в src/middleware.ts с Node.js runtime (`experimental.nodeMiddleware: true` в next.config.ts, stable в Next.js 15.5+). Прямой доступ к БД через getActiveRedirects() без fetch-циклов. Middleware-файл перемещён из корня проекта в src/ (обязательно при src-layout). Обходит Next.js bug [#82117](https://github.com/vercel/next.js/issues/82117) (дублирование Location header в prerendered ISR-страницах — envoy склеивал в `/foo,/foo`)
 - 2026-03-30 — surefilter.net email auth: DMARC (CNAME → hosteddmarc.dmarc-dns.com), Google Workspace DKIM (google._domainkey TXT, 2048-bit RSA)
 - 2026-03-30 — SES notify.surefilter.us: новый transactional identity — DKIM 2048-bit, custom MAIL FROM (bounce.notify.surefilter.us), dedicated IP pool surefilter-transactional, config set surefilter-transactional с tracking link.notify.surefilter.us (CloudFront → awstrack.me), suppression list; mail.surefilter.us переназначен на newsletters (config set surefilter-mail, SNS bounce/complaint → listmonk), default FROM в email.ts изменён на noreply@notify.surefilter.us
 - 2026-03-30 — Apollo.io tracking: link.surefilter.net CNAME → jolly-kale.aploconnect.com

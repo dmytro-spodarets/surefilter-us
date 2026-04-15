@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
   
   // Prisma 7 с PostgreSQL adapter требует external packages
   serverExternalPackages: ['pg', '@prisma/adapter-pg'],
+
+  // Enable Node.js runtime for middleware (stable in Next.js 15.2+ behind flag).
+  // Required for direct Prisma access in middleware.ts for URL redirects.
+  experimental: {
+    nodeMiddleware: true,
+  },
   
   // Turbopack config для Prisma 7 с pg adapter
   turbopack: {

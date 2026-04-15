@@ -1,6 +1,30 @@
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getActiveRedirects } from '@/lib/site-settings';
+
+// Use Node.js runtime (stable in Next.js 15.5+) so we can access Prisma
+// directly for DB-driven URL redirects. Edge runtime would require an HTTP
+// fetch back to /api/redirects, which is an anti-pattern (Vercel/Next.js
+// recommend Edge Config for that case, which is Vercel-only).
+export const runtime = 'nodejs';
+
+type RedirectRule = {
+  source: string;
+  destination: string;
+  statusCode: 301 | 302;
+  isActive: boolean;
+};
+
+function matchRedirect(pathname: string, rules: RedirectRule[]): RedirectRule | null {
+  const normalized = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  for (const r of rules) {
+    if (!r.isActive) continue;
+    const src = r.source.toLowerCase().replace(/\/+$/, '') || '/';
+    if (src === normalized) return r;
+  }
+  return null;
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -55,6 +79,38 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // URL redirects from SiteSettings.redirects (admin-editable).
+  // Handled here (not in catch-all page) to avoid Next.js ISR prerender bug
+  // that duplicates the Location header (vercel/next.js#82117).
+  // Skip for admin/api/internal paths — they can't be redirect targets.
+  const isInternalPath =
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/admin') ||
+    pathname === '/login';
+  if (!isInternalPath) {
+    let rules: RedirectRule[] = [];
+    try {
+      rules = (await getActiveRedirects()) as RedirectRule[];
+    } catch (e) {
+      // Fail open — if DB lookup fails, fall through without redirect
+      console.error('[mw] getActiveRedirects failed:', e);
+    }
+    if (rules.length > 0) {
+      const match = matchRedirect(pathname, rules);
+      if (match) {
+        const target = new URL(match.destination, req.nextUrl);
+        // Preserve query string only for relative destinations — external
+        // redirects keep whatever query they specify (or none).
+        const isRelative = !/^https?:\/\//i.test(match.destination);
+        if (isRelative && req.nextUrl.search) {
+          target.search = req.nextUrl.search;
+        }
+        return NextResponse.redirect(target, match.statusCode);
+      }
+    }
+  }
+
   // Preserve CloudFront-provided x-forwarded-host (viewer Host) for Server Actions origin validation.
   // Only set it from Host when missing (e.g., local dev), do NOT overwrite a valid CF value.
   const xfh = requestHeaders.get('x-forwarded-host');
@@ -71,5 +127,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
