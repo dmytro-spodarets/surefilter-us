@@ -27,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
     },
     robots: { index: true, follow: true },
+    alternates: { canonical: '/' },
   };
 }
 // All content sections are rendered from CMS in stored order

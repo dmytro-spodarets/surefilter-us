@@ -93,7 +93,11 @@ data "aws_cloudfront_response_headers_policy" "security_headers" {
 
 // Removed unused custom origin request policy
 
-# CloudFront Function: normalize x-forwarded-host to viewer Host to satisfy Next.js Server Actions origin checks
+# CloudFront Function (viewer-request):
+#   1. Redirect non-canonical hosts (www.surefilter.us, new.surefilter.us) → surefilter.us (301).
+#      Prevents duplicate content in search engines (ahrefs/Google flagged www + apex as duplicates).
+#      Runs BEFORE cache lookup, so cache-key sharing across aliases doesn't leak 301 to apex.
+#   2. Normalize x-forwarded-host to viewer Host for Next.js Server Actions origin validation.
 resource "aws_cloudfront_function" "set_x_forwarded_host" {
   name    = "surefilter-set-x-forwarded-host"
   runtime = "cloudfront-js-2.0"
@@ -102,6 +106,27 @@ resource "aws_cloudfront_function" "set_x_forwarded_host" {
 function handler(event) {
   var request = event.request;
   var hostHeader = request.headers.host && request.headers.host.value;
+
+  // Redirect non-canonical hosts to canonical (preserve path + query)
+  if (hostHeader && hostHeader !== 'surefilter.us') {
+    var qs = Object.keys(request.querystring).map(function(key) {
+      var param = request.querystring[key];
+      return param.multiValue
+        ? param.multiValue.map(function(mv) { return key + '=' + mv.value; }).join('&')
+        : key + '=' + param.value;
+    }).join('&');
+    var location = 'https://surefilter.us' + request.uri + (qs ? '?' + qs : '');
+    return {
+      statusCode: 301,
+      statusDescription: 'Moved Permanently',
+      headers: {
+        'location': { value: location },
+        'cache-control': { value: 'max-age=31536000, immutable' }
+      }
+    };
+  }
+
+  // Set x-forwarded-host for Server Actions origin validation
   if (hostHeader) {
     request.headers['x-forwarded-host'] = { value: hostHeader };
   }

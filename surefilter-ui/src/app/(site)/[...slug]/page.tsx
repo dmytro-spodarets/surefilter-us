@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
       type: 'website',
     },
     robots: { index: true, follow: true },
+    alternates: { canonical: `/${key}` },
   };
 }
 

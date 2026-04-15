@@ -56,6 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ...(image && { images: [image] }),
       type: 'website',
     },
+    alternates: { canonical: `/resources/${category}/${slug}` },
   };
 }
 

@@ -54,16 +54,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(canonicalUrl.toString(), 301);
   }
 
-  // Redirect non-canonical domains (www, new) to the canonical domain
-  if (siteUrl) {
-    const canonicalHost = new URL(siteUrl).host; // e.g. "surefilter.us"
-    if (host && host !== canonicalHost && !isAppRunnerDomain) {
-      const canonicalUrl = new URL(siteUrl);
-      canonicalUrl.pathname = req.nextUrl.pathname;
-      canonicalUrl.search = req.nextUrl.search;
-      return NextResponse.redirect(canonicalUrl.toString(), 301);
-    }
-  }
+  // Note: non-canonical host redirect (www.surefilter.us, new.surefilter.us
+  // → surefilter.us) is handled by CloudFront Function at viewer-request,
+  // BEFORE cache lookup. See infra/envs/prod/cloudfront.tf → set_x_forwarded_host.
 
   // Admin authentication — protect admin pages and API routes
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {

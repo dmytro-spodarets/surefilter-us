@@ -28,6 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ...(image && { images: [image] }),
       type: 'website',
     },
+    alternates: { canonical: '/resources' },
   };
 }
 export default async function ResourcesPage() {

@@ -77,6 +77,7 @@ export async function generateMetadata({ params }: NewsPageProps): Promise<Metad
       ...(article.tags?.length && { tags: article.tags }),
       ...(base && { url: `${base}/newsroom/${slug}` }),
     },
+    alternates: { canonical: `/newsroom/${slug}` },
   };
 }
 

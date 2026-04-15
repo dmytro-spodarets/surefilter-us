@@ -27,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ...(image && { images: [image] }),
       type: 'website',
     },
+    alternates: { canonical: '/newsroom' },
   };
 }
 

@@ -70,6 +70,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ...(imageUrl && { images: [imageUrl] }),
     },
     robots: { index: true, follow: true },
+    alternates: { canonical: `/products/${product.code}` },
   };
 }
 
