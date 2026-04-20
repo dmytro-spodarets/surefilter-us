@@ -34,6 +34,7 @@ import HeroCms from '@/components/sections/HeroCms';
 import PageHero from '@/components/sections/PageHero';
 import PageHeroReverse from '@/components/sections/PageHeroReverse';
 import CompactHero from '@/components/sections/CompactHero';
+import ColorHero from '@/components/sections/ColorHero';
 
 // Client components — dynamic imports (lazy loaded, reduces JS bundle per page)
 const HeroCarouselCms = dynamic(() => import('@/components/sections/HeroCarouselCms'));
@@ -46,7 +47,7 @@ const AwardsGallery = dynamic(() => import('@/components/sections/AwardsGallery'
 const SidebarWidget = dynamic(() => import('@/components/sections/SidebarWidget'));
 
 import type { CmsSection } from './types';
-import { HeroFullSchema } from './schemas';
+import { HeroFullSchema, ColorHeroSchema } from './schemas';
 
 export function renderSection(section: CmsSection) {
   // If section uses a shared section, use its data instead
@@ -312,6 +313,18 @@ export function renderSection(section: CmsSection) {
     case 'form_embed': {
       const d = sectionData as any;
       return <FormEmbed formId={d?.formId} title={d?.title} description={d?.description} />;
+    }
+    case 'color_hero': {
+      const parsed = ColorHeroSchema.safeParse(sectionData);
+      if (!parsed.success) return null;
+      const { title, description, backgroundColor } = parsed.data;
+      return (
+        <ColorHero
+          title={title}
+          description={description}
+          backgroundColor={backgroundColor}
+        />
+      );
     }
     default:
       return null;

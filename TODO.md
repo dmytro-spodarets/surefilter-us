@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 14 апреля 2026 (redirect fix + TODO на перенос в middleware)
+**Последнее обновление:** 20 апреля 2026 (Newsroom redesign: ColorHero, обновлённый layout статей)
 
 ---
 
@@ -22,6 +22,8 @@
 - [ ] **Активация поиска** — временно отключен для Phase 1
   - Компоненты: Header, HeroCms, SearchHero, CompactSearchHero, QuickSearchCms, SimpleSearch
   - TODO-маркер: `TODO: Uncomment when catalog is ready`
+
+- [ ] **Запросить перекроулинг в ahrefs и Google Search Console** после исправления дублей (v1.0.14, CF Function www/new → apex + rel=canonical). Проверить через 1-2 недели что ahrefs Duplicate pages отчёт очистился, а Google Search Console → Pages → Duplicate без user-selected canonical сокращается
 
 
 ---

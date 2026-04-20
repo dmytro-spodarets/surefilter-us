@@ -20,6 +20,7 @@ const OPTIONS = [
   { value: 'page_hero', label: 'Page: Hero' },
   { value: 'page_hero_reverse', label: 'Page: Hero Reverse' },
   { value: 'single_image_hero', label: 'Generic: FullScreen Hero' },
+  { value: 'color_hero', label: 'Generic: Color Hero (no image)' },
 
   // Search & Navigation
   { value: 'compact_search_hero', label: 'Search: Compact Hero' },

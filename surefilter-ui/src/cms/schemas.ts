@@ -550,4 +550,12 @@ export const IndustryShowcaseSchema = z.object({
 
 export type IndustryShowcaseInput = z.infer<typeof IndustryShowcaseSchema>;
 
+// Color Hero - Compact hero with solid background color (no image)
+export const ColorHeroSchema = z.object({
+  title: z.string().optional().default(''),
+  description: z.string().optional().default(''),
+  backgroundColor: z.string().optional().default('#1e3a5f'),
+});
+export type ColorHeroInput = z.infer<typeof ColorHeroSchema>;
+
 

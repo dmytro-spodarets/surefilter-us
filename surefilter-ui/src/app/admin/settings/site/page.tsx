@@ -56,6 +56,7 @@ interface SiteSettingsData {
   newsroomTitle?: string;
   newsroomDescription?: string;
   newsroomHeroImage?: string;
+  newsroomHeroColor?: string;
   newsroomMetaTitle?: string;
   newsroomMetaDesc?: string;
   newsroomOgImage?: string;
@@ -108,7 +109,6 @@ export default function SiteSettingsPage() {
     error?: string;
   } | null>(null);
   const [showLogoPicker, setShowLogoPicker] = useState(false);
-  const [showNewsroomHeroPicker, setShowNewsroomHeroPicker] = useState(false);
   const [showNewsroomOgImagePicker, setShowNewsroomOgImagePicker] = useState(false);
   const [showNewsArticleHeroPicker, setShowNewsArticleHeroPicker] = useState(false);
   const [showEventArticleHeroPicker, setShowEventArticleHeroPicker] = useState(false);
@@ -167,6 +167,7 @@ export default function SiteSettingsPage() {
         newsroomTitle: settings?.newsroomTitle,
         newsroomDescription: settings?.newsroomDescription,
         newsroomHeroImage: settings?.newsroomHeroImage,
+        newsroomHeroColor: settings?.newsroomHeroColor,
         newsroomMetaTitle: settings?.newsroomMetaTitle,
         newsroomMetaDesc: settings?.newsroomMetaDesc,
         newsroomOgImage: settings?.newsroomOgImage,
@@ -740,28 +741,26 @@ export default function SiteSettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image</label>
-                    <div className="flex gap-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Hero Background Color</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={settings.newsroomHeroColor || ''}
+                        onChange={(e) => handleFieldChange('newsroomHeroColor', e.target.value)}
+                        className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                      />
                       <input
                         type="text"
-                        value={settings.newsroomHeroImage || ''}
-                        onChange={(e) => handleFieldChange('newsroomHeroImage', e.target.value)}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
-                        placeholder="S3 key or URL"
+                        value={settings.newsroomHeroColor || ''}
+                        onChange={(e) => handleFieldChange('newsroomHeroColor', e.target.value)}
+                        className="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500 font-mono text-sm"
+                        placeholder="#1e3a5f"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewsroomHeroPicker(true)}
-                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
-                      >
-                        Browse
-                      </button>
+                      <div
+                        className="h-10 flex-1 rounded-lg border border-gray-200"
+                        style={{ backgroundColor: settings.newsroomHeroColor || '' }}
+                      />
                     </div>
-                    {settings.newsroomHeroImage && (
-                      <div className="mt-2 w-32 h-20 relative border border-gray-200 rounded-lg overflow-hidden">
-                        <Image src={getAssetUrl(settings.newsroomHeroImage)} alt="Hero Preview" fill className="object-cover" />
-                      </div>
-                    )}
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mt-6 mb-2">SEO</h3>
                   <div>
@@ -1983,16 +1982,6 @@ export default function SiteSettingsPage() {
             setShowLogoPicker(false);
           }}
           onClose={() => setShowLogoPicker(false)}
-        />
-      )}
-      {showNewsroomHeroPicker && (
-        <MediaPickerModal
-          isOpen={showNewsroomHeroPicker}
-          onSelect={(url) => {
-            handleFieldChange('newsroomHeroImage', url);
-            setShowNewsroomHeroPicker(false);
-          }}
-          onClose={() => setShowNewsroomHeroPicker(false)}
         />
       )}
       {showNewsroomOgImagePicker && (

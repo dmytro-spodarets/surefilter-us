@@ -84,6 +84,7 @@ enum SectionType {
   form_embed
   industry_showcase
   sidebar_widget
+  color_hero
 }
 
 model Page {
@@ -658,6 +659,7 @@ model SiteSettings {
   newsroomTitle        String? @default("Newsroom")
   newsroomDescription  String? @db.Text
   newsroomHeroImage    String?
+  newsroomHeroColor    String?   @default("#1e3a5f")
   newsroomMetaTitle    String?
   newsroomMetaDesc     String? @db.Text
   newsroomOgImage      String?

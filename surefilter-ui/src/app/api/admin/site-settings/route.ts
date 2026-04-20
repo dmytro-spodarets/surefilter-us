@@ -13,6 +13,7 @@ const UpdateSettingsSchema = z.object({
   newsroomTitle: z.string().nullable().optional(),
   newsroomDescription: z.string().nullable().optional(),
   newsroomHeroImage: z.string().nullable().optional(),
+  newsroomHeroColor: z.string().nullable().optional(),
   newsroomMetaTitle: z.string().nullable().optional(),
   newsroomMetaDesc: z.string().nullable().optional(),
   newsroomOgImage: z.string().nullable().optional(),

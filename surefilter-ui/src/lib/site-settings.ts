@@ -33,6 +33,7 @@ export interface SiteSettings {
   newsroomTitle?: string;
   newsroomDescription?: string;
   newsroomHeroImage?: string;
+  newsroomHeroColor?: string;
   newsroomMetaTitle?: string;
   newsroomMetaDesc?: string;
   newsroomOgImage?: string;
@@ -141,6 +142,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     newsroomTitle: settings.newsroomTitle || undefined,
     newsroomDescription: settings.newsroomDescription || undefined,
     newsroomHeroImage: settings.newsroomHeroImage || undefined,
+    newsroomHeroColor: settings.newsroomHeroColor || undefined,
     newsroomMetaTitle: settings.newsroomMetaTitle || undefined,
     newsroomMetaDesc: settings.newsroomMetaDesc || undefined,
     newsroomOgImage: settings.newsroomOgImage || undefined,
@@ -200,6 +202,7 @@ export async function getNewsroomPageSettings() {
     title: settings.newsroomTitle || 'Newsroom',
     description: settings.newsroomDescription || 'Stay updated with our upcoming events, exhibitions, and latest press releases.',
     heroImage: settings.newsroomHeroImage,
+    heroColor: settings.newsroomHeroColor,
     metaTitle: settings.newsroomMetaTitle,
     metaDescription: settings.newsroomMetaDesc,
     ogImage: settings.newsroomOgImage,

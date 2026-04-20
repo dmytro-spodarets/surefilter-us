@@ -38,7 +38,8 @@ export type SectionType =
   | 'our_company'
   | 'stats_band'
   | 'awards_carousel'
-  | 'awards_gallery';
+  | 'awards_gallery'
+  | 'color_hero';
 
 export interface CmsSection<T = unknown> {
   id: string;

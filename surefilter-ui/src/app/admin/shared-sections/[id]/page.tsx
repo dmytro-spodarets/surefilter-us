@@ -41,6 +41,7 @@ import AwardsGalleryForm from '@/app/admin/pages/[slug]/sections/AwardsGalleryFo
 import QualityAssuranceForm from '@/app/admin/pages/[slug]/sections/QualityAssuranceForm';
 import FormEmbedForm from '@/app/admin/pages/[slug]/sections/FormEmbedForm';
 import SidebarWidgetForm from '@/app/admin/pages/[slug]/sections/SidebarWidgetForm';
+import ColorHeroForm from '@/app/admin/pages/[slug]/sections/ColorHeroForm';
 
 interface SharedSection {
   id: string;
@@ -209,6 +210,8 @@ export default function EditSharedSectionPage() {
         return <FormEmbedForm {...formProps} />;
       case 'sidebar_widget':
         return <SidebarWidgetForm {...formProps} />;
+      case 'color_hero':
+        return <ColorHeroForm {...formProps} />;
       default:
         return (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

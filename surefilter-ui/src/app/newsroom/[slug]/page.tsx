@@ -1,9 +1,8 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import CompactHero from '@/components/sections/CompactHero';
 import { ArrowLeftIcon, CalendarDaysIcon, TagIcon, MapPinIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { prisma } from '@/lib/prisma';
-import { getNewsArticlePageSettings } from '@/lib/site-settings';
+
 import type { Metadata } from 'next';
 
 export const revalidate = 86400;
@@ -90,9 +89,7 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
   }
 
   const isEvent = article.type === 'EVENT';
-  const [articleSettings, relatedArticles] = await Promise.all([
-    getNewsArticlePageSettings(),
-    prisma.newsArticle.findMany({
+  const relatedArticles = await prisma.newsArticle.findMany({
       where: {
         status: 'PUBLISHED',
         publishedAt: { lte: new Date() },
@@ -110,29 +107,13 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
         publishedAt: true,
         category: { select: { name: true } },
       },
-    }),
-  ]);
-
-  const heroTitle = isEvent ? articleSettings.eventTitle : articleSettings.newsTitle;
-  const heroDescription = isEvent ? articleSettings.eventDescription : articleSettings.newsDescription;
-  const settingsHeroImage = isEvent ? articleSettings.eventHeroImage : articleSettings.newsHeroImage;
-  const heroImage = settingsHeroImage
-    ? getAssetUrl(settingsHeroImage)
-    : article.ogImage || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
+  });
 
   return (
     <main>
       <Header />
 
-      {/* Compact Hero Section */}
-      <CompactHero
-        title={heroTitle}
-        description={heroDescription}
-        backgroundImage={heroImage}
-        headingLevel="h2"
-      />
-      
-      <section className="py-16">
+      <section className="pt-32 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-8">
           {/* Back Navigation */}
           <div className="mb-8">
@@ -147,6 +128,20 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
 
           {/* Article Content */}
           <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            {/* Featured Image */}
+            {article.featuredImage && (
+              <div className="relative w-full h-96">
+                <ManagedImage
+                  src={article.featuredImage}
+                  alt={article.featuredImageAlt || article.title}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 768px) 100vw, 896px"
+                />
+              </div>
+            )}
+
             {/* Header */}
             <div className="p-8 border-b border-gray-200">
               <div className="flex items-center mb-4 flex-wrap gap-3">
@@ -158,21 +153,21 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
                 <span className="text-sm text-gray-500">
                   {isEvent && article.eventStartDate ? (
                     <>
-                      {new Date(article.eventStartDate).toLocaleDateString('en-US', { 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric' 
+                      {new Date(article.eventStartDate).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
                       })}
-                      {article.eventEndDate && ` - ${new Date(article.eventEndDate).toLocaleDateString('en-US', { 
-                        month: 'long', 
-                        day: 'numeric' 
+                      {article.eventEndDate && ` - ${new Date(article.eventEndDate).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric'
                       })}`}
                     </>
                   ) : (
-                    new Date(article.publishedAt).toLocaleDateString('en-US', { 
-                      month: 'long', 
-                      day: 'numeric', 
-                      year: 'numeric' 
+                    new Date(article.publishedAt).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
                     })
                   )}
                 </span>
@@ -182,11 +177,11 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
                   </span>
                 )}
               </div>
-              
+
               <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
                 {article.title}
               </h1>
-              
+
               <p className="text-xl text-gray-600 leading-relaxed">
                 {article.excerpt}
               </p>
@@ -212,9 +207,9 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
                   {article.eventUrl && (
                     <div className="flex items-center text-gray-700">
                       <LinkIcon className="h-5 w-5 mr-2 text-gray-400" />
-                      <a 
-                        href={article.eventUrl} 
-                        target="_blank" 
+                      <a
+                        href={article.eventUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-sure-blue-500 hover:text-sure-blue-600 hover:underline"
                       >
@@ -225,20 +220,6 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
                 </div>
               )}
             </div>
-
-            {/* Featured Image */}
-            {article.featuredImage && (
-              <div className="relative w-full h-96">
-                <ManagedImage
-                  src={article.featuredImage}
-                  alt={article.featuredImageAlt || article.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 896px"
-                />
-              </div>
-            )}
 
             {/* Content */}
             <div className="p-8">

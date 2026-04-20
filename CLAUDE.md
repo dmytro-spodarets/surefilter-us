@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 30 марта 2026
+> Последнее обновление: 20 апреля 2026
 
 ---
 
@@ -75,7 +75,7 @@ surefilter-us/
 - `Section` — секции страниц (type enum, data JSON)
 - `PageSection` — связь page-section с позицией
 - `SharedSection` — переиспользуемые секции
-- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO, redirects, default meta tags, logoUrl, formNotificationFromEmail)
+- `SiteSettings` — глобальные настройки (header, footer, analytics, SEO, redirects, default meta tags, logoUrl, formNotificationFromEmail, newsroomHeroColor)
 
 ### Каталог продуктов
 - `Product` — продукты (code, brand, filterType, manufacturerCatalogUrl)
@@ -122,6 +122,9 @@ surefilter-us/
 
 **Гарантия:**
 - `limited_warranty_details`, `magnusson_moss_act`, `warranty_contact`, etc.
+
+**Generic Heroes:**
+- `color_hero` — compact hero с solid background color (без картинки), настраиваемый цвет
 
 **Служебные:**
 - `form_embed`, `sidebar_widget`, `listing_card_meta`
@@ -186,8 +189,8 @@ surefilter-us/
 
 ### Домены и DNS
 - **surefilter.us** — основной домен (Route53 → CloudFront → App Runner)
-- **www.surefilter.us** — alias на основной CloudFront
-- **new.surefilter.us** — legacy alias (делегированная зона, тоже → CloudFront)
+- **www.surefilter.us** — alias на основной CloudFront, **301 → surefilter.us** (CF Function `set_x_forwarded_host`, edge-redirect до кэша)
+- **new.surefilter.us** — legacy alias (делегированная зона, тоже → CloudFront), **301 → surefilter.us** (CF Function)
 - **assets.surefilter.us** — CDN для файлов (отдельный CloudFront → S3 `surefilter-files-prod`)
 - **newsletters.surefilter.us** — EC2 сервер (Elastic IP)
 - **news.surefilter.us** — SES sending domain for newsletters (DKIM, custom MAIL FROM)
@@ -425,10 +428,11 @@ npm run seed:content:force  # С перезаписью
 9. **Default SEO Meta**: title, description, keywords, title suffix (template) — из SiteSettings (БД), не захардкожены. Root layout использует `generateMetadata()` с `getDefaultSeoMeta()`. Если в БД пусто — мета-теги не рендерятся.
 10. **Favicon**: `/public/favicon/` (SVG, PNG, ICO, apple-touch-icon, web-app-manifest). Метаданные `icons` + `manifest` в root layout.
 11. **Meta Tags Fallback Chain**: Все страницы используют `generateMetadata()` → данные из БД → если undefined, Next.js наследует из root layout `title.default`/`title.template`. Не дублировать suffix в `generateMetadata()` дочерних страниц — root layout `title.template` делает это автоматически.
+12. **Canonical URLs (rel=canonical)**: `metadataBase: new URL(NEXT_PUBLIC_SITE_URL)` в root layout + `alternates: { canonical: '/<path>' }` в `generateMetadata()` каждой публичной страницы. Страховка от дублей при `?utm=`, `?fbclid=` и т.п. В паре с edge-редиректом www/new → apex закрывает проблему duplicate content (ahrefs). При добавлении новой публичной страницы — **обязательно** добавлять `alternates.canonical` с относительным путём (metadataBase резолвит в абсолютный URL). Страницы с `robots: noindex` (404, /admin/*, /login, /catalog-viewer) canonical не нужен.
 9. **URL Redirects**: управляются из админки (`/admin/settings/site` → вкладка Redirects)
    - Хранятся в `SiteSettings.redirects` (JSON)
    - Логика редиректов в [src/middleware.ts](surefilter-ui/src/middleware.ts) с `export const runtime = 'nodejs'` — прямой доступ к БД через `getActiveRedirects()`, `NextResponse.redirect(url, 301|302)` до рендера страницы
-   - **Требует** `experimental.nodeMiddleware: true` в `next.config.ts` (stable в Next.js 15.5+)
+   - В Next.js 15.5+ достаточно `export const runtime = 'nodejs'` в middleware.ts (флаг `nodeMiddleware` в конфиге не нужен)
    - **НЕ в page.tsx** — Next.js bug [#82117](https://github.com/vercel/next.js/issues/82117): `redirect()`/`permanentRedirect()` в prerendered ISR-странице дублирует Location header, envoy (App Runner) склеивает в `/foo,/foo`
    - **Расположение файла**: `src/middleware.ts` (НЕ в корне проекта — с src/-layout Next.js ищет middleware только в src/)
    - Кэширование — через `getSiteSettings()` (module-level cache в `lib/site-settings.ts`, сбрасывается `clearSiteSettingsCache()` при сохранении в админке → ISR revalidate + CloudFront invalidation)
@@ -441,7 +445,7 @@ npm run seed:content:force  # С перезаписью
    - CloudFront Function (edge, без App Runner) — `cloudfront-redirect.tf`
    - Один ACM сертификат на все 6 доменов — `acm-redirects.tf`
    - DNS: A + AAAA alias записи в отдельных Route53 зонах — `route53-redirects.tf`
-   - `new.surefilter.us` и `www.surefilter.us` → 301 через middleware (App Runner)
+   - `new.surefilter.us` и `www.surefilter.us` → 301 через CloudFront Function `set_x_forwarded_host` на основной дистрибуции (viewer-request, edge, до кэша) — `cloudfront.tf`. НЕ через middleware: CF шлёт на origin с `Host: <apprunner>`, middleware не видит реальный viewer host
 12. **news.surefilter.us** — SES email identity для newsletters (listmonk). В браузере → 301 → surefilter.us
 13. **mail.surefilter.us** — SES email identity для newsletters (listmonk, второй домен). В браузере → 301 → surefilter.us
 14. **notify.surefilter.us** — SES email identity для transactional emails (App Runner). В браузере → 301 → surefilter.us
