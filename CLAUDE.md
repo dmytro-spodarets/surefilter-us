@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 20 апреля 2026
+> Последнее обновление: 27 апреля 2026
 
 ---
 
@@ -90,6 +90,13 @@ surefilter-us/
 - `Resource` / `ResourceCategory` — ресурсы (каталоги, документы)
 - `Form` / `FormSubmission` — универсальные формы
 
+### Popup Banners (Marketing)
+- `Banner` — попап-банеры (type: LEAD_CAPTURE | CTA, layout, targeting, triggers, dismiss strategy, schedule, denormalized counters)
+- `BannerCampaign` — кампании (группировка банеров с aggregate stats и общим notifyEmail fallback)
+- `BannerImpression` — каждый показ (full DB logging для analytics dashboards)
+- `BannerClick` — каждый клик по CTA
+- `BannerSubmission` — захваченные email-ы для LEAD_CAPTURE
+
 ### Администрирование
 - `User` — пользователи админки
 - `AdminLog` — логи действий
@@ -155,6 +162,9 @@ surefilter-us/
 - `/admin/news` — новости
 - `/admin/resources` — ресурсы
 - `/admin/forms` — конструктор форм
+- `/admin/banners` — попап-банеры (list/CRUD/duplicate/stats/submissions)
+- `/admin/banner-campaigns` — кампании банеров (с aggregate stats)
+- `/admin/banner-submissions` — универсальный view всех лидов с CSV export
 - `/admin/files` — файл-менеджер (S3)
 - `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages, Redirects)
 - `/admin/users` — пользователи (список, создание, редактирование)
@@ -169,6 +179,10 @@ surefilter-us/
 - `GET /api/warm-up` — post-deploy ISR warm-up (localhost only)
 - `POST /api/forms/[slug]/submit` — отправка формы
 - `GET /api/news`, `GET /api/resources`
+- `GET /api/banners/active` — активные попап-банеры (1-min server cache)
+- `POST /api/banners/[id]/impression` — регистрация показа (sendBeacon-friendly)
+- `POST /api/banners/[id]/click` — регистрация клика по CTA-банеру
+- `POST /api/banners/[id]/submit` — лид от LEAD_CAPTURE-банера (rate-limited)
 - `GET /robots.txt` — динамический robots.txt
 - `GET /sitemap.xml` — динамический sitemap
 - `GET /api/redirects` — активные редиректы (legacy, не используется — логика в catch-all page)
@@ -182,6 +196,9 @@ surefilter-us/
 - `/api/admin/file-manager/*` — работа с S3
 - `/api/admin/site-settings` — глобальные настройки
 - `GET /api/admin/config/tinymce` — TinyMCE API key (runtime из SSM, admin-only)
+- `/api/admin/banners` (+`[id]`, `[id]/duplicate`, `[id]/stats`) — CRUD банеров. Мутации сбрасывают `clearBannersCache()`
+- `/api/admin/banner-campaigns` (+`[id]`, `[id]/stats`) — CRUD кампаний с aggregate stats (raw SQL DATE_TRUNC timeseries)
+- `/api/admin/banner-submissions` (+`[id]`, `export`, `[id]/retry-email`) — лиды банеров
 
 ---
 
@@ -406,6 +423,95 @@ npm run seed:content:force  # С перезаписью
 - **Server → Client mapping**: сервер возвращает `fieldErrors: [{fieldId, message}]`, клиент подсвечивает конкретные поля
 - **Единый стиль**: `FieldWrapper`, `Label`, `inputClass()` — общие компоненты для всех типов полей в `FormField.tsx`
 
+### Popup Banner System
+Собственная система попап-банеров (вместо HelloBar/SaaS) для лидогенерации и CTA-кампаний.
+
+**Типы банеров**:
+- `LEAD_CAPTURE` — image + title + body + email input + submit (захват лидов)
+- `CTA` — image + title + body + кнопка с переходом на URL
+
+**Архитектура**:
+- **Server cache**: `src/lib/banners.ts` — `getActiveBanners()` с 1-минутным in-memory кешем, `clearBannersCache()` сбрасывается при CRUD-мутациях. Работает зеркально `getSiteSettings()`.
+- **Client fetch**: `<BannerHost />` в root layout fetches `/api/banners/active` — НЕ через layout ISR (24h задержка не подходит для banner pause), а через client-side fetch с 1-min server cache. Mounts post-hydration, не блокирует first paint.
+- **Modal**: native `<dialog>` element + `showModal()` (focus trap, Escape, `::backdrop` бесплатно). Без Headless UI, без портала.
+
+**Layout Registry** (extensible design gallery):
+- Layout — это React-компонент в `src/components/banners/layouts/`, зарегистрированный в `index.ts`
+- Стартовые: `ClassicCentered`, `SideImage`, `MinimalText` (все поддерживают LEAD_CAPTURE + CTA)
+- SVG-превью: `public/images/banner-layouts/<id>.svg`
+- **Чтобы добавить новый layout**: создать компонент + meta export, добавить в registry в `index.ts`, положить SVG. Ноль миграций БД, ноль изменений API/Zod
+- `banner.layout` — string (не enum) для расширяемости. Fallback на `DEFAULT_LAYOUT_ID` при неизвестном значении
+
+**Targeting (на каких страницах показывать)**:
+- `targetAllPages: true` — на всех + `excludeSlugs` (исключения)
+- `targetAllPages: false` + `targetSlugs` — конкретные страницы
+- Slugs: `"/"` для главной, `"newsroom"` без leading slash
+- **Wildcard**: `products/*` matches `products/anything` (нативный glob → regex в `matchesPath`)
+- Admin pages (`/admin/*`, `/login`) — захардкоженный bail в `BannerHost`
+
+**Triggers**:
+- `delayMs` — задержка показа после загрузки страницы (default 5000)
+- `utmRules` (JSON) — `[{key, op: 'equals'|'contains'|'startsWith', value}]` — все правила должны совпасть (AND)
+- `refererRules` (JSON) — `[{op, value}]` — любое правило подходит (OR)
+- Client-side filter в `BannerHost` против `useSearchParams()` и `document.referrer`
+
+**Dismiss strategy** (3 режима, выбор admin'ом):
+- `SESSION` — sessionStorage, заново показывается при новой сессии
+- `DAYS` — localStorage с TTL = `dismissTtlDays` (default 30)
+- `FOREVER` — localStorage без срока
+- Всегда: после dismiss в текущей сессии не показывается до закрытия вкладки
+- **Cross-tab sync**: `storage` event listener — dismiss в одном табе закрывает попап во всех
+
+**Multi-banner match resolution**:
+- При множественном совпадении: sort `priority DESC, publishedAt DESC`, render первый. Один попап за раз — не спамим
+
+**Tracking**:
+- **Полное логирование в БД**: каждый показ → `BannerImpression`, каждый клик → `BannerClick`. Поля: pageUrl, pageSlug, utmParams, referer, sessionId, ipAddress, userAgent
+- **Денормализованные счётчики** на `Banner`: `impressionCount`, `clickCount`, `submissionCount` — атомарный `increment` для быстрого admin-листа
+- **GA4 events**: `banner_impression`, `banner_click`, `banner_lead_submit` с params `banner_slug`, `banner_type`, `banner_layout`, `campaign_id`
+- **sendBeacon** для impression/click POSTs (переживает page unload)
+- Rate limiters: `bannerImpressionLimiter` (200/min per IP+bannerId), `bannerSubmitLimiter` (5/hr per IP)
+
+**Lead capture flow** (LEAD_CAPTURE banners):
+- `POST /api/banners/[id]/submit` — Zod email validation, rate-limit, honeypot field, atomic transaction (BannerSubmission + counter increment), fire-and-forget email
+- **Email**: `src/lib/banner-email.ts` — `sendBannerLeadNotificationEmail()` через AWS SES v2 (зеркально form-email pattern), фирменный HTML с UTM/page/referer/IP метаданными
+- **From**: `getFormNotificationFromEmail()` (default `noreply@notify.surefilter.us`)
+- **NotifyEmail fallback chain**: `banner.notifyEmail` → `campaign.notifyEmail` (TODO в Phase 5) → пропуск отправки
+- **Retry**: `POST /api/admin/banner-submissions/[id]/retry-email`
+
+**Campaigns**:
+- `BannerCampaign` группирует банеры (`Banner.campaignId`)
+- `notifyEmail` на кампании — общий fallback для всех её банеров
+- Aggregate stats: `/api/admin/banner-campaigns/[id]/stats` — totals + timeseries (raw SQL `DATE_TRUNC('day', ...)` GROUP BY)
+- При удалении кампании — банеры остаются (`onDelete: SetNull`)
+
+**Schedule** (`publishedAt` / `expiresAt`):
+- Banner становится eligible при `publishedAt <= now AND (expiresAt > now OR null)`
+- Проверка в `getActiveBanners()` — отфильтрованные банеры не доходят до клиента
+
+**Admin UI**:
+- `/admin/banners` — list с фильтрами (type/status/search), счётчики, кнопки Stats/Edit/Duplicate/Delete
+- `/admin/banners/new` + `/admin/banners/[id]/edit` — `BannerForm` с tabs (Layout/Content/Targeting/Triggers/Schedule/Lead) + sticky `BannerLivePreview` справа
+- `/admin/banners/[id]/stats` — charts impressions/clicks за 30 дней + breakdowns по pages/referers
+- `/admin/banners/[id]/submissions` — лиды конкретного банера (только LEAD_CAPTURE)
+- `/admin/banner-campaigns` + detail page с aggregate stats
+- `/admin/banner-submissions` — универсальный view всех лидов с CSV-export
+- `BannerLayoutGallery` — visual grid карточек с превью (выбор layout), `BannerTargetingEditor` (UTM/referer rule rows)
+- Marketing menu в admin nav: Banners / New Banner / Campaigns / Submissions
+
+**Animations**:
+- View Transitions API (`document.startViewTransition()`) — нативный browser cross-fade при открытии
+- `view-transition-name: sf-banner-modal` на `<dialog>` для плавного перехода
+- `prefers-reduced-motion` — animation пропускается
+
+**Spam protection**:
+- Rate limiter (5 lead-submissions/hr per IP) + honeypot field `name="website"` (server отбрасывает submissions если поле непустое)
+- Без CAPTCHA (соответствует паттерну существующего Form-системы)
+
+**Cache invalidation на admin-CRUD**:
+- `clearBannersCache()` сбрасывает 1-min in-memory cache
+- `invalidatePages(['/'])` — ISR/CloudFront для сайта (на случай если будущая логика будет SSR-кешить banner data)
+
 ---
 
 ## Известные особенности
@@ -502,6 +608,15 @@ npm run seed:content:force  # С перезаписью
 
 **Как создать страницу?**
 → `/admin/pages` → New Page → добавить секции
+
+**Как создать попап-банер?**
+→ `/admin/banners/new` → выбрать layout в галерее → заполнить content/targeting/triggers → save (status=PUBLISHED для активации)
+
+**Как добавить новый layout для банеров?**
+→ 1) Создать `<Name>Layout.tsx` в `src/components/banners/layouts/` (export компонент + meta) 2) Зарегистрировать в `layouts/index.ts` 3) Положить превью в `public/images/banner-layouts/<id>.svg`. Без миграций БД — `banner.layout` это string
+
+**Где смотреть статистику банеров?**
+→ `/admin/banners/[id]/stats` (per-banner, charts + breakdowns) или `/admin/banner-campaigns/[id]` (aggregate по кампании)
 
 ---
 

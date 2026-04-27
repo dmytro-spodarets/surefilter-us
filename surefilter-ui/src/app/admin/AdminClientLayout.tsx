@@ -10,6 +10,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
   const [pagesMenuOpen, setPagesMenuOpen] = useState(false);
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
   const [formsMenuOpen, setFormsMenuOpen] = useState(false);
+  const [marketingMenuOpen, setMarketingMenuOpen] = useState(false);
   const [resourcesMenuOpen, setResourcesMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
@@ -172,6 +173,49 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         📥 All Submissions
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Marketing Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setMarketingMenuOpen(!marketingMenuOpen)}
+                    onBlur={() => setTimeout(() => setMarketingMenuOpen(false), 200)}
+                    className={`${linkClass('/admin/banners')} flex items-center gap-1`}
+                  >
+                    Marketing
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {marketingMenuOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1">
+                      <Link
+                        href="/admin/banners"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        🎯 Banners
+                      </Link>
+                      <Link
+                        href="/admin/banners/new"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        ➕ New Banner
+                      </Link>
+                      <div className="border-t border-gray-200 my-1"></div>
+                      <Link
+                        href="/admin/banner-campaigns"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        🗂️ Campaigns
+                      </Link>
+                      <Link
+                        href="/admin/banner-submissions"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        📥 Submissions
                       </Link>
                     </div>
                   )}

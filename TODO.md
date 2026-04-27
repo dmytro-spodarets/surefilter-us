@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 20 апреля 2026 (Newsroom redesign: ColorHero, обновлённый layout статей)
+**Последнее обновление:** 27 апреля 2026 (Popup Banner System Phase 1-4: Banner/Campaign CRUD, lead capture, UTM/referer triggers, layout gallery, stats dashboards)
 
 ---
 
@@ -24,6 +24,12 @@
   - TODO-маркер: `TODO: Uncomment when catalog is ready`
 
 - [ ] **Запросить перекроулинг в ahrefs и Google Search Console** после исправления дублей (v1.0.14, CF Function www/new → apex + rel=canonical). Проверить через 1-2 недели что ahrefs Duplicate pages отчёт очистился, а Google Search Console → Pages → Duplicate без user-selected canonical сокращается
+
+### Banner System — отложенные доработки
+
+- [ ] **Retention для BannerImpression / BannerClick** — таблицы накапливают строки (~3.6M/год при 10k/день). Настроить cron-job (App Runner scheduled task или GitHub Actions) для удаления записей старше 12 месяцев. Денормализованные счётчики на `Banner` остаются.
+- [ ] **Tailwind 4 `@starting-style`** — кастомная entrance-анимация для попапа (scale 0.95→1 + opacity) поверх View Transitions API. Чисто эстетический polish, ~5 строк CSS в `globals.css`.
+- [ ] **Banner exclude pages**: добавить shortcut в админке "Exclude from /admin and /login" (сейчас захардкожено в `BannerHost`, но если кто-то введёт `admin/sub-page` в targetSlugs — banner всё равно не покажется из-за `pathname.startsWith('/admin')` проверки)
 
 
 ---

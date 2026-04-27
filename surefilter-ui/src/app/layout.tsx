@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import { getGaMeasurementId, getGtmId, getTermlyWebsiteUUID, getDefaultSeoMeta } from '@/lib/site-settings';
 import TermlyCMP from '@/components/TermlyCMP';
+import BannerHost from '@/components/banners/BannerHost';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -68,6 +69,9 @@ export default async function RootLayout({
       {gtmId && <GoogleTagManager gtmId={gtmId} />}
       <body suppressHydrationWarning>
         {children}
+        <Suspense fallback={null}>
+          <BannerHost />
+        </Suspense>
         {termlyUUID && (
           <Suspense fallback={null}>
             <TermlyCMP websiteUUID={termlyUUID} autoBlock />

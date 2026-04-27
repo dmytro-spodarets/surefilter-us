@@ -742,3 +742,170 @@ model AdminLog {
   @@index([createdAt])
   @@index([entityType])
 }
+
+// ============================================
+// POPUP BANNER SYSTEM
+// ============================================
+
+enum BannerType {
+  LEAD_CAPTURE
+  CTA
+}
+
+enum BannerStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum BannerCampaignStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum BannerDismissMode {
+  SESSION
+  DAYS
+  FOREVER
+}
+
+model BannerCampaign {
+  id          String               @id @default(cuid())
+  name        String
+  slug        String               @unique
+  description String?              @db.Text
+  status      BannerCampaignStatus @default(ACTIVE)
+  notifyEmail String?
+  banners     Banner[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([status])
+}
+
+model Banner {
+  id              String       @id @default(cuid())
+  name            String
+  slug            String       @unique
+  type            BannerType
+  status          BannerStatus @default(DRAFT)
+
+  // Layout (design variant) — string, not enum, to allow adding new layouts without migrations.
+  // Available values are managed by registry in src/components/banners/layouts/index.ts
+  layout          String       @default("classic_centered")
+
+  // Visual customization (optional, overrides layout defaults)
+  accentColor     String?
+  backgroundColor String?
+  textColor       String?
+
+  // Content
+  title           String
+  body            String?      @db.Text
+  imageUrl        String?
+  imageAlt        String?
+
+  // CTA-specific
+  ctaLabel        String?
+  ctaUrl          String?
+  ctaOpenInNewTab Boolean      @default(false)
+
+  // LEAD_CAPTURE-specific
+  emailPlaceholder String?     @default("Enter your email")
+  submitLabel      String?     @default("Subscribe")
+  successTitle     String?     @default("Thanks!")
+  successMessage   String?     @db.Text
+  notifyEmail      String?
+
+  // Targeting
+  targetAllPages  Boolean      @default(true)
+  targetSlugs     String[]     @default([])
+  excludeSlugs    String[]     @default([])
+
+  // Triggers
+  delayMs         Int          @default(5000)
+  utmRules        Json?
+  refererRules    Json?
+
+  // Dismiss strategy
+  dismissMode     BannerDismissMode @default(DAYS)
+  dismissTtlDays  Int?         @default(30)
+
+  // Schedule
+  publishedAt     DateTime?
+  expiresAt       DateTime?
+  priority        Int          @default(0)
+
+  // Denormalized counters
+  impressionCount Int          @default(0)
+  clickCount      Int          @default(0)
+  submissionCount Int          @default(0)
+
+  campaignId      String?
+  campaign        BannerCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  submissions     BannerSubmission[]
+  impressions     BannerImpression[]
+  clicks          BannerClick[]
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([campaignId])
+  @@index([priority])
+}
+
+model BannerImpression {
+  id          String   @id @default(cuid())
+  bannerId    String
+  banner      Banner   @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+  pageUrl     String?
+  pageSlug    String?
+  utmParams   Json?
+  referer     String?
+  ipAddress   String?
+  userAgent   String?
+  sessionId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([bannerId, createdAt(sort: Desc)])
+  @@index([createdAt])
+}
+
+model BannerClick {
+  id          String   @id @default(cuid())
+  bannerId    String
+  banner      Banner   @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+  pageUrl     String?
+  pageSlug    String?
+  utmParams   Json?
+  referer     String?
+  ipAddress   String?
+  userAgent   String?
+  sessionId   String?
+  clickedUrl  String?
+  createdAt   DateTime @default(now())
+
+  @@index([bannerId, createdAt(sort: Desc)])
+  @@index([createdAt])
+}
+
+model BannerSubmission {
+  id          String   @id @default(cuid())
+  bannerId    String
+  banner      Banner   @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+  email       String
+  pageUrl     String?
+  utmParams   Json?
+  referer     String?
+  ipAddress   String?
+  userAgent   String?
+  emailSent   Boolean  @default(false)
+  emailError  String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([bannerId, createdAt(sort: Desc)])
+  @@index([email])
+}

@@ -67,3 +67,5 @@ export function getClientIp(request: Request): string {
 export const formSubmitLimiter = new RateLimiter(10, 60 * 60 * 1000); // 10 per hour
 export const passwordLimiter = new RateLimiter(5, 15 * 60 * 1000);   // 5 per 15 min
 export const publicApiLimiter = new RateLimiter(100, 60 * 1000);      // 100 per minute
+export const bannerSubmitLimiter = new RateLimiter(5, 60 * 60 * 1000);    // 5 lead submissions per hour per IP
+export const bannerImpressionLimiter = new RateLimiter(200, 60 * 1000);   // 200 impressions per minute per IP
