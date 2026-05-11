@@ -37,7 +37,9 @@ interface FooterContent {
     appStore?: string;
     googlePlay?: string;
   };
-  
+
+  shopLinks?: { name: string; href: string; enabled?: boolean }[];
+
   copyright?: string;
   legalLinks?: { name: string; href: string }[];
 }
@@ -1589,11 +1591,11 @@ export default function SiteSettingsPage() {
                     <input
                       type="text"
                       value={settings.footerContent?.appLinks?.appStore || ''}
-                      onChange={(e) => updateFooter({ 
-                        appLinks: { 
-                          ...settings.footerContent?.appLinks, 
-                          appStore: e.target.value 
-                        } 
+                      onChange={(e) => updateFooter({
+                        appLinks: {
+                          ...settings.footerContent?.appLinks,
+                          appStore: e.target.value
+                        }
                       })}
                       placeholder="https://apps.apple.com/..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
@@ -1604,17 +1606,96 @@ export default function SiteSettingsPage() {
                     <input
                       type="text"
                       value={settings.footerContent?.appLinks?.googlePlay || ''}
-                      onChange={(e) => updateFooter({ 
-                        appLinks: { 
-                          ...settings.footerContent?.appLinks, 
-                          googlePlay: e.target.value 
-                        } 
+                      onChange={(e) => updateFooter({
+                        appLinks: {
+                          ...settings.footerContent?.appLinks,
+                          googlePlay: e.target.value
+                        }
                       })}
                       placeholder="https://play.google.com/..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* Shop Online Links */}
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-bold text-gray-900">Shop Online Links</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const shopLinks = [...(settings.footerContent?.shopLinks || [])];
+                      shopLinks.push({ name: 'Amazon', href: '', enabled: false });
+                      updateFooter({ shopLinks });
+                    }}
+                    className="px-3 py-1 bg-sure-blue-600 hover:bg-sure-blue-700 text-white rounded text-sm"
+                  >
+                    + Add Shop Link
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add retailer links (Amazon, eBay, etc.) shown in the footer under &quot;Shop online&quot;. A link must be enabled and have a URL to appear on the site.
+                </p>
+
+                {settings.footerContent?.shopLinks && settings.footerContent.shopLinks.length > 0 ? (
+                  <div className="space-y-3">
+                    {settings.footerContent.shopLinks.map((link, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-[160px_1fr_auto_auto] gap-2 items-center">
+                        <input
+                          type="text"
+                          value={link.name}
+                          onChange={(e) => {
+                            const shopLinks = [...(settings.footerContent?.shopLinks || [])];
+                            shopLinks[index] = { ...shopLinks[index], name: e.target.value };
+                            updateFooter({ shopLinks });
+                          }}
+                          placeholder="Amazon"
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                        />
+                        <input
+                          type="text"
+                          value={link.href}
+                          onChange={(e) => {
+                            const shopLinks = [...(settings.footerContent?.shopLinks || [])];
+                            shopLinks[index] = { ...shopLinks[index], href: e.target.value };
+                            updateFooter({ shopLinks });
+                          }}
+                          placeholder="https://www.amazon.com/stores/..."
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+                        />
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700 px-2">
+                          <input
+                            type="checkbox"
+                            checked={link.enabled !== false}
+                            onChange={(e) => {
+                              const shopLinks = [...(settings.footerContent?.shopLinks || [])];
+                              shopLinks[index] = { ...shopLinks[index], enabled: e.target.checked };
+                              updateFooter({ shopLinks });
+                            }}
+                            className="w-4 h-4"
+                          />
+                          Enabled
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const shopLinks = [...(settings.footerContent?.shopLinks || [])];
+                            shopLinks.splice(index, 1);
+                            updateFooter({ shopLinks });
+                          }}
+                          className="px-3 py-2 text-red-600 hover:text-red-700 text-sm"
+                          aria-label="Remove shop link"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No shop links yet. Click &quot;+ Add Shop Link&quot; to add one.</p>
+                )}
               </div>
 
               {/* Copyright */}

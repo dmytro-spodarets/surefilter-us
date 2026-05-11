@@ -71,6 +71,11 @@ const UpdateSettingsSchema = z.object({
       appStore: z.string().nullable().optional(),
       googlePlay: z.string().nullable().optional(),
     }).optional(),
+    shopLinks: z.array(z.object({
+      name: z.string().min(1),
+      href: z.string(),
+      enabled: z.boolean().optional(),
+    })).optional(),
     copyright: z.string().nullable().optional(),
     legalLinks: z.array(z.object({
       name: z.string(),
@@ -170,6 +175,9 @@ export async function GET(request: NextRequest) {
               appStore: '#',
               googlePlay: '#',
             },
+            shopLinks: [
+              { name: 'Amazon', href: '', enabled: false },
+            ],
             copyright: '© 2025 Sure Filter®. All rights reserved.',
             legalLinks: [
               { name: 'Privacy Policy', href: '/privacy' },

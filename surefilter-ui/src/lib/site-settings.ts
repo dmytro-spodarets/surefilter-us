@@ -95,6 +95,7 @@ export interface SiteSettings {
       appStore?: string;
       googlePlay?: string;
     };
+    shopLinks?: Array<{ name: string; href: string; enabled?: boolean }>;
     copyright?: string;
     legalLinks?: Array<{ name: string; href: string }>;
   };

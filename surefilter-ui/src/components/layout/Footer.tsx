@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
-import { 
-  FaLinkedin, 
-  FaFacebook, 
-  FaTwitter, 
-  FaInstagram, 
-  FaYoutube, 
+import {
+  FaLinkedin,
+  FaFacebook,
+  FaTwitter,
+  FaInstagram,
+  FaYoutube,
   FaTiktok,
-  FaApple, 
-  FaGooglePlay 
+  FaApple,
+  FaGooglePlay,
+  FaAmazon,
+  FaShoppingCart,
 } from 'react-icons/fa';
 import { getFooterContent, getTermlyWebsiteUUID } from '@/lib/site-settings';
 
@@ -19,6 +21,14 @@ const iconMap: Record<string, any> = {
   Instagram: FaInstagram,
   YouTube: FaYoutube,
   TikTok: FaTiktok,
+};
+
+const shopIconMap: Record<string, any> = {
+  Amazon: FaAmazon,
+};
+
+const shopAccentMap: Record<string, string> = {
+  Amazon: 'text-[#FF9900]',
 };
 
 export default async function Footer() {
@@ -36,6 +46,9 @@ export default async function Footer() {
   const companyLinks = footerData.companyLinks || [];
   const socialLinks = footerData.socialLinks || [];
   const appLinks = footerData.appLinks || { appStore: '', googlePlay: '' };
+  const shopLinks = (footerData.shopLinks || []).filter(
+    (link) => link.enabled !== false && link.href && link.href !== '#'
+  );
   const copyright = footerData.copyright || '';
   const legalLinks = footerData.legalLinks || [];
 
@@ -155,6 +168,31 @@ export default async function Footer() {
                 )}
               </div>
             </div>
+
+            {shopLinks.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-base font-semibold mb-3">Shop online</h4>
+                <div className="flex flex-wrap items-center gap-3">
+                  {shopLinks.map((link) => {
+                    const Icon = shopIconMap[link.name] || FaShoppingCart;
+                    const accent = shopAccentMap[link.name] || 'text-white';
+                    return (
+                      <a
+                        key={link.name}
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg px-3 py-2"
+                        aria-label={`Shop Sure Filter on ${link.name}`}
+                      >
+                        <Icon className={`w-5 h-5 ${accent}`} />
+                        <span className="text-sm">Buy on {link.name}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
