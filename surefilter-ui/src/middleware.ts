@@ -105,18 +105,16 @@ export async function middleware(req: NextRequest) {
   }
 
   // Preserve CloudFront-provided x-forwarded-host (viewer Host) for Server Actions origin validation.
-  // Only set it from Host when missing (e.g., local dev), do NOT overwrite a valid CF value.
+  // Only rewrite the request when we actually need to inject x-forwarded-host (local dev / direct
+  // App Runner hits). Recreating the request unconditionally trips Next.js 15 bug #83453, which
+  // locks large multipart/form-data bodies before the route handler can read them.
   const xfh = requestHeaders.get('x-forwarded-host');
   if (!xfh && host) {
     requestHeaders.set('x-forwarded-host', host);
-    requestHeaders.set('x-mw-normalized', 'set-from-host');
-  } else if (xfh) {
-    requestHeaders.set('x-mw-normalized', 'pass');
-  } else {
-    requestHeaders.set('x-mw-normalized', 'none');
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  return NextResponse.next();
 }
 
 export const config = {
