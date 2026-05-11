@@ -118,5 +118,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // Skip /api/admin/files/upload — middleware in standalone mode locks
+  // multipart/form-data bodies before the route handler runs (Next.js
+  // bug #83453). The route handles its own auth via cookies()+decode().
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/admin/files/upload).*)'],
 };
