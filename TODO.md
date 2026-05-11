@@ -395,6 +395,19 @@
   - **Также:** `# syntax=docker/dockerfile:1.7` → `# syntax=docker/dockerfile:1` (latest 1.x)
 
 ### В планах
+- [ ] **File upload → direct-to-S3 presigned PUT URL** (high-priority refactor, выявлено май 2026)
+  - **Контекст:** на App Runner standalone-mode multipart POST через middleware → Next.js bug [#83453](https://github.com/vercel/next.js/issues/83453) (`Response body object should not be disturbed or locked`). Сейчас обойдено `middleware bypass` для `/api/admin/files/upload` ([middleware.ts:122-127](surefilter-ui/src/middleware.ts#L122-L127))
+  - **Целевой flow:** Browser → `POST /api/admin/files/presign` (JSON) → S3 PUT напрямую → `POST /api/admin/files/metadata` (JSON, DB record)
+  - **Плюсы:** App Runner не видит multipart bodies (баг #83453 не applicable), unlimited size, App Runner memory свободна, можно вернуть полный middleware matcher
+  - **Минусы:** S3 bucket требует CORS-конфиг для PUT с браузера, фронтенд усложняется (3 round-trips: presign + S3 upload + metadata)
+  - **Что нужно:**
+    - Новый route `/api/admin/files/presign` — выдаёт presigned PUT URL (валидация mime type + size заранее) и S3 key
+    - Новый route `/api/admin/files/metadata` — сохраняет MediaAsset в БД после успешного PUT
+    - CORS-конфиг на `surefilter-files-prod` S3 bucket (через Terraform)
+    - Переписать `FileUploader.tsx` на новый flow
+    - Удалить `/api/admin/files/upload` route + middleware-исключение
+- [ ] **Self-host browser-image-compression** — сейчас грузится с `cdn.jsdelivr.net` (CSP открыт). Положить bundle в `public/` + передать `webWorker: '/lib/browser-image-compression.js'` опцию. Убрать `cdn.jsdelivr.net` из CSP `script-src`/`worker-src` (полчаса работы)
+- [ ] **Self-host TinyMCE** — сейчас бандл грузится с `cdn.tiny.cloud` (CSP открыт). Альтернатива — `tinymce` npm package + bundle сами через webpack/`@tinymce/tinymce-react` static mode. Заметно сложнее (CSS skin + plugins). Низкий приоритет — `cdn.tiny.cloud` это стандартный SaaS-паттерн TinyMCE
 - [ ] S3 OAC вместо OAI (SigV4) — заодно уберёт persistent cosmetic drift на `aws_s3_bucket_policy.static` (Terraform пишет `Principal.CanonicalUser`, AWS возвращает legacy `Principal.AWS` ARN). Альтернатива быстрее — `lifecycle { ignore_changes = [policy] }` на bucket policy
 - [ ] Cosmetic drift `aws_sesv2_configuration_set.{newsletter,mail,transactional}.tracking_options.https_policy`: провайдер хочет `null`, AWS возвращает `"OPTIONAL"` (дефолт). Решение — `lifecycle { ignore_changes = [tracking_options[0].https_policy] }` или дождаться фикса в AWS-провайдере
 - [ ] VPC Connector для App Runner (закрыть публичный RDS)
