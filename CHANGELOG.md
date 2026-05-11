@@ -13,6 +13,7 @@
 - 2025-01-15 — Настроена оптимизация изображений (Unsplash, WebP)
 
 ### История
+- 2026-04-29 — Banner System polish: реализован campaign.notifyEmail fallback в `banner-email.ts` и submit endpoint (раньше использовался только `banner.notifyEmail`, теперь — fallback chain banner → campaign), banner-layouts переведены с `<img>` на `ManagedImage` (WebP/AVIF auto-convert, responsive `sizes`, shimmer placeholder)
 - 2026-04-27 — Popup Banner System (Phase 4): wildcard targeting в `targetSlugs/excludeSlugs` (`products/*`), banner duplicate endpoint + UI кнопка, cross-tab dismiss sync через `storage` event, View Transitions API + `prefers-reduced-motion` для popup entrance, GA4 events с параметрами `campaign_id`/`banner_type`/`banner_layout`/`banner_slug`
 - 2026-04-27 — Popup Banner System (Phase 3): кампании (BannerCampaign модель + CRUD `/admin/banner-campaigns`), aggregate stats endpoint и detail page с timeseries графиками, per-banner stats `/admin/banners/[id]/stats` (charts impressions/clicks за 30 дней, breakdown по pages/referers), UTM/referer rule editor в BannerForm, campaign selector, lightweight SVG charts (TimeSeriesChart/BreakdownList/StatCard, 0 dependencies)
 - 2026-04-27 — Popup Banner System (Phase 2): lead capture — `lib/banner-email.ts` (AWS SES v2 SDK с фирменным HTML-шаблоном), `POST /api/banners/[id]/submit` (Zod email validation, rate-limit 5/hr per IP, honeypot, atomic transaction), admin pages `/admin/banner-submissions` (универсальный список лидов) и `/admin/banners/[id]/submissions` (per-banner), CSV export, retry-email endpoint

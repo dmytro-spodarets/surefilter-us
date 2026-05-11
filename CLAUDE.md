@@ -1,7 +1,7 @@
 # CLAUDE.md - Quick Reference for AI Assistants
 
 > Этот документ создан для быстрой ориентации в проекте Sure Filter US.
-> Последнее обновление: 27 апреля 2026
+> Последнее обновление: 29 апреля 2026
 
 ---
 
@@ -441,6 +441,7 @@ npm run seed:content:force  # С перезаписью
 - SVG-превью: `public/images/banner-layouts/<id>.svg`
 - **Чтобы добавить новый layout**: создать компонент + meta export, добавить в registry в `index.ts`, положить SVG. Ноль миграций БД, ноль изменений API/Zod
 - `banner.layout` — string (не enum) для расширяемости. Fallback на `DEFAULT_LAYOUT_ID` при неизвестном значении
+- **Картинки в layouts**: используется `ManagedImage` ([src/components/ui/ManagedImage.tsx](surefilter-ui/src/components/ui/ManagedImage.tsx)) с `fill` + `sizes` — авто-конвертация S3 → CDN, WebP/AVIF, shimmer placeholder (project-wide convention)
 
 **Targeting (на каких страницах показывать)**:
 - `targetAllPages: true` — на всех + `excludeSlugs` (исключения)
@@ -476,7 +477,7 @@ npm run seed:content:force  # С перезаписью
 - `POST /api/banners/[id]/submit` — Zod email validation, rate-limit, honeypot field, atomic transaction (BannerSubmission + counter increment), fire-and-forget email
 - **Email**: `src/lib/banner-email.ts` — `sendBannerLeadNotificationEmail()` через AWS SES v2 (зеркально form-email pattern), фирменный HTML с UTM/page/referer/IP метаданными
 - **From**: `getFormNotificationFromEmail()` (default `noreply@notify.surefilter.us`)
-- **NotifyEmail fallback chain**: `banner.notifyEmail` → `campaign.notifyEmail` (TODO в Phase 5) → пропуск отправки
+- **NotifyEmail fallback chain**: `banner.notifyEmail` → `campaign.notifyEmail` → пропуск отправки
 - **Retry**: `POST /api/admin/banner-submissions/[id]/retry-email`
 
 **Campaigns**:

@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 27 апреля 2026 (Popup Banner System Phase 1-4: Banner/Campaign CRUD, lead capture, UTM/referer triggers, layout gallery, stats dashboards)
+**Последнее обновление:** 29 апреля 2026 (Banner System polish: campaign.notifyEmail fallback, ManagedImage в layouts)
 
 ---
 

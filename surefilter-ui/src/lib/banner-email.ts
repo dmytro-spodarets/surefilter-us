@@ -88,15 +88,16 @@ function buildBannerLeadEmail(args: BuildArgs): { subject: string; html: string;
 export async function sendBannerLeadNotificationEmail(submissionId: string): Promise<void> {
   const submission = await prisma.bannerSubmission.findUnique({
     where: { id: submissionId },
-    include: { banner: true },
+    include: { banner: { include: { campaign: true } } },
   });
   if (!submission) throw new Error('Banner submission not found');
 
-  const notifyEmail = submission.banner.notifyEmail;
+  // Fallback chain: banner.notifyEmail → campaign.notifyEmail → skip
+  const notifyEmail = submission.banner.notifyEmail || submission.banner.campaign?.notifyEmail || null;
   if (!notifyEmail) {
     await prisma.bannerSubmission.update({
       where: { id: submissionId },
-      data: { emailSent: false, emailError: 'No notify email configured for this banner' },
+      data: { emailSent: false, emailError: 'No notify email configured for this banner or campaign' },
     });
     return;
   }

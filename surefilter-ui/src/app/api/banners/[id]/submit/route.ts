@@ -45,7 +45,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ ok: true });
   }
 
-  const banner = await prisma.banner.findUnique({ where: { id } });
+  const banner = await prisma.banner.findUnique({
+    where: { id },
+    include: { campaign: { select: { notifyEmail: true } } },
+  });
   if (!banner) {
     return NextResponse.json({ error: 'Banner not found' }, { status: 404 });
   }
@@ -80,8 +83,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: 'Failed to save submission' }, { status: 500 });
   }
 
-  // Fire-and-forget email
-  if (banner.notifyEmail) {
+  // Fire-and-forget email — notifyEmail fallback chain: banner → campaign
+  const effectiveNotifyEmail = banner.notifyEmail || banner.campaign?.notifyEmail || null;
+  if (effectiveNotifyEmail) {
     sendBannerLeadNotificationEmailAsync(submission.id);
   }
 
