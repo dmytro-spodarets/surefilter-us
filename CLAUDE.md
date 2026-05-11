@@ -220,7 +220,7 @@ surefilter-us/
 - **surefilter.eu / .co / .net** (+www) — 301 redirect → surefilter.us (CloudFront Function, edge redirect, path + query preserved)
 
 ### Ключевые сервисы
-- **App Runner** `surefilter-prod` — 1 vCPU / 2 GB, порт 3000, образ из ECR
+- **App Runner** `surefilter-prod` — 1 vCPU / 2 GB, порт 3000, образ из ECR; версия образа в [infra/envs/prod/image-versions.tf](infra/envs/prod/image-versions.tf) (`app_runner_image_version`, default `v1.2.0`)
 - **EC2** `surefilter-prod` — t4g.medium (ARM64), Ubuntu 24.04 LTS, Elastic IP, `newsletters.surefilter.us`
 - **RDS** PostgreSQL 15 — `db.t4g.micro`, 20 GB, публичный доступ (временно)
 - **CloudFront** — 6 дистрибуций: site (surefilter.us), assets (assets.surefilter.us), redirect (surefilter.eu/.co/.net + www + news/mail/notify.surefilter.us), SES newsletter tracking (link.news.surefilter.us), SES mail tracking (link.mail.surefilter.us), SES notify tracking (link.notify.surefilter.us)

@@ -395,7 +395,8 @@
   - **Также:** `# syntax=docker/dockerfile:1.7` → `# syntax=docker/dockerfile:1` (latest 1.x)
 
 ### В планах
-- [ ] S3 OAC вместо OAI (SigV4)
+- [ ] S3 OAC вместо OAI (SigV4) — заодно уберёт persistent cosmetic drift на `aws_s3_bucket_policy.static` (Terraform пишет `Principal.CanonicalUser`, AWS возвращает legacy `Principal.AWS` ARN). Альтернатива быстрее — `lifecycle { ignore_changes = [policy] }` на bucket policy
+- [ ] Cosmetic drift `aws_sesv2_configuration_set.{newsletter,mail,transactional}.tracking_options.https_policy`: провайдер хочет `null`, AWS возвращает `"OPTIONAL"` (дефолт). Решение — `lifecycle { ignore_changes = [tracking_options[0].https_policy] }` или дождаться фикса в AWS-провайдере
 - [ ] VPC Connector для App Runner (закрыть публичный RDS)
 - [ ] WAF и логи CloudFront
 - [x] ~~Rate limiting для admin API~~ — Готово (март 2026): middleware auth + publicApiLimiter на /api/news, /api/resources

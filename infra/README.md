@@ -30,6 +30,7 @@ infra/envs/prod/
 ├── acm.tf                  # SSL certificates (site + assets)
 ├── acm-redirects.tf        # SSL certificate for redirect domains
 ├── app-runner.tf           # App Runner service
+├── image-versions.tf       # Container image tags (App Runner ECR version)
 ├── cloudfront.tf           # Main CloudFront distribution + DNS records
 ├── cloudfront-assets.tf    # Assets CDN (assets.surefilter.us)
 ├── cloudfront-redirect.tf  # 301 redirect distribution (commented until NS delegation)
@@ -130,6 +131,30 @@ Route53 zones created for `surefilter.eu`, `.co`, `.net`. Next steps:
 2. Wait for DNS propagation
 3. Uncomment resources in `acm-redirects.tf`, `cloudfront-redirect.tf`, `route53-redirects.tf`
 4. `tofu apply`
+
+## Deploying a new App Runner image
+
+The production image tag lives in `image-versions.tf` (variable `app_runner_image_version`). To roll out a new build:
+
+```bash
+# Option 1 — commit a new default
+sed -i '' 's/default = "v[0-9.]*"/default = "v1.3.0"/' image-versions.tf
+tofu apply -var-file=secrets.tfvars
+
+# Option 2 — one-off override (no edit)
+tofu apply -var-file=secrets.tfvars -var="app_runner_image_version=v1.3.0"
+```
+
+App Runner picks up the new tag and rolls the service in-place. `auto_deployments_enabled = false` keeps every release explicit.
+
+## Known cosmetic drift
+
+After `apply`, four resources keep showing a diff on every `plan` — this is provider-level normalization, not a real change:
+
+- `aws_s3_bucket_policy.static` — AWS stores the OAI principal in legacy `Principal.AWS` ARN form; Terraform writes the equivalent `Principal.CanonicalUser`. Same OAI, same access.
+- `aws_sesv2_configuration_set.{newsletter,mail,transactional}` — `tracking_options.https_policy: "OPTIONAL"` is the AWS default; the provider tries to write `null`.
+
+Safe to ignore. To silence: add `lifecycle { ignore_changes = [policy] }` / `[tracking_options[0].https_policy]`, or migrate S3 access from OAI to OAC (TODO).
 
 ## CI/CD
 
