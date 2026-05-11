@@ -24,6 +24,8 @@ export interface PublicBanner {
   type: BannerType;
 
   layout: string;
+  /** Layout-specific configuration (free-form per layout, validated server-side). */
+  layoutConfig?: unknown;
   accentColor?: string | null;
   backgroundColor?: string | null;
   textColor?: string | null;

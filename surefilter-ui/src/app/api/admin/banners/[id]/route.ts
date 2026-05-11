@@ -5,6 +5,7 @@ import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 import { invalidatePages } from '@/lib/revalidate';
 import { clearBannersCache } from '@/lib/banners';
+import { ProductShowcaseConfigSchema } from '@/components/banners/layouts/product-showcase-schema';
 
 const UtmRuleSchema = z.object({
   key: z.string().min(1),
@@ -24,6 +25,7 @@ const UpdateBannerSchema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
 
   layout: z.string().optional(),
+  layoutConfig: z.any().nullable().optional(),
   accentColor: z.string().nullable().optional(),
   backgroundColor: z.string().nullable().optional(),
   textColor: z.string().nullable().optional(),
@@ -88,10 +90,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       if (conflict) return NextResponse.json({ error: 'Slug already in use' }, { status: 409 });
     }
 
+    let layoutConfigParsed: unknown;
+    if (data.layoutConfig !== undefined) {
+      const effectiveLayout = data.layout ?? (await prisma.banner.findUnique({ where: { id }, select: { layout: true } }))?.layout;
+      if (effectiveLayout === 'product_showcase') {
+        layoutConfigParsed = ProductShowcaseConfigSchema.parse(data.layoutConfig ?? {});
+      } else {
+        layoutConfigParsed = data.layoutConfig;
+      }
+    }
+
     const updated = await prisma.banner.update({
       where: { id },
       data: {
         ...data,
+        layoutConfig: data.layoutConfig !== undefined ? (layoutConfigParsed as any) : undefined,
         publishedAt: data.publishedAt !== undefined ? (data.publishedAt ? new Date(data.publishedAt) : null) : undefined,
         expiresAt: data.expiresAt !== undefined ? (data.expiresAt ? new Date(data.expiresAt) : null) : undefined,
         utmRules: data.utmRules !== undefined ? (data.utmRules ?? undefined) : undefined,

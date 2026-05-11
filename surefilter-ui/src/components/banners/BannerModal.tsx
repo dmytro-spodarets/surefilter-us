@@ -58,7 +58,7 @@ export function BannerModal({ banner, onCtaClick, onSubmit, onDismiss, state, er
       onClick={handleClick}
       onCancel={handleCancel}
       style={{ viewTransitionName: 'sf-banner-modal' } as React.CSSProperties}
-      className="bg-transparent p-0 m-auto backdrop:bg-black/50 backdrop:backdrop-blur-sm w-full max-w-2xl"
+      className="bg-transparent p-0 m-auto backdrop:bg-black/50 backdrop:backdrop-blur-sm w-full max-w-4xl"
     >
       <Layout
         banner={banner}

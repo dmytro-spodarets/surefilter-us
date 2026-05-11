@@ -28,6 +28,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       clickCount: _cc,
       submissionCount: _sc,
       slug: _slug,
+      utmRules,
+      refererRules,
+      layoutConfig,
       ...rest
     } = original;
 
@@ -37,6 +40,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         slug: newSlug,
         name: `${original.name} (copy)`,
         status: 'DRAFT',
+        utmRules: utmRules ?? undefined,
+        refererRules: refererRules ?? undefined,
+        layoutConfig: layoutConfig ?? undefined,
       },
     });
 

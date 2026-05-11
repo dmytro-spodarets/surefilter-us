@@ -5,6 +5,7 @@ import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 import { invalidatePages } from '@/lib/revalidate';
 import { clearBannersCache } from '@/lib/banners';
+import { ProductShowcaseConfigSchema } from '@/components/banners/layouts/product-showcase-schema';
 
 const UtmRuleSchema = z.object({
   key: z.string().min(1),
@@ -24,6 +25,7 @@ const CreateBannerSchema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional().default('DRAFT'),
 
   layout: z.string().optional().default('classic_centered'),
+  layoutConfig: z.any().nullable().optional(),
   accentColor: z.string().nullable().optional(),
   backgroundColor: z.string().nullable().optional(),
   textColor: z.string().nullable().optional(),
@@ -105,6 +107,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = CreateBannerSchema.parse(body);
 
+    let layoutConfig: unknown = data.layoutConfig ?? null;
+    if (data.layout === 'product_showcase') {
+      layoutConfig = ProductShowcaseConfigSchema.parse(data.layoutConfig ?? {});
+    }
+
     const existing = await prisma.banner.findUnique({ where: { slug: data.slug } });
     if (existing) {
       return NextResponse.json({ error: 'Banner with this slug already exists' }, { status: 409 });
@@ -113,6 +120,7 @@ export async function POST(request: NextRequest) {
     const banner = await prisma.banner.create({
       data: {
         ...data,
+        layoutConfig: layoutConfig ?? undefined,
         publishedAt: data.publishedAt ? new Date(data.publishedAt) : null,
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
         utmRules: data.utmRules ?? undefined,

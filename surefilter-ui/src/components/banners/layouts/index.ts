@@ -2,6 +2,7 @@ import type { BannerType } from '@/types/banners';
 import { ClassicCenteredLayout, classicCenteredMeta } from './ClassicCentered';
 import { SideImageLayout, sideImageMeta } from './SideImage';
 import { MinimalTextLayout, minimalTextMeta } from './MinimalText';
+import { ProductShowcaseLayout, productShowcaseMeta } from './ProductShowcase';
 import type { BannerLayoutMeta } from './types';
 
 export const DEFAULT_LAYOUT_ID = 'classic_centered';
@@ -10,6 +11,7 @@ export const bannerLayouts: Record<string, BannerLayoutMeta> = {
   [classicCenteredMeta.id]: { ...classicCenteredMeta, Component: ClassicCenteredLayout },
   [sideImageMeta.id]: { ...sideImageMeta, Component: SideImageLayout },
   [minimalTextMeta.id]: { ...minimalTextMeta, Component: MinimalTextLayout },
+  [productShowcaseMeta.id]: { ...productShowcaseMeta, Component: ProductShowcaseLayout },
 };
 
 export function getLayout(id: string | undefined | null): BannerLayoutMeta {

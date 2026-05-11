@@ -6,10 +6,26 @@ import MediaPickerModal from './MediaPickerModal';
 import BannerLayoutGallery from './BannerLayoutGallery';
 import BannerLivePreview from './BannerLivePreview';
 import { UtmRuleEditor, RefererRuleEditor } from './BannerTargetingEditor';
+import BannerProductShowcaseTab from './BannerProductShowcaseTab';
 import type { PublicBanner, BannerType, UtmRule, RefererRule } from '@/types/banners';
 import { DEFAULT_LAYOUT_ID } from '@/components/banners/layouts';
+import type { ProductShowcaseConfig } from '@/components/banners/layouts/product-showcase-schema';
 
-type Tab = 'layout' | 'content' | 'targeting' | 'triggers' | 'schedule' | 'lead';
+type Tab = 'layout' | 'content' | 'targeting' | 'triggers' | 'schedule' | 'lead' | 'products';
+
+const DEFAULT_SHOWCASE_CONFIG: ProductShowcaseConfig = {
+  overlayHeadlineAccent: '',
+  overlayHeadlineRest: '',
+  overlaySubtitle: '',
+  products: [{ productId: '' }, { productId: '' }],
+  showImage: true,
+  showApplication: true,
+  showCrossRefs: true,
+  showMoqCont: true,
+  showPrice: true,
+  footerStockText: '',
+  footerBrandsText: '',
+};
 
 interface BannerFormProps {
   bannerId?: string;
@@ -57,6 +73,8 @@ const emptyForm = {
   expiresAt: '',
   priority: 0,
   campaignId: '' as string,
+
+  layoutConfig: null as ProductShowcaseConfig | null,
 };
 
 export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
@@ -102,6 +120,7 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
       expiresAt: initialData.expiresAt ? initialData.expiresAt.slice(0, 16) : '',
       priority: initialData.priority ?? 0,
       campaignId: initialData.campaignId || '',
+      layoutConfig: (initialData.layoutConfig as ProductShowcaseConfig | null) || null,
     });
   }, [initialData]);
 
@@ -116,11 +135,41 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
 
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((f) => ({ ...f, [key]: value }));
 
+  // Enrich product showcase preview with product image/code data so the live preview matches the published banner.
+  const [previewProductsData, setPreviewProductsData] = useState<Record<string, { id: string; code: string; imageUrl: string | null }>>({});
+  const previewProductIdsKey = (form.layoutConfig?.products || []).map((p) => p.productId).filter(Boolean).join(',');
+  useEffect(() => {
+    if (form.layout !== 'product_showcase') {
+      setPreviewProductsData({});
+      return;
+    }
+    const ids = previewProductIdsKey.split(',').filter(Boolean);
+    if (ids.length === 0) {
+      setPreviewProductsData({});
+      return;
+    }
+    fetch(`/api/admin/products?ids=${ids.join(',')}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const map: Record<string, { id: string; code: string; imageUrl: string | null }> = {};
+        for (const p of d.products || []) {
+          map[p.id] = { id: p.id, code: p.code, imageUrl: p.media?.[0]?.asset?.cdnUrl ?? null };
+        }
+        setPreviewProductsData(map);
+      })
+      .catch(() => undefined);
+  }, [form.layout, previewProductIdsKey]);
+
+  const previewLayoutConfig = form.layout === 'product_showcase' && form.layoutConfig
+    ? { ...form.layoutConfig, productsData: previewProductsData }
+    : form.layoutConfig || undefined;
+
   const previewBanner: PublicBanner = {
     id: 'preview',
     slug: form.slug || 'preview',
     type: form.type,
     layout: form.layout,
+    layoutConfig: previewLayoutConfig,
     accentColor: form.accentColor || null,
     backgroundColor: form.backgroundColor || null,
     textColor: form.textColor || null,
@@ -187,6 +236,7 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
       expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : null,
       priority: form.priority,
       campaignId: form.campaignId || null,
+      layoutConfig: form.layout === 'product_showcase' ? (form.layoutConfig || DEFAULT_SHOWCASE_CONFIG) : null,
     };
 
     try {
@@ -294,6 +344,7 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
           <div className="border-b border-gray-200 flex flex-wrap px-2">
             {tabBtn('layout', 'Layout')}
             {tabBtn('content', 'Content')}
+            {form.layout === 'product_showcase' && tabBtn('products', 'Products')}
             {tabBtn('targeting', 'Targeting')}
             {tabBtn('triggers', 'Triggers')}
             {tabBtn('schedule', 'Schedule')}
@@ -302,7 +353,27 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
 
           <div className="p-6">
             {tab === 'layout' && (
-              <BannerLayoutGallery selectedId={form.layout} onSelect={(id) => set('layout', id)} filterType={form.type} />
+              <BannerLayoutGallery
+                selectedId={form.layout}
+                onSelect={(id) => {
+                  setForm((f) => ({
+                    ...f,
+                    layout: id,
+                    layoutConfig: id === 'product_showcase'
+                      ? (f.layoutConfig || DEFAULT_SHOWCASE_CONFIG)
+                      : f.layoutConfig,
+                  }));
+                  if (id === 'product_showcase') setTab('products');
+                }}
+                filterType={form.type}
+              />
+            )}
+
+            {tab === 'products' && form.layout === 'product_showcase' && (
+              <BannerProductShowcaseTab
+                config={form.layoutConfig || DEFAULT_SHOWCASE_CONFIG}
+                onChange={(next) => set('layoutConfig', next)}
+              />
             )}
 
             {tab === 'content' && (

@@ -795,6 +795,10 @@ model Banner {
   // Available values are managed by registry in src/components/banners/layouts/index.ts
   layout          String       @default("classic_centered")
 
+  // Layout-specific configuration (free-form per layout, e.g. product_showcase carries products array + display toggles).
+  // Schema is owned by each layout's TypeScript type; validated in API via Zod.
+  layoutConfig    Json?
+
   // Visual customization (optional, overrides layout defaults)
   accentColor     String?
   backgroundColor String?

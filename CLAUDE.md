@@ -91,7 +91,7 @@ surefilter-us/
 - `Form` / `FormSubmission` — универсальные формы
 
 ### Popup Banners (Marketing)
-- `Banner` — попап-банеры (type: LEAD_CAPTURE | CTA, layout, targeting, triggers, dismiss strategy, schedule, denormalized counters)
+- `Banner` — попап-банеры (type: LEAD_CAPTURE | CTA, layout, layoutConfig Json для layout-specific настроек, targeting, triggers, dismiss strategy, schedule, denormalized counters)
 - `BannerCampaign` — кампании (группировка банеров с aggregate stats и общим notifyEmail fallback)
 - `BannerImpression` — каждый показ (full DB logging для analytics dashboards)
 - `BannerClick` — каждый клик по CTA
@@ -437,11 +437,21 @@ npm run seed:content:force  # С перезаписью
 
 **Layout Registry** (extensible design gallery):
 - Layout — это React-компонент в `src/components/banners/layouts/`, зарегистрированный в `index.ts`
-- Стартовые: `ClassicCentered`, `SideImage`, `MinimalText` (все поддерживают LEAD_CAPTURE + CTA)
+- Стартовые: `ClassicCentered`, `SideImage`, `MinimalText`, `ProductShowcase` (все поддерживают LEAD_CAPTURE + CTA)
 - SVG-превью: `public/images/banner-layouts/<id>.svg`
-- **Чтобы добавить новый layout**: создать компонент + meta export, добавить в registry в `index.ts`, положить SVG. Ноль миграций БД, ноль изменений API/Zod
+- **Чтобы добавить новый layout**: создать компонент + meta export, добавить в registry в `index.ts`, положить SVG. Если layout требует доп. настройки — кладёт их в `Banner.layoutConfig` (Json), валидация через свою Zod-схему. Ноль миграций БД для базовых layouts
 - `banner.layout` — string (не enum) для расширяемости. Fallback на `DEFAULT_LAYOUT_ID` при неизвестном значении
+- **`Banner.layoutConfig` (Json?)** — layout-specific конфиг. Каждый layout владеет своей TS-типизацией и Zod-схемой; API валидирует условно по `layout`. Public API (`getActiveBanners`) может обогащать config доп. данными (например, `product_showcase` подтягивает code/imageUrl продуктов одним запросом)
 - **Картинки в layouts**: используется `ManagedImage` ([src/components/ui/ManagedImage.tsx](surefilter-ui/src/components/ui/ManagedImage.tsx)) с `fill` + `sizes` — авто-конвертация S3 → CDN, WebP/AVIF, shimmer placeholder (project-wide convention)
+
+**Product Showcase layout** (B2B catalog promo):
+- Header-strip: hero image с gradient-overlay + split-color headline (orange accent word + light rest) + subtitle
+- 2 product cards (responsive grid, stack <640px): SKU plate (доминантный элемент), image, описание, application/fits, cross-refs table, MOQ/CONT, price block. SPECIAL ribbon → красный price-цвет
+- Footer: stock+brands text слева; CTA-кнопка ИЛИ email form справа (выбор через `banner.type`)
+- Конфиг в `layoutConfig` ([product-showcase-schema.ts](surefilter-ui/src/components/banners/layouts/product-showcase-schema.ts)): overlayHeadlineAccent/Rest/Subtitle, products[] (per-item: description, applicationText, crossRefs[], moq, cont, priceText, pricePerCaseText, specialBadge), 5 visibility toggles, footerStockText, footerBrandsText
+- Цены/special/fits — per-banner overrides (Product модель не имеет price-поля, это сознательное решение — попап-промо короткоживущий)
+- Admin tab «Products» в [BannerForm](surefilter-ui/src/components/admin/BannerForm.tsx) виден только при `layout === 'product_showcase'`. Product picker через `/api/admin/products?ids=...`
+- Best practices May 2026: close 44×44px (WCAG 2.2 SC 2.5.8), mobile vertical stack, SKU как самый prominent элемент (research-based), microcopy «Get full catalog» / «See all filters», helper «No spam. Unsubscribe anytime.», без fake urgency (FTC enforcement)
 
 **Targeting (на каких страницах показывать)**:
 - `targetAllPages: true` — на всех + `excludeSlugs` (исключения)
