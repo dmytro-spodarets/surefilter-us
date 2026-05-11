@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { cookies } from 'next/headers';
+import { decode } from 'next-auth/jwt';
 import { uploadToS3 } from '@/lib/s3';
 import { prisma } from '@/lib/prisma';
 import mime from 'mime-types';
@@ -13,9 +14,18 @@ const ALLOWED_TYPES = [
 
 export async function POST(request: NextRequest) {
   try {
-    // Read JWT from cookies (does NOT touch the request body — required to avoid
-    // Next.js 15.5.x bug #83453 where getServerSession()/multipart POSTs lock undici).
-    const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
+    // Read JWT via cookies() + decode() — neither touches the request body.
+    // getServerSession() and getToken({ req }) both peek at the request object,
+    // which on a multipart POST locks the undici stream before request.formData()
+    // can read it (Next.js 15.5.x bug #83453, next-auth #11389). Middleware already
+    // enforces auth for /api/admin/*, this is defense-in-depth role check.
+    const cookieStore = await cookies();
+    const sessionCookie =
+      cookieStore.get('__Secure-next-auth.session-token')?.value ||
+      cookieStore.get('next-auth.session-token')?.value;
+    const token = sessionCookie
+      ? await decode({ token: sessionCookie, secret: process.env.NEXTAUTH_SECRET! })
+      : null;
     if (!token || (token as any).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
