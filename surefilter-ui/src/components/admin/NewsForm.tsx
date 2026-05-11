@@ -292,9 +292,9 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Full Content *
           </label>
-          {tinymceApiKey === 'no-api-key' ? (
+          {!tinymceApiKey ? (
             <div className="border border-gray-300 rounded-md p-4 bg-gray-50">
-              <p className="text-gray-600">Loading editor...</p>
+              <p className="text-gray-600">Loading editor…</p>
             </div>
           ) : (
             <Editor
