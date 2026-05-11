@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getToken } from 'next-auth/jwt';
 import { uploadToS3 } from '@/lib/s3';
 import { prisma } from '@/lib/prisma';
 import mime from 'mime-types';
@@ -14,9 +13,10 @@ const ALLOWED_TYPES = [
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    // Read JWT from cookies (does NOT touch the request body — required to avoid
+    // Next.js 15.5.x bug #83453 where getServerSession()/multipart POSTs lock undici).
+    const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || (token as any).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         altText: altText || null,
         tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
         folder,
-        uploadedBy: (session as any).userId,
+        uploadedBy: (token as any).userId ?? (token.sub as string),
       }
     });
 
