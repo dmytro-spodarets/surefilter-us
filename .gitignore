@@ -107,3 +107,4 @@ CleanShot*.png
 
 # Bulk content staged for S3 upload (not source code)
 pdf-catalog/
+.thumb-cache/
