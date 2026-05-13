@@ -14,6 +14,12 @@ export type MCPToolDescriptor = {
   description: string;
   requiredScopes: string[]; // matched via hasAllScopes()
   group: ScopeGroup;
+  /**
+   * 'live' = wired up on the MCP server right now (visible via tools/list).
+   * 'planned' (default) = scheduled for a later phase, only shown in the
+   * Scopes Reference admin page for transparency.
+   */
+  status?: 'live' | 'planned';
   /** Set when the tool mutates state — used by UI to flag destructive ops. */
   mutating?: boolean;
   /** Set when the tool requires confirm=true or Elicitation. */
@@ -21,68 +27,85 @@ export type MCPToolDescriptor = {
 };
 
 export const MCP_TOOLS: MCPToolDescriptor[] = [
-  // ─────────── Public catalog (Phase 1) ───────────
+  // ─────────── Public catalog (Phase 1 — live) ───────────
   {
     name: 'catalog-list-products',
-    description: 'List/search products with filters (brand, category, filter type, status) and pagination.',
+    description: 'List/search products with filters (brand, category, filter type, status) and pagination. Public mode hides drafts/archived.',
     requiredScopes: ['catalog:read'],
     group: 'catalog',
+    status: 'live',
   },
   {
     name: 'catalog-get-product',
     description: 'Get a single product by code or id, including specs/media/cross-references.',
     requiredScopes: ['catalog:read'],
     group: 'catalog',
+    status: 'live',
   },
   {
     name: 'catalog-list-brands',
-    description: 'List brands (active + inactive).',
+    description: 'List brands. Public mode returns active only; admin scope sees all.',
     requiredScopes: ['catalog:read'],
     group: 'catalog',
+    status: 'live',
   },
   {
     name: 'catalog-list-categories',
-    description: 'List product categories (top-level + hierarchical).',
+    description: 'List product categories.',
     requiredScopes: ['catalog:read'],
     group: 'catalog',
+    status: 'live',
   },
   {
     name: 'catalog-list-filter-types',
-    description: 'List filter types and their associated categories.',
+    description: 'List product filter types (Air/Oil/Fuel/Cabin, etc.).',
     requiredScopes: ['catalog:read'],
     group: 'catalog',
+    status: 'live',
+  },
+  {
+    name: 'catalog-list-spec-parameters',
+    description: 'List spec parameters (e.g. outer diameter, height) optionally filtered by category.',
+    requiredScopes: ['catalog:read'],
+    group: 'catalog',
+    status: 'live',
   },
 
-  // ─────────── Content (Phase 1) ───────────
+  // ─────────── Content (Phase 1 — live) ───────────
   {
     name: 'content-list-news',
-    description: 'List news + events with filters and pagination.',
+    description: 'List news + events with filters (type/category/search) and pagination. Public mode shows only PUBLISHED with publishedAt ≤ now.',
     requiredScopes: ['content:read'],
     group: 'content',
+    status: 'live',
   },
   {
     name: 'content-get-news',
     description: 'Get a single news/event article by slug.',
     requiredScopes: ['content:read'],
     group: 'content',
+    status: 'live',
   },
   {
     name: 'content-list-resource-categories',
-    description: 'List resource categories as a tree (top-level + nested subcategories with counts).',
+    description: 'List resource categories as a tree (top-level + nested children with counts). Pass flat=true for a flat list.',
     requiredScopes: ['content:read'],
     group: 'content',
+    status: 'live',
   },
   {
     name: 'content-list-resources',
-    description: 'List resources with filters (category / subcategory / search) and pagination.',
+    description: 'List resources with filters (category includes subcategory descendants; subcategory exact-match; search).',
     requiredScopes: ['content:read'],
     group: 'content',
+    status: 'live',
   },
   {
     name: 'content-get-resource',
-    description: 'Get a single resource by slug (supports flat /resources/{cat}/{slug} and /resources/{parent}/{cat}/{slug}).',
+    description: 'Get a resource by slug. Returns canonical publicUrl (/resources/{parent?}/{cat}/{slug}).',
     requiredScopes: ['content:read'],
     group: 'content',
+    status: 'live',
   },
 
   // ─────────── CMS read (Phase 2) ───────────

@@ -16,9 +16,11 @@ export default function ScopesReferencePage() {
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Scopes Reference</h2>
         <p className="text-sm text-gray-600">
-          Every scope, with the MCP tools it unlocks. Use this page when deciding which scopes to grant a new
-          token. The catalog of {MCP_TOOLS.length} tools below grows as Phase 1–3 are implemented — entries
-          marked as not-yet-wired will start working once the corresponding tool handlers ship.
+          Every scope, with the MCP tools it unlocks. The catalog has {MCP_TOOLS.length} tools total —{' '}
+          <span className="inline-block px-1 rounded text-[10px] uppercase bg-green-100 text-green-700">live</span>{' '}
+          entries are wired up on the server right now ({MCP_TOOLS.filter((t) => t.status === 'live').length}{' '}
+          of {MCP_TOOLS.length}); <span className="inline-block px-1 rounded text-[10px] uppercase bg-gray-100 text-gray-600">planned</span>{' '}
+          entries are scheduled for later phases.
         </p>
       </div>
 
@@ -78,13 +80,22 @@ export default function ScopesReferencePage() {
                           {tools.map((t) => (
                             <li key={t.name}>
                               <code className="font-mono">{t.name}</code>
+                              <span
+                                className={`ml-2 px-1 py-0.5 rounded text-[10px] uppercase ${
+                                  t.status === 'live'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}
+                              >
+                                {t.status === 'live' ? 'live' : 'planned'}
+                              </span>
                               {t.destructive && (
-                                <span className="ml-2 px-1 py-0.5 rounded text-[10px] uppercase bg-red-100 text-red-700">
+                                <span className="ml-1 px-1 py-0.5 rounded text-[10px] uppercase bg-red-100 text-red-700">
                                   destructive
                                 </span>
                               )}
                               {t.mutating && !t.destructive && (
-                                <span className="ml-2 px-1 py-0.5 rounded text-[10px] uppercase bg-yellow-100 text-yellow-700">
+                                <span className="ml-1 px-1 py-0.5 rounded text-[10px] uppercase bg-yellow-100 text-yellow-700">
                                   mutating
                                 </span>
                               )}

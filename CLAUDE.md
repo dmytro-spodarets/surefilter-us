@@ -532,9 +532,31 @@ npm run seed:content:force  # С перезаписью
 
 ---
 
-## MCP Server (Phase 0 готово, Phase 1+ в работе)
+## MCP Server (Phase 0–1 готово, Phase 2+ в работе)
 
-MCP-сервер (Model Context Protocol) даст AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 1 (готово, 2026-05-13) — runtime + 11 public read tools:**
+
+- **JSON-RPC сервер**: `/api/mcp/[transport]` ([route.ts](surefilter-ui/src/app/api/mcp/[transport]/route.ts)) поверх `mcp-handler@1.1` + `@modelcontextprotocol/sdk@1.29`. Streamable HTTP transport (POST для JSON-RPC, GET для SSE). Endpoint: `POST host/api/mcp/mcp` с `Authorization: Bearer sfpat_…`. `basePath: '/api/mcp'`, `runtime: 'nodejs'`, `dynamic: 'force-dynamic'`.
+- **Auth-обёртка** ([src/mcp/server.ts](surefilter-ui/src/mcp/server.ts)) — `withMcpAuth(handler, verifyApiKey, { required: true })`. `verifyApiKey`:
+  - валидный bearer → `AuthInfo { token, clientId=tokenId, scopes, extra: { tokenId, userId, ip } }`
+  - нет bearer + `publicScopesEnabled` → анонимный AuthInfo с `['public:catalog', 'public:content', 'public:cms']`
+  - нет bearer + публичный режим выключен ИЛИ невалидный bearer → undefined → 401 + `WWW-Authenticate: Bearer error=..., resource_metadata=...`
+  - перед auth: `checkServerAvailability()` → 503 при `enabled=false` или `maintenanceMode=true` (+ `Retry-After: 60`)
+- **RFC 9728**: `/.well-known/oauth-protected-resource` ([route.ts](surefilter-ui/src/app/.well-known/oauth-protected-resource/route.ts)) — заглушка с пустым `authorization_servers: []` под Phase 6.
+- **Tools** ([src/mcp/tools/](surefilter-ui/src/mcp/tools/)) — 11 live (помечены `status: 'live'` в [tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)):
+  - `catalog-{list-products, get-product, list-brands, list-categories, list-filter-types, list-spec-parameters}` (6)
+  - `content-{list-news, get-news, list-resource-categories, list-resources, get-resource}` (5) — иерархия resources (parent/sub) поддерживается; `content-get-resource` возвращает `publicUrl` с корректным `/resources/{parent?}/{cat}/{slug}`.
+- **scope-guard pattern** ([scope-guard.ts](surefilter-ui/src/mcp/scope-guard.ts)): `effectiveMode(scopes, domain)` → `'admin' | 'public' | null`. Public mode фильтрует `status=PUBLISHED, publishedAt ≤ now`, скрывает чувствительные поля (description/status/tags); admin mode видит drafts полностью.
+- **MCP Resources** ([src/mcp/resources/index.ts](surefilter-ui/src/mcp/resources/index.ts)) — 4 readable URIs: `sf://catalog/index` (snapshot брендов/категорий/типов), `sf://content/news-feed` (последние 20), `sf://content/resources-tree` (иерархия + counts), `sf://docs/api-overview` (markdown гайд для агентов).
+- **Rate limits** ([lib/rate-limiter.ts](surefilter-ui/src/lib/rate-limiter.ts)): `mcpPublicLimiter` 60/min per IP (анонимы), `mcpAuthedLimiter` 600/min per token (burst); поверх per-token daily quota (Phase 0).
+- **Audit** ([src/mcp/audit.ts](surefilter-ui/src/mcp/audit.ts)): authed tool-call → `AdminLog action=MCP_TOOL_CALL`, `entityId=tokenId`, `entityName=toolName`, `details={tool, scopes, status, clientId, params (sanitized), resultSummary, errorMessage}`. Анонимные не пишутся (нет non-null userId; Phase 5 рассмотрит отдельную `McpCallLog` если понадобится). `SECRET_KEYS` (password/token/secret/apiKey/bearer/authorization) автоматически маскируются `<redacted>`.
+- **Подключение** — JSON-snippets в `/admin/access/settings → Connection Guide`. Phase 4 поднимет `mcp.surefilter.us`; пока endpoint — `host/api/mcp/mcp`.
+
+---
+
+**Phase 0 (готово, 2026-05-13) — фундамент авторизации:**
 
 **Phase 0 (готово, 2026-05-13) — фундамент авторизации:**
 
@@ -543,7 +565,7 @@ MCP-сервер (Model Context Protocol) даст AI-агентам (Claude Des
 - **Глобальные настройки MCP** — в `SiteSettings.mcp` Json (`enabled`, `publicScopesEnabled`, `defaultTokenTtlDays`, `defaultDailyQuota`, `rateLimitPerMinute`, `maintenanceMode`, `maintenanceMessage`). Helpers: [src/lib/mcp-settings.ts](surefilter-ui/src/lib/mcp-settings.ts) — `getMcpSettings/updateMcpSettings` с Zod-валидацией.
 - **Token helpers** ([src/lib/api-token.ts](surefilter-ui/src/lib/api-token.ts)): `generateToken()` → `sfpat_<24chars-base64url>`, `verifyToken()` (hash lookup + revoke/expiry/quota check + lastUsed bookkeeping), `hasScope()` с поддержкой `<domain>:*` и `admin:*` wildcards.
 - **Scope vocabulary** ([src/mcp/scopes.ts](surefilter-ui/src/mcp/scopes.ts)): 14 scopes сгруппированы по domain × risk × public/admin; 5 presets для UI: `read-only-researcher`, `content-editor`, `catalog-admin`, `marketing`, `full-admin (admin:*)`.
-- **Tool registry stub** ([src/mcp/tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)): 31 будущий tool с описаниями, requiredScopes, mutating/destructive флагами. Используется страницей Scopes Reference чтобы показать «какие именно tools открывает каждый scope». Реальные handlers — в Phase 1+.
+- **Tool registry** ([src/mcp/tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)): полный каталог из 32 tools с `status: 'live' | 'planned'`. Используется Scopes Reference UI чтобы показать какие tools открывает каждый scope + индикатор «уже работает vs запланировано». Phase 1 = 11 live; Phase 2/3 поднимут оставшиеся 21.
 - **Admin UI — раздел "API & Access"** ([src/app/admin/access/](surefilter-ui/src/app/admin/access/)) с собственным `AccessShell` (sidebar tabs):
   - `/admin/access/tokens` — list всех токенов всех админов с фильтрами active/expired/revoked + search; колонки: prefix, owner, scopes (compact chips), lastUsed+IP, expires, status.
   - `/admin/access/tokens/new` — preset selector → custom checkboxes по domain с risk-цветами; на submit показывает plaintext в модалке **один раз** + copy-to-clipboard + готовый JSON-snippet для Claude Desktop.
@@ -558,7 +580,7 @@ MCP-сервер (Model Context Protocol) даст AI-агентам (Claude Des
 
 **Local migration note**: при ручной правке исторических миграций (`20250821040036_init_cms`, `20250825224637_add_industry_meta`) `prisma migrate dev` отказывается работать локально из-за drift checksums. Фикс: обновить `_prisma_migrations.checksum` на текущий `shasum -a 256` файла. Production не затрагивается — `migrate deploy` хэши не сверяет, применяет новые миграции по имени.
 
-**Phase 1+ (TODO)**: см. [TODO.md](TODO.md). Сервер на `/api/mcp/[transport]` с `mcp-handler` + `withMcpAuth(verifyApiKey)`, public read tools (catalog/content), затем admin read/write, потом subdomain `mcp.surefilter.us`.
+**Phase 2+ (TODO)**: см. [TODO.md](TODO.md). Следующее — admin read tools (CMS/forms/banners/media/users/analytics), потом writes с idempotency + Elicitation, потом subdomain `mcp.surefilter.us` + WAF.
 
 ---
 

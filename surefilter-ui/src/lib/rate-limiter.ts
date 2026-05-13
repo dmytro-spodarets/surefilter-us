@@ -69,3 +69,8 @@ export const passwordLimiter = new RateLimiter(5, 15 * 60 * 1000);   // 5 per 15
 export const publicApiLimiter = new RateLimiter(100, 60 * 1000);      // 100 per minute
 export const bannerSubmitLimiter = new RateLimiter(5, 60 * 60 * 1000);    // 5 lead submissions per hour per IP
 export const bannerImpressionLimiter = new RateLimiter(200, 60 * 1000);   // 200 impressions per minute per IP
+
+// MCP server (mcp.surefilter.us). Anonymous (no-token) requests hit the public limiter;
+// authenticated requests rely on per-token daily quotas (enforced inside verifyToken).
+export const mcpPublicLimiter = new RateLimiter(60, 60 * 1000);            // 60 requests/min per IP
+export const mcpAuthedLimiter = new RateLimiter(600, 60 * 1000);           // 600/min per token (burst guard)
