@@ -346,7 +346,8 @@ npm run seed:content:force  # С перезаписью
 - **CMS компоненты** — суффикс `Cms` (например, `HeroCms`, `WhyChooseCms`)
 
 ### Админ-панель (лайаут)
-- **AdminClientLayout** (`admin/AdminClientLayout.tsx`) — клиентский layout: SessionProvider, хедер с навигацией + UserMenu (email + Sign Out), `<main>` с `max-w-7xl mx-auto`
+- **AdminClientLayout** (`admin/AdminClientLayout.tsx`) — клиентский layout: SessionProvider, хедер с навигацией + UserMenu (email + Sign Out), `<main>` с `max-w-7xl mx-auto`, `<AdminFooter />` в конце
+- **AdminFooter** (`components/admin/AdminFooter.tsx`) — copyright + текущая версия (`process.env.NEXT_PUBLIC_APP_VERSION || 'dev'`). Версия запекается в bundle на `docker build` через `ARG IMAGE_VERSION` (см. [Dockerfile](surefilter-ui/Dockerfile)) — позволяет на глаз проверить какой реально digest бежит на проде, не залезая в ECR
 - **AdminContainer** (`components/admin/AdminContainer.tsx`) — серверный wrapper: `<div className="p-6">`
 - **Обёртка страниц**: `<div className="p-6">` (или AdminContainer)
 - **Заголовки**: `<h1 className="text-2xl font-bold text-gray-900 mb-6">`
