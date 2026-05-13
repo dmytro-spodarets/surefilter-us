@@ -241,6 +241,8 @@ resource "aws_sesv2_configuration_set" "newsletter" {
 
   tracking_options {
     custom_redirect_domain = "link.news.surefilter.us"
+    # AWS defaults to OPTIONAL when omitted — declare explicitly so `tofu plan` is clean
+    https_policy = "OPTIONAL"
   }
 
   # Suppression list — automatically suppress bounced and complained addresses
@@ -551,6 +553,7 @@ resource "aws_sesv2_configuration_set" "mail" {
 
   tracking_options {
     custom_redirect_domain = "link.mail.surefilter.us"
+    https_policy           = "OPTIONAL"
   }
 
   suppression_options {
@@ -794,6 +797,7 @@ resource "aws_sesv2_configuration_set" "transactional" {
 
   tracking_options {
     custom_redirect_domain = "link.notify.surefilter.us"
+    https_policy           = "OPTIONAL"
   }
 
   suppression_options {

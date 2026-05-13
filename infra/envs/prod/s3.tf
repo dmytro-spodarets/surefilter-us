@@ -20,13 +20,16 @@ resource "aws_s3_bucket_policy" "static" {
     Version = "2012-10-17",
     Statement = [
       {
-        Sid      = "AllowCloudFrontAccess",
-        Effect   = "Allow",
+        Sid    = "AllowCloudFrontAccess",
+        Effect = "Allow",
+        # Use IAM ARN form (matches how AWS normalizes the policy server-side) so
+        # that `tofu plan` doesn't show a cosmetic Principal/Action/Resource drift
+        # on every run. Functionally equivalent to the CanonicalUser form.
         Principal = {
-          CanonicalUser = aws_cloudfront_origin_access_identity.oai.s3_canonical_user_id
+          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
         },
-        Action   = ["s3:GetObject"],
-        Resource = ["${aws_s3_bucket.static.arn}/*"]
+        Action   = "s3:GetObject",
+        Resource = "${aws_s3_bucket.static.arn}/*"
       }
     ]
   })
