@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import AdminFooter from '@/components/admin/AdminFooter';
 
 export default function AdminClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -287,6 +288,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
       <main className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>
+      <AdminFooter />
     </SessionProvider>
   );
 }

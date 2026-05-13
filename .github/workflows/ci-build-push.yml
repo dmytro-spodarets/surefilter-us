@@ -47,7 +47,7 @@ jobs:
           set -e
           if [ -z "$VERSION_TAG" ]; then echo "version input is required" && exit 1; fi
           IMAGE="$REGISTRY/${ECR_REPOSITORY}:$VERSION_TAG"
-          docker build -t "$IMAGE" surefilter-ui
+          docker build --build-arg IMAGE_VERSION="$VERSION_TAG" -t "$IMAGE" surefilter-ui
           docker push "$IMAGE"
 
       - name: Extract static assets from image

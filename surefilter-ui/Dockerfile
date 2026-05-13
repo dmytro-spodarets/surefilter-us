@@ -38,6 +38,9 @@ RUN mkdir -p /app/public
 ENV NODE_ENV=production
 # Skip real DB connections during build — pages prerender with empty data (ISR fills at runtime)
 ENV NEXT_BUILD_SKIP_DB=1
+# Image tag baked into the build (NEXT_PUBLIC_* vars are inlined at build time)
+ARG IMAGE_VERSION=dev
+ENV NEXT_PUBLIC_APP_VERSION=$IMAGE_VERSION
 RUN --mount=type=cache,target=/app/.next/cache npm run build
 ENV NEXT_BUILD_SKIP_DB=
 
