@@ -532,9 +532,29 @@ npm run seed:content:force  # С перезаписью
 
 ---
 
-## MCP Server (Phase 0–2 готово, Phase 3+ в работе)
+## MCP Server (Phase 0–3a готово, Phase 3b+ в работе)
 
 MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 3a (готово, 2026-05-13) — content + catalog writes + cache-purge:** +21 write-tools, всего **50 live**.
+
+- **Content writes** ([content-writes.ts](surefilter-ui/src/mcp/tools/content-writes.ts)) — news-category CRUD (3) + news CRUD (4 — отдельный `content-publish-news` с scope `content:publish`) + resource-category CRUD с валидацией иерархии (3) + resource CRUD (4 — отдельный publish).
+- **Catalog writes** ([catalog-writes.ts](surefilter-ui/src/mcp/tools/catalog-writes.ts)) — brand CRUD (3) + product CRUD (3). Update полностью заменяет коллекции (categoryAssignments / specValues / mediaItems / crossReferences) — mirror admin web UI семантики. Delete fail-on-FK.
+- **Ops** ([operations.ts](surefilter-ui/src/mcp/tools/operations.ts)) — `cache-purge` (ISR + CloudFront invalidation на произвольные paths).
+- **Common helpers** ([_write-helpers.ts](surefilter-ui/src/mcp/tools/_write-helpers.ts)):
+  - `mutationCommonFields` — каждый write tool принимает `confirm?: boolean` + `idempotencyKey?: string` (последний — no-op в Phase 3, enforce в Phase 5).
+  - `requireWriteScope` — writes никогда не имеют public-mode fallback; anon всегда `forbidden`.
+  - `requireConfirm` — destructive ops (delete / publish / settings / users) без `confirm:true` возвращают сообщение «re-invoke with confirm:true».
+  - `auditMutation` — пишет **dual entry**: CREATE/UPDATE/DELETE на entity (mirror /admin web flow → `/admin/logs` показывает MCP-операции единым feed'ом) + MCP_TOOL_CALL на токен (per-token attribution в `/admin/access/usage`).
+  - `safeInvalidate(paths)` — try/catch wrapper над `invalidatePages`.
+  - `resourcePublicPath` — строит `/resources/{parent?}/{cat}/{slug}` URL.
+  - `validateResourceCategoryParent` — depth=2 + no-self-parent + no-move-with-children.
+- **Cache invalidation per mutation**: news → `/newsroom` + slug; resource → `/resources` + parent/sub paths (через `resourcePublicPath`); product → `/` + `/products/{code}`. Delete и slug-change оба пути инвалидируют (старый + новый).
+- **Smoke 55/55** (3 токена: reader / writer / no-publish — для проверки scope-isolation, confirm-rejection, depth-violation, self-parent-rejection, dual-audit-entries).
+
+---
+
+
 
 **Phase 2 (готово, 2026-05-13) — admin read tools:** +18 read-tools поверх Phase 1, всего **29 live** ([src/mcp/tools/](surefilter-ui/src/mcp/tools/) + [tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)).
 

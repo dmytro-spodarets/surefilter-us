@@ -12,6 +12,9 @@ import { registerBannersTools } from '@/mcp/tools/banners';
 import { registerMediaTools } from '@/mcp/tools/media';
 import { registerUsersTools } from '@/mcp/tools/users';
 import { registerAdminTools } from '@/mcp/tools/admin';
+import { registerContentWriteTools } from '@/mcp/tools/content-writes';
+import { registerCatalogWriteTools } from '@/mcp/tools/catalog-writes';
+import { registerOperationsTools } from '@/mcp/tools/operations';
 import { registerMcpResources } from '@/mcp/resources';
 
 const PUBLIC_SCOPES = ['public:catalog', 'public:content', 'public:cms'];
@@ -95,6 +98,10 @@ export function initializeMcpServer(server: McpServer) {
   registerMediaTools(server);
   registerUsersTools(server);
   registerAdminTools(server);
+  // Phase 3 — admin writes (content + catalog + ops)
+  registerContentWriteTools(server);
+  registerCatalogWriteTools(server);
+  registerOperationsTools(server);
   // Resources (Phase 1)
   registerMcpResources(server);
 }
