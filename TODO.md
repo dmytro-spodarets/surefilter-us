@@ -3,25 +3,18 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 13 мая 2026 (Resources hierarchy + unified drill-down UI: parentId, ResourcesShell, mixed tiles)
+**Последнее обновление:** 13 мая 2026 (Resources hierarchy полностью развёрнут на prod: 48 каталогов, 12 редиректов, listing chrome cleanup)
 
 ---
 
 ## Активные задачи
 
-### Resources hierarchy — follow-ups (после 13 мая 2026)
+### Resources hierarchy — follow-ups
 
-- [ ] **301-редиректы legacy URL** через SiteSettings.redirects (12 строк):
-  - 11× `/resources/catalogs/sure-filter-{bobcat|caterpillar|clark|doosan|hyster|komatsu|linde|mitsubishi|nissan|toyota|yale-towne}` → `/resources/product-catalogs/forklifts/...`
-  - 1× `/resources/catalogs/sure-filter-cross-references-v23` → `/resources/cross-references/sure-filter-cross-references-v23`
-- [ ] **Залить 48 новых каталогов** из `pdf-catalog/{automotive,heavy-duty,marine-and-moto,trucks-and-buses}` (PDF уже переименованы в lowercase + дефисы):
-  - 9× automotive
-  - 17× heavy-duty
-  - 2× marine-and-moto
-  - 20× trucks-and-buses
-  - Каждому: загрузить PDF + JPG thumbnail в S3, создать Resource с правильной подкатегорией, allowPreview/Download
-- [ ] **Картинки подкатегорий** — задать `image` для 5 подкатегорий через `/admin/resource-categories` (сейчас рендерятся с FolderIcon на сером фоне)
-- [ ] Обновить путь файла в [Модальные окна — пункт 8](#8-модальные-окна-body-scroll-lock--aria): `src/app/resources/[category]/[slug]/ResourceDownloadForm.tsx` → `src/components/resources/ResourceDownloadForm.tsx` (перенесён в shared)
+- [x] ~~301-редиректы legacy URL~~ — 12 редиректов залиты в prod SiteSettings.redirects (2026-05-13)
+- [x] ~~Залить 48 новых каталогов~~ — все PDF + JPG загружены в `s3://surefilter-files-prod/catalogs/<sub>/`, Resource записи созданы (2026-05-13)
+- [ ] **Картинки подкатегорий** — задать `image` для 5 подкатегорий через `/admin/resource-categories` (сейчас рендерятся с FolderIcon в правом верхнем углу на сером фоне)
+- [x] ~~Обновить путь ResourceDownloadForm в Модальные окна — пункт 8~~ — путь поправлен на `src/components/resources/ResourceDownloadForm.tsx`
 
 ### Критично (блокирует релиз)
 
