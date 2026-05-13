@@ -6,10 +6,10 @@
 #   tofu apply -var="app_runner_image_version=v1.3.0"
 #
 # Or commit a new default:
-#   sed -i '' 's/default = "v[0-9.]*"/default = "v1.3.0"/' app-runner-version.tf
+#   sed -i '' 's/default = "v[0-9.]*"/default = "v1.3.0"/' image-versions.tf
 
 variable "app_runner_image_version" {
   description = "ECR image tag deployed to App Runner (e.g. v1.2.0)"
   type        = string
-  default     = "v1.2.0"
+  default     = "v1.2.5"
 }

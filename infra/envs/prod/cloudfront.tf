@@ -68,7 +68,7 @@ resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
     header_behavior = "whitelist"
     headers {
       items = [
-        "X-Forwarded-Host",      # Set by CF Function — Next.js Server Actions origin check
+        "X-Forwarded-Host",       # Set by CF Function — Next.js Server Actions origin check
         "RSC",                    # React Server Components streaming
         "Next-Router-State-Tree", # Next.js client-side navigation
         "Next-Router-Prefetch",   # Next.js prefetch
@@ -76,6 +76,8 @@ resource "aws_cloudfront_origin_request_policy" "app_runner_min" {
         "Accept",                 # Content negotiation
         "Origin",                 # CORS
         "Referer",                # Analytics / CSRF
+        "Content-Type",           # REQUIRED for POST bodies (multipart/form-data, json, …) — without it undici locks the body before formData() can parse it
+        "Content-Length",         # Body size, lets Node.js size the stream correctly
       ]
     }
   }
