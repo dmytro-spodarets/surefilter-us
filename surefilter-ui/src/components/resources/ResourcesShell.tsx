@@ -18,7 +18,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { ManagedImage } from '@/components/ui/ManagedImage';
 import { getAssetUrl } from '@/lib/assets';
-import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 
 const ResourcePreviewModal = dynamic(
   () => import('@/components/ResourcePreviewModal'),
@@ -90,7 +89,6 @@ interface ResourcesShellProps {
   topCategories: TopCategory[];
   activeTopSlug: string;
   subcategoryNav?: SubcategoryNav | null;
-  breadcrumbs?: BreadcrumbItem[];
   tiles: Tile[];
   heading?: string;
   headingDescription?: string;
@@ -108,7 +106,6 @@ export default function ResourcesShell({
   topCategories,
   activeTopSlug,
   subcategoryNav,
-  breadcrumbs,
   tiles,
   heading,
   headingDescription,
@@ -134,10 +131,6 @@ export default function ResourcesShell({
   return (
     <section className="py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <Breadcrumbs items={breadcrumbs} className="mb-6" />
-        )}
-
         {/* Top-level pills (always visible) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 md:mb-8">
           <TopPill
@@ -394,11 +387,11 @@ function SubcategoryGalleryCard({ sub }: { sub: SubcategoryTileData }) {
       className="group relative block bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-sure-blue-300 hover:bg-gray-50 transition-all"
     >
       <CardImage src={sub.image} alt={sub.name} fallbackIcon={FolderIcon} />
-      <div className="absolute top-3 left-3">
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-sure-blue-600 text-white text-xs font-semibold shadow-sm">
-          <FolderIcon className="h-3.5 w-3.5" />
-          Subcategory
-        </span>
+      <div
+        aria-hidden="true"
+        className="absolute top-3 right-3 inline-flex items-center justify-center w-7 h-7 rounded-full bg-sure-blue-600 text-white shadow-sm"
+      >
+        <FolderIcon className="h-4 w-4" />
       </div>
       <div className="p-4">
         <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem] group-hover:text-sure-blue-600 transition-colors">
@@ -510,18 +503,12 @@ function SubcategoryListRow({ sub }: { sub: SubcategoryTileData }) {
         )}
       </div>
       <div className="flex-1">
-        <div className="flex items-center mb-2">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sure-blue-100 text-sure-blue-800">
-            <FolderIcon className="h-3 w-3" />
-            Subcategory
-          </span>
-          <span className="ml-3 text-sm text-gray-500">
-            {sub.resourceCount} {sub.resourceCount === 1 ? 'catalog' : 'catalogs'}
-          </span>
-        </div>
         <h3 className="text-xl font-bold text-gray-900 group-hover:text-sure-blue-600 transition-colors">
           {sub.name}
         </h3>
+        <div className="text-sm text-gray-500 mt-1">
+          {sub.resourceCount} {sub.resourceCount === 1 ? 'catalog' : 'catalogs'}
+        </div>
         {sub.description && (
           <p className="text-gray-600 mt-2 leading-relaxed line-clamp-2">{sub.description}</p>
         )}

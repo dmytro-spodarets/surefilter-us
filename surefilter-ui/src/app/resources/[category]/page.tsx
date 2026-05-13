@@ -141,10 +141,6 @@ export default async function ResourcesCategoryPage({ params }: PageProps) {
         topCategories={JSON.parse(JSON.stringify(topCategories))}
         activeTopSlug={category}
         subcategoryNav={subcategoryNav ? JSON.parse(JSON.stringify(subcategoryNav)) : null}
-        breadcrumbs={[
-          { label: 'Resources', href: '/resources' },
-          { label: categoryData.name },
-        ]}
         tiles={JSON.parse(JSON.stringify(tiles))}
       />
       <Footer />
