@@ -4,23 +4,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { prisma } from '@/lib/prisma';
 import { effectiveMode, forbidden } from '@/mcp/scope-guard';
 import { logToolCall } from '@/mcp/audit';
-
-type ExtraContext = { authInfo?: { scopes: string[]; clientId: string; extra?: any } };
-
-function authContext(extra: ExtraContext) {
-  const auth = extra.authInfo;
-  return {
-    scopes: auth?.scopes ?? [],
-    clientId: auth?.clientId ?? 'anonymous',
-    tokenId: (auth?.extra?.tokenId as string | null) ?? null,
-    userId: (auth?.extra?.userId as string | null) ?? null,
-    ip: (auth?.extra?.ip as string | undefined) ?? undefined,
-  };
-}
-
-function jsonResult(payload: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }] };
-}
+import { authContext, jsonResult, errorResult, type ExtraContext } from '@/mcp/tools/_helpers';
 
 export function registerCatalogTools(server: McpServer) {
   // ─────────── catalog-list-products ───────────
@@ -112,7 +96,7 @@ export function registerCatalogTools(server: McpServer) {
       const mode = effectiveMode(ctx.scopes, 'catalog');
       if (!mode) return forbidden('Requires catalog:read or public:catalog');
       if (!args.code && !args.id) {
-        return { isError: true as const, content: [{ type: 'text' as const, text: 'Either `code` or `id` is required' }] };
+        return errorResult('Either `code` or `id` is required');
       }
 
       const where: any = args.code ? { code: args.code } : { id: args.id };
@@ -134,7 +118,7 @@ export function registerCatalogTools(server: McpServer) {
 
       if (!product) {
         await logToolCall({ tool: 'catalog-get-product', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: 'not_found' });
-        return { isError: true as const, content: [{ type: 'text' as const, text: 'Product not found' }] };
+        return errorResult('Product not found');
       }
 
       await logToolCall({ tool: 'catalog-get-product', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: product.code });

@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 13 мая 2026 (MCP Phase 1: /api/mcp + 11 public read tools + 4 MCP-resources)
+**Последнее обновление:** 13 мая 2026 (MCP Phase 2: +18 admin read tools, итого 29 live tools)
 
 ---
 
@@ -13,7 +13,7 @@
 
 - [x] **Phase 0 — Foundation** (2026-05-13): ApiToken Prisma model + `/admin/access/*` UI (tokens/scopes/usage/settings) + helpers (`src/lib/api-token.ts`, `src/mcp/scopes.ts`, `src/mcp/tools-registry.ts`, `src/lib/mcp-settings.ts`) + API routes (`/api/admin/access/*`) + “Access” link в admin nav.
 - [x] **Phase 1 — MCP skeleton + public read tools** (2026-05-13): mcp-handler+SDK установлены, `src/mcp/server.ts` с `withMcpAuth(verifyApiKey)` + maintenance/disabled гейт, `src/app/api/mcp/[transport]/route.ts` (Streamable HTTP), `/.well-known/oauth-protected-resource` (RFC 9728 stub), 11 public read tools (6 catalog + 5 content) + 4 MCP-resources (`sf://catalog/index`, `sf://content/news-feed`, `sf://content/resources-tree`, `sf://docs/api-overview`), `mcpPublicLimiter`+`mcpAuthedLimiter`, AdminLog MCP_TOOL_CALL audit. Smoke 31/31.
-- [ ] **Phase 2 — Admin read tools** (~1–2 дня): `cms-*-read`, `forms-list/get`, `banners-list/stats`, `media-list-files`, `users-list` (masked), `admin-logs-list`. Рефактор: вынести shared Zod+Prisma логику из admin route.ts в `src/lib/services/<domain>.ts`.
+- [x] **Phase 2 — Admin read tools** (2026-05-13): +18 tools (CMS list/get/shared-sections, forms list/get + submissions list/get, banners list/get + stats + campaigns + submissions, media list/get-asset, users list/get + email masking, settings-get + analytics-logs-list). Общие helpers `src/mcp/tools/_helpers.ts` (authContext/jsonResult/errorResult/requireScope/maskEmail). admin:* снимает редакции (webhookUrl/email/catalogPassword). tools-registry.ts: 29 live + 4 planned (Phase 3 writes). Smoke 66/66 с 3 разными scope-наборами для проверки isolation.
 - [ ] **Phase 3 — Admin write tools** (~3–5 дней): catalog/content/cms/forms/banners/media/users/settings writes; idempotency keys; deletes требуют `confirm:true` или Elicitation; SSRF на forms.webhookUrl; resource-category иерархия (depth=2). Расширить AdminLog MCP details.
 - [ ] **Phase 4 — Subdomain infra** (~1–2 дня): ACM cert + CloudFront dist + Route53 для `mcp.surefilter.us`, middleware rewrite host→/api/mcp, WAF rate-limit правило.
 - [ ] **Phase 5 — Hardening + telemetry** (~1–2 дня): per-token rate-limit factory + quota enforcement (429 + Retry-After), idempotency table, cron token-leak detection, реальные графики /admin/access/usage, email-alerts на revoke не-self / создание admin:* токена.

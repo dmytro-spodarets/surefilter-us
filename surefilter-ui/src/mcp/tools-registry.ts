@@ -108,86 +108,140 @@ export const MCP_TOOLS: MCPToolDescriptor[] = [
     status: 'live',
   },
 
-  // ─────────── CMS read (Phase 2) ───────────
+  // ─────────── CMS read (Phase 2 — live) ───────────
   {
     name: 'cms-list-pages',
-    description: 'List all CMS pages including drafts.',
+    description: 'List CMS pages. Public mode shows only published; cms:read sees drafts. Paginated.',
     requiredScopes: ['cms:read'],
     group: 'cms',
+    status: 'live',
   },
   {
     name: 'cms-get-page',
-    description: 'Get a page with its sections (draft data included).',
+    description: 'Get a CMS page by slug with its sections in display order. Public mode requires status=published.',
     requiredScopes: ['cms:read'],
     group: 'cms',
+    status: 'live',
   },
   {
     name: 'cms-list-shared-sections',
-    description: 'List reusable shared sections.',
+    description: 'List reusable shared sections (admin only).',
     requiredScopes: ['cms:read'],
     group: 'cms',
+    status: 'live',
   },
 
-  // ─────────── Forms / Submissions (Phase 2) ───────────
+  // ─────────── Forms / Submissions (Phase 2 — live) ───────────
   {
     name: 'forms-list',
-    description: 'List form definitions.',
+    description: 'List form definitions. webhookUrl / notifyEmail redacted unless admin:*.',
     requiredScopes: ['forms:read'],
     group: 'forms',
+    status: 'live',
   },
   {
     name: 'forms-get',
-    description: 'Get a form definition (fields, webhookUrl masked).',
+    description: 'Get a form by slug or id, including its field definitions. Secrets redacted unless admin:*.',
     requiredScopes: ['forms:read'],
     group: 'forms',
+    status: 'live',
   },
   {
     name: 'form-submissions-list',
-    description: 'List form submissions with filters.',
+    description: 'List form submissions (PII: email, IP, full data JSON). Filter by formId/formSlug/date/email-sent/webhook-sent.',
     requiredScopes: ['submissions:read'],
     group: 'submissions',
+    status: 'live',
+  },
+  {
+    name: 'form-submissions-get',
+    description: 'Get a single form submission by id.',
+    requiredScopes: ['submissions:read'],
+    group: 'submissions',
+    status: 'live',
   },
 
-  // ─────────── Banners (Phase 2) ───────────
+  // ─────────── Banners (Phase 2 — live) ───────────
   {
     name: 'banners-list',
-    description: 'List popup banners.',
+    description: 'List popup banners with filters (status/type/campaign/search). Includes denormalized counters. notifyEmail redacted unless admin:*.',
     requiredScopes: ['banners:read'],
     group: 'banners',
+    status: 'live',
+  },
+  {
+    name: 'banners-get',
+    description: 'Get a banner by slug or id with full layoutConfig + targeting rules.',
+    requiredScopes: ['banners:read'],
+    group: 'banners',
+    status: 'live',
   },
   {
     name: 'banner-stats-get',
-    description: 'Per-banner stats: impressions, clicks, submissions over time.',
+    description: 'Per-banner stats: totals + daily timeseries (impressions / clicks / submissions) for last N days.',
     requiredScopes: ['banners:read'],
     group: 'banners',
+    status: 'live',
+  },
+  {
+    name: 'banner-campaigns-list',
+    description: 'List banner campaigns. notifyEmail redacted unless admin:*.',
+    requiredScopes: ['banners:read'],
+    group: 'banners',
+    status: 'live',
+  },
+  {
+    name: 'banner-submissions-list',
+    description: 'List banner lead-capture submissions (PII: email + UTM + IP). Use submissions-export-csv (Phase 3) for bulk.',
+    requiredScopes: ['submissions:read'],
+    group: 'submissions',
+    status: 'live',
   },
 
-  // ─────────── Media (Phase 2) ───────────
+  // ─────────── Media (Phase 2 — live) ───────────
   {
     name: 'media-list-files',
-    description: 'List files in a media library folder.',
+    description: 'List files in an S3 media library folder (prefix-scoped). Merges S3 objects with MediaAsset metadata.',
     requiredScopes: ['media:read'],
     group: 'media',
+    status: 'live',
+  },
+  {
+    name: 'media-get-asset',
+    description: 'Get a MediaAsset row by id or s3Path.',
+    requiredScopes: ['media:read'],
+    group: 'media',
+    status: 'live',
   },
 
-  // ─────────── Settings / Users / Analytics ───────────
+  // ─────────── Settings / Users / Analytics (Phase 2 — live) ───────────
   {
     name: 'settings-get',
-    description: 'Read SiteSettings (some sensitive fields redacted unless paired with admin:*).',
+    description: 'Read SiteSettings + MCP global settings. Sensitive fields redacted unless admin:*.',
     requiredScopes: ['settings:read'],
     group: 'settings',
+    status: 'live',
   },
   {
     name: 'users-list',
-    description: 'List admin users (emails partially masked unless paired with admin:*).',
+    description: 'List admin users. Emails masked (j***e@example.com) unless admin:*.',
     requiredScopes: ['users:read'],
     group: 'users',
+    status: 'live',
   },
   {
-    name: 'analytics-recent-logs',
-    description: 'Read recent AdminLog entries with filters.',
+    name: 'users-get',
+    description: 'Get a user by id or email. Email masked unless admin:*.',
+    requiredScopes: ['users:read'],
+    group: 'users',
+    status: 'live',
+  },
+  {
+    name: 'analytics-logs-list',
+    description: 'List AdminLog entries with filters (userId / action / entityType / date). Useful for auditing MCP_TOOL_CALL activity.',
     requiredScopes: ['analytics:read'],
     group: 'analytics',
+    status: 'live',
   },
 
   // ─────────── Writes (Phase 3) ───────────

@@ -4,23 +4,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { prisma } from '@/lib/prisma';
 import { effectiveMode, forbidden } from '@/mcp/scope-guard';
 import { logToolCall } from '@/mcp/audit';
-
-type ExtraContext = { authInfo?: { scopes: string[]; clientId: string; extra?: any } };
-
-function authContext(extra: ExtraContext) {
-  const auth = extra.authInfo;
-  return {
-    scopes: auth?.scopes ?? [],
-    clientId: auth?.clientId ?? 'anonymous',
-    tokenId: (auth?.extra?.tokenId as string | null) ?? null,
-    userId: (auth?.extra?.userId as string | null) ?? null,
-    ip: (auth?.extra?.ip as string | undefined) ?? undefined,
-  };
-}
-
-function jsonResult(payload: unknown) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }] };
-}
+import { authContext, jsonResult, errorResult, type ExtraContext } from '@/mcp/tools/_helpers';
 
 function publishedFilter() {
   return { status: 'PUBLISHED' as const, publishedAt: { lte: new Date() } };
@@ -117,7 +101,7 @@ export function registerContentTools(server: McpServer) {
       });
       if (!article) {
         await logToolCall({ tool: 'content-get-news', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: 'not_found' });
-        return { isError: true as const, content: [{ type: 'text' as const, text: 'Article not found' }] };
+        return errorResult('Article not found');
       }
       await logToolCall({ tool: 'content-get-news', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: article.slug });
       return jsonResult({ mode, article });
@@ -288,7 +272,7 @@ export function registerContentTools(server: McpServer) {
       });
       if (!resource) {
         await logToolCall({ tool: 'content-get-resource', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: 'not_found' });
-        return { isError: true as const, content: [{ type: 'text' as const, text: 'Resource not found' }] };
+        return errorResult('Resource not found');
       }
 
       // Build canonical public URL

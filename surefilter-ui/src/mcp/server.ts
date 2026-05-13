@@ -6,6 +6,12 @@ import { getMcpSettings } from '@/lib/mcp-settings';
 import { mcpPublicLimiter, mcpAuthedLimiter, getClientIp } from '@/lib/rate-limiter';
 import { registerCatalogTools } from '@/mcp/tools/catalog';
 import { registerContentTools } from '@/mcp/tools/content';
+import { registerCmsTools } from '@/mcp/tools/cms';
+import { registerFormsTools } from '@/mcp/tools/forms';
+import { registerBannersTools } from '@/mcp/tools/banners';
+import { registerMediaTools } from '@/mcp/tools/media';
+import { registerUsersTools } from '@/mcp/tools/users';
+import { registerAdminTools } from '@/mcp/tools/admin';
 import { registerMcpResources } from '@/mcp/resources';
 
 const PUBLIC_SCOPES = ['public:catalog', 'public:content', 'public:cms'];
@@ -79,8 +85,17 @@ export async function verifyApiKey(req: Request, bearerToken?: string): Promise<
  * Called once per session by mcp-handler.
  */
 export function initializeMcpServer(server: McpServer) {
+  // Phase 1 — public + mixed-mode read
   registerCatalogTools(server);
   registerContentTools(server);
+  // Phase 2 — admin read
+  registerCmsTools(server);
+  registerFormsTools(server);
+  registerBannersTools(server);
+  registerMediaTools(server);
+  registerUsersTools(server);
+  registerAdminTools(server);
+  // Resources (Phase 1)
   registerMcpResources(server);
 }
 

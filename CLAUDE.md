@@ -532,9 +532,24 @@ npm run seed:content:force  # С перезаписью
 
 ---
 
-## MCP Server (Phase 0–1 готово, Phase 2+ в работе)
+## MCP Server (Phase 0–2 готово, Phase 3+ в работе)
 
 MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 2 (готово, 2026-05-13) — admin read tools:** +18 read-tools поверх Phase 1, всего **29 live** ([src/mcp/tools/](surefilter-ui/src/mcp/tools/) + [tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)).
+
+- **CMS** ([cms.ts](surefilter-ui/src/mcp/tools/cms.ts)) — `cms-list-pages`, `cms-get-page` (mixed mode: public видит только `status=published`; cms:read видит drafts), `cms-list-shared-sections` (admin-only).
+- **Forms** ([forms.ts](surefilter-ui/src/mcp/tools/forms.ts)) — `forms-list/get` (webhookUrl/notifyEmail → `<redacted>` без `admin:*`), `form-submissions-list/get` (`submissions:read`).
+- **Banners** ([banners.ts](surefilter-ui/src/mcp/tools/banners.ts)) — `banners-list/get`, `banner-stats-get` (timeseries impressions/clicks/submissions через `DATE_TRUNC`), `banner-campaigns-list`, `banner-submissions-list`.
+- **Media** ([media.ts](surefilter-ui/src/mcp/tools/media.ts)) — `media-list-files` (зеркало `/api/admin/files/list` с merge S3-объектов + MediaAsset metadata), `media-get-asset`.
+- **Users** ([users.ts](surefilter-ui/src/mcp/tools/users.ts)) — `users-list/get` с маскировкой email (`j***e@example.com` без `admin:*`).
+- **Admin** ([admin.ts](surefilter-ui/src/mcp/tools/admin.ts)) — `settings-get` (SiteSettings + MCP global, `catalogPassword` редактирован без admin:*), `analytics-logs-list` (фильтры по userId/action/entityType/date — основной инструмент для аудита `MCP_TOOL_CALL`).
+- **Общие хелперы** ([_helpers.ts](surefilter-ui/src/mcp/tools/_helpers.ts)): `authContext` (читает scopes + extra из `extra.authInfo`, выставляет `elevated = admin:*`), `jsonResult/errorResult`, `requireScope(ctx, scope, tool, params)` — авто-пишет `forbidden` в AdminLog при отказе, `maskEmail`.
+- **Smoke**: 66/66 (anon, readers-token со всеми `*:read`, content-only-token для scope-isolation, admin:* для снятия редакций).
+
+---
+
+
 
 **Phase 1 (готово, 2026-05-13) — runtime + 11 public read tools:**
 
