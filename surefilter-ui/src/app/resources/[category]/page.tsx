@@ -1,9 +1,9 @@
-import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicResourcesHero from '@/components/sections/DynamicResourcesHero';
-import ResourcesClient from '../ResourcesClient';
+import ResourcesShell, { type Tile } from '@/components/resources/ResourcesShell';
 import { prisma } from '@/lib/prisma';
 
 export const revalidate = 86400;
@@ -16,15 +16,41 @@ interface PageProps {
   params: Promise<{ category: string }>;
 }
 
-// Server Component - SEO оптимизирован ✅
+const publishedResourceFilter = {
+  status: 'PUBLISHED' as const,
+  publishedAt: { lte: new Date() },
+};
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { category } = await params;
+  let cat: { name: string; description: string | null } | null = null;
+  try {
+    cat = await prisma.resourceCategory.findFirst({
+      where: { slug: category, isActive: true, parentId: null },
+      select: { name: true, description: true },
+    });
+  } catch {
+    // DB unavailable during build
+  }
+  if (!cat) return {};
+  return {
+    title: cat.name,
+    description: cat.description || undefined,
+    alternates: { canonical: `/resources/${category}` },
+  };
+}
+
 export default async function ResourcesCategoryPage({ params }: PageProps) {
   const { category } = await params;
 
-  // Проверяем существует ли категория
   const categoryData = await prisma.resourceCategory.findFirst({
-    where: {
-      slug: category,
-      isActive: true,
+    where: { slug: category, isActive: true, parentId: null },
+    include: {
+      children: {
+        where: { isActive: true },
+        orderBy: { position: 'asc' },
+        include: { _count: { select: { resources: { where: publishedResourceFilter } } } },
+      },
     },
   });
 
@@ -32,11 +58,34 @@ export default async function ResourcesCategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  const [resources, categories] = await Promise.all([
-    prisma.resource.findMany({
+  const topCategories = await prisma.resourceCategory.findMany({
+    where: { isActive: true, parentId: null },
+    include: { _count: { select: { resources: { where: publishedResourceFilter } } } },
+    orderBy: { position: 'asc' },
+  });
+
+  const hasChildren = categoryData.children.length > 0;
+  const tiles: Tile[] = [];
+
+  if (hasChildren) {
+    for (const c of categoryData.children) {
+      tiles.push({
+        kind: 'subcategory',
+        data: {
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          parentSlug: category,
+          image: c.image,
+          description: c.description,
+          resourceCount: c._count.resources,
+        },
+      });
+    }
+  } else {
+    const resources = await prisma.resource.findMany({
       where: {
-        status: 'PUBLISHED',
-        publishedAt: { lte: new Date() },
+        ...publishedResourceFilter,
         category: { slug: category, isActive: true },
       },
       select: {
@@ -59,45 +108,45 @@ export default async function ResourcesCategoryPage({ params }: PageProps) {
             slug: true,
             icon: true,
             color: true,
+            parent: { select: { id: true, name: true, slug: true } },
           },
         },
       },
       orderBy: { publishedAt: 'desc' },
-    }),
-    prisma.resourceCategory.findMany({
-      where: { isActive: true },
-      include: {
-        _count: {
-          select: {
-            resources: {
-              where: {
-                status: 'PUBLISHED',
-                publishedAt: { lte: new Date() },
-              },
-            },
-          },
-        },
-      },
-      orderBy: { position: 'asc' },
-    }),
-  ]);
+    });
+    for (const r of resources) {
+      tiles.push({ kind: 'resource', data: r as any });
+    }
+  }
+
+  const subcategoryNav = hasChildren
+    ? {
+        parentSlug: category,
+        parentName: categoryData.name,
+        activeSubSlug: '',
+        items: categoryData.children.map((c) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          resourceCount: c._count.resources,
+        })),
+      }
+    : null;
 
   return (
     <main>
       <Header />
-
-      {/* Hero Section - Server Component, данные в HTML */}
       <DynamicResourcesHero />
-
-      {/* Interactive Content - Client Component с server data */}
-      <Suspense>
-        <ResourcesClient
-          initialResources={JSON.parse(JSON.stringify(resources))}
-          initialCategories={JSON.parse(JSON.stringify(categories))}
-          initialCategory={category}
-        />
-      </Suspense>
-
+      <ResourcesShell
+        topCategories={JSON.parse(JSON.stringify(topCategories))}
+        activeTopSlug={category}
+        subcategoryNav={subcategoryNav ? JSON.parse(JSON.stringify(subcategoryNav)) : null}
+        breadcrumbs={[
+          { label: 'Resources', href: '/resources' },
+          { label: categoryData.name },
+        ]}
+        tiles={JSON.parse(JSON.stringify(tiles))}
+      />
       <Footer />
     </main>
   );

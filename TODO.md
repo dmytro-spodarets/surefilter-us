@@ -3,11 +3,25 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 29 апреля 2026 (Banner System polish: campaign.notifyEmail fallback, ManagedImage в layouts)
+**Последнее обновление:** 13 мая 2026 (Resources hierarchy + unified drill-down UI: parentId, ResourcesShell, mixed tiles)
 
 ---
 
 ## Активные задачи
+
+### Resources hierarchy — follow-ups (после 13 мая 2026)
+
+- [ ] **301-редиректы legacy URL** через SiteSettings.redirects (12 строк):
+  - 11× `/resources/catalogs/sure-filter-{bobcat|caterpillar|clark|doosan|hyster|komatsu|linde|mitsubishi|nissan|toyota|yale-towne}` → `/resources/product-catalogs/forklifts/...`
+  - 1× `/resources/catalogs/sure-filter-cross-references-v23` → `/resources/cross-references/sure-filter-cross-references-v23`
+- [ ] **Залить 48 новых каталогов** из `pdf-catalog/{automotive,heavy-duty,marine-and-moto,trucks-and-buses}` (PDF уже переименованы в lowercase + дефисы):
+  - 9× automotive
+  - 17× heavy-duty
+  - 2× marine-and-moto
+  - 20× trucks-and-buses
+  - Каждому: загрузить PDF + JPG thumbnail в S3, создать Resource с правильной подкатегорией, allowPreview/Download
+- [ ] **Картинки подкатегорий** — задать `image` для 5 подкатегорий через `/admin/resource-categories` (сейчас рендерятся с FolderIcon на сером фоне)
+- [ ] Обновить путь файла в [Модальные окна — пункт 8](#8-модальные-окна-body-scroll-lock--aria): `src/app/resources/[category]/[slug]/ResourceDownloadForm.tsx` → `src/components/resources/ResourceDownloadForm.tsx` (перенесён в shared)
 
 ### Критично (блокирует релиз)
 
@@ -109,7 +123,7 @@
 - [ ] Исправить модальные окна: scroll lock, focus trap, ARIA-атрибуты
   - **Проблемные компоненты:**
     - `src/components/layout/Header/MobileMenu.tsx` — overlay `fixed inset-0`, но body продолжает скроллиться
-    - `src/app/resources/[category]/[slug]/ResourceDownloadForm.tsx` — полноэкранный модал без `aria-modal` и `role="dialog"`
+    - `src/components/resources/ResourceDownloadForm.tsx` — полноэкранный модал без `aria-modal` и `role="dialog"`
   - **Что сделать:**
     - При открытии: `document.body.style.overflow = 'hidden'` (или класс `overflow-hidden`)
     - При закрытии: восстановить overflow + вернуть фокус на триггер-элемент

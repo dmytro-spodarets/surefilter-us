@@ -7,11 +7,21 @@ interface RelatedResource {
   shortDescription: string | null;
   thumbnailImage: string | null;
   fileType: string;
-  category: { slug: string; name: string };
+  category: {
+    slug: string;
+    name: string;
+    parent?: { slug: string } | null;
+  };
 }
 
 interface RelatedResourcesProps {
   resources: RelatedResource[];
+}
+
+function buildHref(resource: RelatedResource) {
+  return resource.category.parent
+    ? `/resources/${resource.category.parent.slug}/${resource.category.slug}/${resource.slug}`
+    : `/resources/${resource.category.slug}/${resource.slug}`;
 }
 
 export default function RelatedResources({ resources }: RelatedResourcesProps) {
@@ -28,7 +38,7 @@ export default function RelatedResources({ resources }: RelatedResourcesProps) {
           {resources.map((resource) => (
             <Link
               key={resource.slug}
-              href={`/resources/${resource.category.slug}/${resource.slug}`}
+              href={buildHref(resource)}
               className="group bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-sure-blue-300 hover:shadow-md transition-all"
             >
               <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-100">

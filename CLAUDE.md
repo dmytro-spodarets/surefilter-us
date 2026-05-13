@@ -87,7 +87,7 @@ surefilter-us/
 
 ### Контент
 - `NewsArticle` / `NewsCategory` — новости и события
-- `Resource` / `ResourceCategory` — ресурсы (каталоги, документы)
+- `Resource` / `ResourceCategory` — ресурсы (каталоги, документы); `ResourceCategory` self-referencing через `parentId` (max depth = 2 в app-layer) + поле `image` для subcategory image-card
 - `Form` / `FormSubmission` — универсальные формы
 
 ### Popup Banners (Marketing)
@@ -148,7 +148,9 @@ surefilter-us/
 - `/catalog` — каталог продуктов
 - `/products/[code]` — страница продукта (ISR 24h)
 - `/newsroom`, `/newsroom/[slug]`
-- `/resources`, `/resources/[category]/[slug]`
+- `/resources` — drill-down вход: показывает union первого уровня (subcategories where they exist + ресурсы прямо в flat-категориях)
+- `/resources/[category]` — top-level категория: если есть children → grid подкатегорий, иначе flat-список ресурсов
+- `/resources/[category]/[...path]` — catch-all с resolver: `[subcategory]` → ресурсы подкатегории, `[slug]` → деталь ресурса в flat-категории, `[subcategory]/[slug]` → деталь ресурса в подкатегории
 
 ### SEO/GEO (динамические)
 - `/robots.txt` — динамический, из `src/app/robots.ts` (SiteSettings.seoRobotsBlock)
@@ -526,6 +528,8 @@ npm run seed:content:force  # С перезаписью
 ---
 
 ## Известные особенности
+
+0. **Resources Drill-down**: `/resources/*` использует единый `ResourcesShell` ([src/components/resources/ResourcesShell.tsx](surefilter-ui/src/components/resources/ResourcesShell.tsx)) — top pills (top-level категории), опциональные subcategory chips, view toggle (gallery/list), и mixed `Tile[]` (discriminated union `subcategory | resource`). Карточки subcategory и resource имеют **одинаковую** структуру (image + body, `aspect-[826/1168]` под A4-обложки PDF), но с разными бейджами/CTA. На `/resources` показывается union первого уровня: subcategories where they exist, и ресурсы где категория flat. Drill-down иерархия максимум на 2 уровня (`Product Catalogs > Forklifts > <resource>`). Картинки fallback'ятся на иконки (FolderIcon / DocumentTextIcon) на сером градиенте — никаких placeholder-фотографий.
 
 1. **Prisma 7**: `prisma.config.ts` должен быть в корне surefilter-ui/, не в prisma/
 2. **Поиск отключен**: Временно закомментирован для Phase 1 (5 компонентов с TODO-маркерами: Header, HeroCms, SearchHero, CompactSearchHero, QuickSearchCms, SimpleSearch)

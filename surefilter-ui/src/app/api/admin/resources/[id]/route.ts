@@ -86,10 +86,17 @@ export async function PUT(
     const body = await request.json();
     const data = UpdateResourceSchema.parse(body);
 
-    // Check if resource exists (include category for cache invalidation)
+    // Check if resource exists (include category + parent for cache invalidation)
     const existing = await prisma.resource.findUnique({
       where: { id },
-      include: { category: { select: { slug: true } } },
+      include: {
+        category: {
+          select: {
+            slug: true,
+            parent: { select: { slug: true } },
+          },
+        },
+      },
     });
 
     if (!existing) {
@@ -166,6 +173,7 @@ export async function PUT(
             id: true,
             name: true,
             slug: true,
+            parent: { select: { id: true, name: true, slug: true } },
           },
         },
         form: {
@@ -178,18 +186,41 @@ export async function PUT(
       },
     });
 
-    // Invalidate resources listing + detail page
+    // Invalidate resources listing + detail page (handles top-level and subcategory paths)
     try {
-      const catSlug = resource.category?.slug || existing.category?.slug;
-      const paths = ['/resources'];
-      if (catSlug) {
-        paths.push(`/resources/${catSlug}`);
-        paths.push(`/resources/${catSlug}/${resource.slug}`);
+      const paths = new Set<string>(['/resources']);
+
+      const newCat = resource.category;
+      if (newCat) {
+        const newParentSlug = newCat.parent?.slug;
+        if (newParentSlug) {
+          paths.add(`/resources/${newParentSlug}`);
+          paths.add(`/resources/${newParentSlug}/${newCat.slug}`);
+          paths.add(`/resources/${newParentSlug}/${newCat.slug}/${resource.slug}`);
+        } else {
+          paths.add(`/resources/${newCat.slug}`);
+          paths.add(`/resources/${newCat.slug}/${resource.slug}`);
+        }
       }
-      if (existing.slug !== resource.slug && existing.category?.slug) {
-        paths.push(`/resources/${existing.category.slug}/${existing.slug}`);
+
+      const existingCat = existing.category as any;
+      if (existingCat) {
+        const oldParentSlug = existingCat.parent?.slug;
+        const slugChanged = existing.slug !== resource.slug;
+        const catChanged = existing.categoryId !== resource.categoryId;
+        if (slugChanged || catChanged) {
+          if (oldParentSlug) {
+            paths.add(`/resources/${oldParentSlug}`);
+            paths.add(`/resources/${oldParentSlug}/${existingCat.slug}`);
+            paths.add(`/resources/${oldParentSlug}/${existingCat.slug}/${existing.slug}`);
+          } else {
+            paths.add(`/resources/${existingCat.slug}`);
+            paths.add(`/resources/${existingCat.slug}/${existing.slug}`);
+          }
+        }
       }
-      await invalidatePages(paths);
+
+      await invalidatePages(Array.from(paths));
     } catch {}
 
     return NextResponse.json(resource);
@@ -222,7 +253,14 @@ export async function DELETE(
 
     const resource = await prisma.resource.findUnique({
       where: { id },
-      include: { category: { select: { slug: true } } },
+      include: {
+        category: {
+          select: {
+            slug: true,
+            parent: { select: { slug: true } },
+          },
+        },
+      },
     });
 
     if (!resource) {
@@ -239,8 +277,15 @@ export async function DELETE(
     // Invalidate resources listing + deleted detail page
     try {
       const catSlug = resource.category?.slug;
+      const parentSlug = resource.category?.parent?.slug;
       const paths = ['/resources'];
-      if (catSlug) {
+      if (parentSlug) {
+        paths.push(`/resources/${parentSlug}`);
+        if (catSlug) {
+          paths.push(`/resources/${parentSlug}/${catSlug}`);
+          paths.push(`/resources/${parentSlug}/${catSlug}/${resource.slug}`);
+        }
+      } else if (catSlug) {
         paths.push(`/resources/${catSlug}`);
         paths.push(`/resources/${catSlug}/${resource.slug}`);
       }

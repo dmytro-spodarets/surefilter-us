@@ -2,12 +2,17 @@ import { Suspense } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicResourcesHero from '@/components/sections/DynamicResourcesHero';
-import ResourcesClient from './ResourcesClient';
+import ResourcesShell, { type Tile } from '@/components/resources/ResourcesShell';
 import { prisma } from '@/lib/prisma';
 import { getResourcesPageSettings } from '@/lib/site-settings';
 import type { Metadata } from 'next';
 
 export const revalidate = 86400;
+
+const publishedResourceFilter = {
+  status: 'PUBLISHED' as const,
+  publishedAt: { lte: new Date() },
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   let settings: { metaTitle?: string; metaDescription?: string; ogImage?: string } = {};
@@ -31,88 +36,108 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: { canonical: '/resources' },
   };
 }
+
 export default async function ResourcesPage() {
-  let resources: any[] = [];
-  let categories: any[] = [];
+  let topCategories: any[] = [];
+  let tiles: Tile[] = [];
+
   try {
-    [resources, categories] = await Promise.all([
-      prisma.resource.findMany({
-        where: {
-          status: 'PUBLISHED',
-          publishedAt: { lte: new Date() },
+    // Load top-level categories with their direct children + count
+    topCategories = await prisma.resourceCategory.findMany({
+      where: { isActive: true, parentId: null },
+      include: {
+        _count: { select: { resources: { where: publishedResourceFilter } } },
+        children: {
+          where: { isActive: true },
+          orderBy: { position: 'asc' },
+          include: { _count: { select: { resources: { where: publishedResourceFilter } } } },
         },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          shortDescription: true,
-          thumbnailImage: true,
-          file: true,
-          fileType: true,
-          fileSize: true,
-          fileMeta: true,
-          allowDirectDownload: true,
-          allowPreview: true,
-          publishedAt: true,
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              icon: true,
-              color: true,
+      },
+      orderBy: { position: 'asc' },
+    });
+
+    // Build mixed tiles: for each top-level category in position order,
+    // either expose its subcategories or its direct resources.
+    for (const top of topCategories) {
+      if (top.children.length > 0) {
+        for (const child of top.children) {
+          tiles.push({
+            kind: 'subcategory',
+            data: {
+              id: child.id,
+              name: child.name,
+              slug: child.slug,
+              parentSlug: top.slug,
+              image: child.image,
+              description: child.description,
+              resourceCount: child._count.resources,
             },
-          },
-        },
-        orderBy: { publishedAt: 'desc' },
-      }),
-      prisma.resourceCategory.findMany({
-        where: { isActive: true },
-        include: {
-          _count: {
-            select: {
-              resources: {
-                where: {
-                  status: 'PUBLISHED',
-                  publishedAt: { lte: new Date() },
-                },
+          });
+        }
+      } else {
+        const resources = await prisma.resource.findMany({
+          where: { ...publishedResourceFilter, categoryId: top.id },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            shortDescription: true,
+            thumbnailImage: true,
+            file: true,
+            fileType: true,
+            fileSize: true,
+            fileMeta: true,
+            allowDirectDownload: true,
+            allowPreview: true,
+            publishedAt: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                icon: true,
+                color: true,
+                parent: { select: { id: true, name: true, slug: true } },
               },
             },
           },
-        },
-        orderBy: { position: 'asc' },
-      }),
-    ]);
+          orderBy: { publishedAt: 'desc' },
+        });
+        for (const r of resources) {
+          tiles.push({ kind: 'resource', data: r as any });
+        }
+      }
+    }
   } catch {
-    // DB unavailable during build — render with empty data, ISR will populate at runtime
+    // DB unavailable during build
   }
 
   return (
     <main>
       <Header />
-
-      {/* Hero Section - Server Component, данные в HTML */}
       <DynamicResourcesHero />
-
-      {/* Interactive Content - Client Component с server data */}
-      <Suspense fallback={
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 animate-pulse">
-          <div className="flex gap-3 mb-8">
-            {[...Array(4)].map((_, i) => <div key={i} className="h-10 bg-gray-200 rounded-full w-28" />)}
+      <Suspense
+        fallback={
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 animate-pulse">
+            <div className="flex gap-3 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-10 bg-gray-200 rounded-full w-28" />
+              ))}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white rounded-lg border border-gray-200 h-72" />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg border border-gray-200 p-6 h-48" />
-            ))}
-          </div>
-        </div>
-      }>
-        <ResourcesClient
-          initialResources={JSON.parse(JSON.stringify(resources))}
-          initialCategories={JSON.parse(JSON.stringify(categories))}
+        }
+      >
+        <ResourcesShell
+          topCategories={JSON.parse(JSON.stringify(topCategories))}
+          activeTopSlug=""
+          tiles={JSON.parse(JSON.stringify(tiles))}
         />
       </Suspense>
-
       <Footer />
     </main>
   );

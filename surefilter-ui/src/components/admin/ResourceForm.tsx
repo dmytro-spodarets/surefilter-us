@@ -32,6 +32,9 @@ interface ResourceFormProps {
 interface Category {
   id: string;
   name: string;
+  parentId?: string | null;
+  parent?: { id: string; name: string; slug: string } | null;
+  _count?: { resources: number; children: number };
 }
 
 interface Form {
@@ -320,44 +323,29 @@ export default function ResourceForm({ initialData, onSubmit, onCancel }: Resour
         <h2 className="text-lg font-bold text-gray-900 mb-4">Configuration</h2>
         
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category *
-              </label>
-              <select
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
-                required
-              >
-                <option value="">Select a category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <CategorySelector
+            categories={categories}
+            value={formData.categoryId}
+            onChange={(categoryId) => setFormData({ ...formData, categoryId })}
+          />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Form (Optional)
-              </label>
-              <select
-                value={formData.formId}
-                onChange={(e) => setFormData({ ...formData, formId: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
-              >
-                <option value="">No form (direct download)</option>
-                {forms.map((form) => (
-                  <option key={form.id} value={form.id}>
-                    {form.name}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Users will fill this form before downloading</p>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Form (Optional)
+            </label>
+            <select
+              value={formData.formId}
+              onChange={(e) => setFormData({ ...formData, formId: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+            >
+              <option value="">No form (direct download)</option>
+              {forms.map((form) => (
+                <option key={form.id} value={form.id}>
+                  {form.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Users will fill this form before downloading</p>
           </div>
 
           <div>
@@ -483,6 +471,89 @@ export default function ResourceForm({ initialData, onSubmit, onCancel }: Resour
         />
       )}
     </form>
+  );
+}
+
+/**
+ * Two-level category selector. Parent picks the top-level category; if it has
+ * children, a second select appears requiring the user to choose a subcategory.
+ * The deepest selected id is propagated upward as the resource's categoryId.
+ */
+function CategorySelector({
+  categories,
+  value,
+  onChange,
+}: {
+  categories: Category[];
+  value: string;
+  onChange: (categoryId: string) => void;
+}) {
+  const topLevel = categories.filter((c) => !c.parentId);
+  const childrenByParent = categories
+    .filter((c) => c.parentId)
+    .reduce<Record<string, Category[]>>((acc, c) => {
+      const key = c.parentId as string;
+      (acc[key] = acc[key] || []).push(c);
+      return acc;
+    }, {});
+
+  // Resolve top-level parent for the currently-selected category
+  const selectedCategory = categories.find((c) => c.id === value);
+  const topLevelId = selectedCategory?.parentId || selectedCategory?.id || '';
+  const subcategoryId = selectedCategory?.parentId ? selectedCategory.id : '';
+
+  const childrenOfSelected = topLevelId ? childrenByParent[topLevelId] || [] : [];
+
+  const handleTopChange = (newTopId: string) => {
+    if (!newTopId) {
+      onChange('');
+      return;
+    }
+    const kids = childrenByParent[newTopId] || [];
+    // If the new top-level has children, clear selection until user picks a subcategory.
+    // Otherwise the top-level itself is the final selection.
+    onChange(kids.length > 0 ? '' : newTopId);
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+        <select
+          value={topLevelId}
+          onChange={(e) => handleTopChange(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+          required
+        >
+          <option value="">Select a category</option>
+          {topLevel.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+              {(cat._count?.children ?? 0) > 0 ? ' →' : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {childrenOfSelected.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory *</label>
+          <select
+            value={subcategoryId}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sure-blue-500"
+            required
+          >
+            <option value="">Select a subcategory</option>
+            {childrenOfSelected.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+    </div>
   );
 }
 

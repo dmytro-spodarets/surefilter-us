@@ -165,6 +165,7 @@ export async function POST(request: NextRequest) {
             id: true,
             name: true,
             slug: true,
+            parent: { select: { id: true, name: true, slug: true } },
           },
         },
         form: {
@@ -177,11 +178,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Invalidate resources listing cache
+    // Invalidate resources listing cache (root + category + parent if any)
     try {
       const catSlug = resource.category?.slug;
+      const parentSlug = resource.category?.parent?.slug;
       const paths = ['/resources'];
-      if (catSlug) paths.push(`/resources/${catSlug}`);
+      if (parentSlug) paths.push(`/resources/${parentSlug}`);
+      if (catSlug) {
+        paths.push(
+          parentSlug ? `/resources/${parentSlug}/${catSlug}` : `/resources/${catSlug}`,
+        );
+      }
       await invalidatePages(paths);
     } catch {}
 

@@ -584,16 +584,23 @@ model ResourceCategory {
   description String?    @db.Text
   icon        String?    // HeroIcon name (e.g., "DocumentTextIcon")
   color       String?    // Tailwind color class (e.g., "bg-blue-100 text-blue-700")
+  image       String?    // S3 key for subcategory image card (e.g., "images/categories/forklifts.jpg")
   position    Int        @default(0)
   isActive    Boolean    @default(true)
-  
+
+  // Self-relation for subcategories (max depth = 2 enforced in app layer)
+  parentId    String?
+  parent      ResourceCategory?  @relation("Subcategories", fields: [parentId], references: [id], onDelete: SetNull)
+  children    ResourceCategory[] @relation("Subcategories")
+
   resources   Resource[]
-  
+
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  
+
   @@index([position])
   @@index([isActive])
+  @@index([parentId])
 }
 
 enum ResourceStatus {

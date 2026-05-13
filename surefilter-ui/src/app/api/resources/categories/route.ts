@@ -1,23 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/resources/categories - List active categories (public)
-export async function GET(request: NextRequest) {
+// GET /api/resources/categories - List active top-level categories with their subcategories (public)
+export async function GET(_request: NextRequest) {
   try {
+    const publishedResourceFilter = {
+      status: 'PUBLISHED' as const,
+      publishedAt: { lte: new Date() },
+    };
+
     const categories = await prisma.resourceCategory.findMany({
       where: {
         isActive: true,
+        parentId: null,
       },
       include: {
         _count: {
-          select: {
-            resources: {
-              where: {
-                status: 'PUBLISHED',
-                publishedAt: {
-                  lte: new Date(),
-                },
-              },
+          select: { resources: { where: publishedResourceFilter } },
+        },
+        children: {
+          where: { isActive: true },
+          orderBy: { position: 'asc' },
+          include: {
+            _count: {
+              select: { resources: { where: publishedResourceFilter } },
             },
           },
         },
@@ -34,4 +40,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

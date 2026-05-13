@@ -13,37 +13,56 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const categorySlug = searchParams.get('category');
+    const subcategorySlug = searchParams.get('subcategory');
     const search = searchParams.get('search');
     const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
     const limit = Math.min(parseInt(searchParams.get('limit') || '12') || 12, 100);
     const skip = (page - 1) * limit;
 
-    const where: any = {
-      status: 'PUBLISHED',
-      publishedAt: {
-        lte: new Date(),
-      },
-    };
+    const filters: any[] = [];
 
-    if (categorySlug) {
-      where.category = {
-        slug: categorySlug,
-        isActive: true,
-      };
+    if (subcategorySlug) {
+      filters.push({
+        category: {
+          slug: subcategorySlug,
+          isActive: true,
+          ...(categorySlug
+            ? { parent: { slug: categorySlug, isActive: true } }
+            : {}),
+        },
+      });
+    } else if (categorySlug) {
+      filters.push({
+        OR: [
+          { category: { slug: categorySlug, isActive: true } },
+          {
+            category: {
+              isActive: true,
+              parent: { slug: categorySlug, isActive: true },
+            },
+          },
+        ],
+      });
     }
 
     if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { shortDescription: { contains: search, mode: 'insensitive' } },
-      ];
+      filters.push({
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+          { shortDescription: { contains: search, mode: 'insensitive' } },
+        ],
+      });
     }
 
-    // Get total count
+    const where: any = {
+      status: 'PUBLISHED',
+      publishedAt: { lte: new Date() },
+      ...(filters.length > 0 ? { AND: filters } : {}),
+    };
+
     const total = await prisma.resource.count({ where });
 
-    // Get resources
     const resources = await prisma.resource.findMany({
       where,
       select: {
@@ -66,6 +85,7 @@ export async function GET(request: NextRequest) {
             slug: true,
             icon: true,
             color: true,
+            parent: { select: { id: true, name: true, slug: true } },
           },
         },
       },
@@ -91,4 +111,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
