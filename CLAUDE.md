@@ -168,6 +168,7 @@ surefilter-us/
 - `/admin/banner-campaigns` — кампании банеров (с aggregate stats)
 - `/admin/banner-submissions` — универсальный view всех лидов с CSV export
 - `/admin/files` — файл-менеджер (S3)
+- `/admin/access` — **API & Access** (MCP server): personal access tokens, scopes reference, usage dashboard, server settings + connection guide (см. раздел «MCP server» ниже)
 - `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages, Redirects)
 - `/admin/users` — пользователи (список, создание, редактирование)
 - `/admin/logs` — логи действий
@@ -201,6 +202,9 @@ surefilter-us/
 - `/api/admin/banners` (+`[id]`, `[id]/duplicate`, `[id]/stats`) — CRUD банеров. Мутации сбрасывают `clearBannersCache()`
 - `/api/admin/banner-campaigns` (+`[id]`, `[id]/stats`) — CRUD кампаний с aggregate stats (raw SQL DATE_TRUNC timeseries)
 - `/api/admin/banner-submissions` (+`[id]`, `export`, `[id]/retry-email`) — лиды банеров
+- `/api/admin/access/tokens` (+`[id]`, `[id]/regenerate`) — Personal Access Tokens (MCP). POST возвращает plaintext один раз; больше нигде не хранится.
+- `/api/admin/access/settings` — GET/PUT глобальных MCP-настроек (хранятся в `SiteSettings.mcp` Json)
+- `/api/admin/access/usage` — агрегаты AdminLog `action=MCP_TOOL_CALL` за 30 дней (totals + top tools + top tokens)
 
 ---
 
@@ -525,6 +529,36 @@ npm run seed:content:force  # С перезаписью
 **Cache invalidation на admin-CRUD**:
 - `clearBannersCache()` сбрасывает 1-min in-memory cache
 - `invalidatePages(['/'])` — ISR/CloudFront для сайта (на случай если будущая логика будет SSR-кешить banner data)
+
+---
+
+## MCP Server (Phase 0 готово, Phase 1+ в работе)
+
+MCP-сервер (Model Context Protocol) даст AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 0 (готово, 2026-05-13) — фундамент авторизации:**
+
+- **Prisma модель `ApiToken`** (миграция `20260513175623_api_tokens_and_mcp_actions`): sha-256 hash, `scopes String[]`, expiresAt/lastUsedAt/lastUsedIp, soft revoke (`revokedAt`/`revokedById`/`revokedReason`), per-day quota (`requestCountToday`/`requestCountDate`/`dailyQuota`), `tokenPrefix` для UI. `User.onDelete: SetNull` — токен переживает удаление владельца (требует явный revoke).
+- **AdminAction enum** расширен: `TOKEN_CREATED/REVOKED/REGENERATED`, `MCP_TOOL_CALL`, `MCP_SETTINGS_UPDATED`.
+- **Глобальные настройки MCP** — в `SiteSettings.mcp` Json (`enabled`, `publicScopesEnabled`, `defaultTokenTtlDays`, `defaultDailyQuota`, `rateLimitPerMinute`, `maintenanceMode`, `maintenanceMessage`). Helpers: [src/lib/mcp-settings.ts](surefilter-ui/src/lib/mcp-settings.ts) — `getMcpSettings/updateMcpSettings` с Zod-валидацией.
+- **Token helpers** ([src/lib/api-token.ts](surefilter-ui/src/lib/api-token.ts)): `generateToken()` → `sfpat_<24chars-base64url>`, `verifyToken()` (hash lookup + revoke/expiry/quota check + lastUsed bookkeeping), `hasScope()` с поддержкой `<domain>:*` и `admin:*` wildcards.
+- **Scope vocabulary** ([src/mcp/scopes.ts](surefilter-ui/src/mcp/scopes.ts)): 14 scopes сгруппированы по domain × risk × public/admin; 5 presets для UI: `read-only-researcher`, `content-editor`, `catalog-admin`, `marketing`, `full-admin (admin:*)`.
+- **Tool registry stub** ([src/mcp/tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)): 31 будущий tool с описаниями, requiredScopes, mutating/destructive флагами. Используется страницей Scopes Reference чтобы показать «какие именно tools открывает каждый scope». Реальные handlers — в Phase 1+.
+- **Admin UI — раздел "API & Access"** ([src/app/admin/access/](surefilter-ui/src/app/admin/access/)) с собственным `AccessShell` (sidebar tabs):
+  - `/admin/access/tokens` — list всех токенов всех админов с фильтрами active/expired/revoked + search; колонки: prefix, owner, scopes (compact chips), lastUsed+IP, expires, status.
+  - `/admin/access/tokens/new` — preset selector → custom checkboxes по domain с risk-цветами; на submit показывает plaintext в модалке **один раз** + copy-to-clipboard + готовый JSON-snippet для Claude Desktop.
+  - `/admin/access/tokens/[id]` — детали + edit name inline + revoke (с reason) + regenerate (revoke старый + new plaintext один раз) + last 50 tool calls из AdminLog.
+  - `/admin/access/scopes` — auto-generated reference: каждый scope → описание + риск + раскрывающийся список tools которые он откроет.
+  - `/admin/access/usage` — totals + top tools + top tokens + recent 25 calls (агрегаты из `AdminLog.action=MCP_TOOL_CALL`).
+  - `/admin/access/settings` — тумблеры + дефолты + полный Connection Guide (Claude Desktop JSON, Claude Code CLI, curl).
+- **API**: `/api/admin/access/tokens` (list/create), `[id]` (detail/PATCH/revoke), `[id]/regenerate`, `/api/admin/access/settings`, `/api/admin/access/usage`. Все используют `requireAdmin()` + Zod + `logAdminAction()`.
+- **Admin nav**: "Access" link добавлен между "Files" и "Settings" в [AdminClientLayout.tsx](surefilter-ui/src/app/admin/AdminClientLayout.tsx).
+
+**Plaintext-once UX**: при создании или regenerate токен возвращается в response один раз; в БД только `tokenHash` (sha-256). При потере — только regenerate. В UI везде маскируется до `tokenPrefix…` (первые 10 chars, например `sfpat_AbCd…`).
+
+**Local migration note**: при ручной правке исторических миграций (`20250821040036_init_cms`, `20250825224637_add_industry_meta`) `prisma migrate dev` отказывается работать локально из-за drift checksums. Фикс: обновить `_prisma_migrations.checksum` на текущий `shasum -a 256` файла. Production не затрагивается — `migrate deploy` хэши не сверяет, применяет новые миграции по имени.
+
+**Phase 1+ (TODO)**: см. [TODO.md](TODO.md). Сервер на `/api/mcp/[transport]` с `mcp-handler` + `withMcpAuth(verifyApiKey)`, public read tools (catalog/content), затем admin read/write, потом subdomain `mcp.surefilter.us`.
 
 ---
 

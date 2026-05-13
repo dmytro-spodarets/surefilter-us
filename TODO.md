@@ -3,11 +3,21 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 13 мая 2026 (Resources hierarchy полностью развёрнут на prod: 48 каталогов, 12 редиректов, listing chrome cleanup)
+**Последнее обновление:** 13 мая 2026 (MCP Phase 0: ApiToken model + /admin/access section; Resources hierarchy полностью развёрнут на prod)
 
 ---
 
 ## Активные задачи
+
+### MCP server — следующие фазы (план: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`)
+
+- [x] **Phase 0 — Foundation** (2026-05-13): ApiToken Prisma model + `/admin/access/*` UI (tokens/scopes/usage/settings) + helpers (`src/lib/api-token.ts`, `src/mcp/scopes.ts`, `src/mcp/tools-registry.ts`, `src/lib/mcp-settings.ts`) + API routes (`/api/admin/access/*`) + “Access” link в admin nav.
+- [ ] **Phase 1 — MCP skeleton + public read tools** (~2–3 дня): `npm install mcp-handler @modelcontextprotocol/sdk`, `src/mcp/server.ts` с `withMcpAuth(verifyApiKey)`, `src/app/api/mcp/[transport]/route.ts`, `/.well-known/oauth-protected-resource` (stub), `src/mcp/tools/{catalog,content}.ts` (read-only), `sf://catalog/*` resources, rate-limiter `mcpPublicLimiter`, AdminLog MCP_TOOL_CALL audit.
+- [ ] **Phase 2 — Admin read tools** (~1–2 дня): `cms-*-read`, `forms-list/get`, `banners-list/stats`, `media-list-files`, `users-list` (masked), `admin-logs-list`. Рефактор: вынести shared Zod+Prisma логику из admin route.ts в `src/lib/services/<domain>.ts`.
+- [ ] **Phase 3 — Admin write tools** (~3–5 дней): catalog/content/cms/forms/banners/media/users/settings writes; idempotency keys; deletes требуют `confirm:true` или Elicitation; SSRF на forms.webhookUrl; resource-category иерархия (depth=2). Расширить AdminLog MCP details.
+- [ ] **Phase 4 — Subdomain infra** (~1–2 дня): ACM cert + CloudFront dist + Route53 для `mcp.surefilter.us`, middleware rewrite host→/api/mcp, WAF rate-limit правило.
+- [ ] **Phase 5 — Hardening + telemetry** (~1–2 дня): per-token rate-limit factory + quota enforcement (429 + Retry-After), idempotency table, cron token-leak detection, реальные графики /admin/access/usage, email-alerts на revoke не-self / создание admin:* токена.
+- [ ] **Phase 6 — OAuth 2.1 миграция** (~5–8 дней, далеко): NextAuth/Clerk/WorkOS как Auth Server, RFC 8707 Resource Indicators, refresh token rotation, второй verifier параллельно с API keys.
 
 ### Resources hierarchy — follow-ups
 
