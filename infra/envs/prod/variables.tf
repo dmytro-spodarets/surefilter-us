@@ -15,4 +15,8 @@ variable "tinymce_api_key" {
   sensitive   = true
 }
 
-
+variable "enable_mcp_waf" {
+  description = "Attach a WAFv2 web ACL with rate-based rules to the MCP CloudFront distribution. Adds ~$5/mo base cost; leave false until MCP traffic warrants it."
+  type        = bool
+  default     = false
+}

@@ -532,9 +532,27 @@ npm run seed:content:force  # С перезаписью
 
 ---
 
-## MCP Server (Phase 0–3 готово, Phase 4+ infra)
+## MCP Server (Phase 0–4 готово, Phase 5+ hardening)
 
 MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 4 (infra готова, 2026-05-13) — `mcp.surefilter.us` через CloudFront:**
+
+- **Topology**: `mcp.surefilter.us` → отдельная CloudFront distribution → тот же App Runner origin что и основной сайт (общий `X-Origin-Secret`). НЕ отдельный сервис — единый Next.js процесс обслуживает оба домена; path-rewrite на edge.
+- **CloudFront Function `surefilter-mcp-path-rewrite`** (viewer-request) — [cloudfront-mcp.tf](infra/envs/prod/cloudfront-mcp.tf): `/mcp[/*]` → `/api/mcp/mcp[/*]`, `/.well-known/oauth-protected-resource` passthrough; одновременно проставляет `x-forwarded-host` (origin шлёт App Runner host, нам нужен публичный для `withMcpAuth`'s WWW-Authenticate `resource_metadata`).
+- **Dedicated policies**:
+  - cache `mcp_no_cache` — TTL=0; cache-key включает Authorization + mcp-session-id + MCP-Protocol-Version + Accept (defense-in-depth, реально не кэшируется);
+  - cache `mcp_metadata_cache` — 1h для `/.well-known/oauth-protected-resource`;
+  - origin-request `mcp_origin` — whitelist MCP headers + cookies + query all.
+- **Origin timeouts**: `origin_read_timeout=60` и `origin_keepalive_timeout=60` — под SSE streaming.
+- **WAF (опционально)**: `var.enable_mcp_waf` (default `false`) — WAFv2 ACL с rate-based rule 2000 req/5min per IP. Toggle когда трафик появится.
+- **ACM + Route53**: [acm-mcp.tf](infra/envs/prod/acm-mcp.tf) — отдельный cert для `mcp.surefilter.us` в us-east-1 (для CloudFront), DNS validation через основную zone; [route53-mcp.tf](infra/envs/prod/route53-mcp.tf) — A + AAAA alias.
+- **Применение**: `tofu plan` показал 10 add / 0 change / 0 destroy — ничего существующего не трогает. `tofu apply` запускается вручную после ревью.
+- **Подключение клиентов после apply**: меняется с `http://localhost:3000/api/mcp/mcp` на `https://mcp.surefilter.us/mcp`. Connection Guide в `/admin/access/settings` уже использует prod URL.
+
+---
+
+
 
 **Phase 3b (готово, 2026-05-13) — banners + CMS + forms + media + users + settings writes:** +30 write-tools, всего **80 live**.
 
