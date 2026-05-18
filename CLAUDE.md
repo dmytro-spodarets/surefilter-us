@@ -370,6 +370,7 @@ npm run seed:content:force  # С перезаписью
 - Утилита `cn()` из `lib/utils.ts` для объединения Tailwind классов
 - Цвета: `sure-blue`, `sure-orange`, `sure-red`
 - Контейнер: `max-w-7xl mx-auto px-4`
+- **Rich-text content** (sanitized HTML from CMS): применяй класс `article-content` (в [globals.css](surefilter-ui/src/app/globals.css)) к `<div dangerouslySetInnerHTML>`. Даёт `1em` rhythm между абзацами, видимые ссылки (sure-blue underline + hover thickens + focus outline), h2/h3/h4 hierarchy, list bullets/numbers, blockquote с sure-blue левой границей, rounded inline images. Сейчас живёт на `/newsroom/[slug]`; переиспользуй на event / resource detail когда понадобится — никаких dependency на `@tailwindcss/typography`.
 
 ### Изображения
 - Компонент `ManagedImage` — с shimmer placeholder (без retry/error boundary — TODO)
@@ -459,6 +460,11 @@ npm run seed:content:force  # С перезаписью
 - Цены/special/fits — per-banner overrides (Product модель не имеет price-поля, это сознательное решение — попап-промо короткоживущий)
 - Admin tab «Products» в [BannerForm](surefilter-ui/src/components/admin/BannerForm.tsx) виден только при `layout === 'product_showcase'`. Product picker через `/api/admin/products?ids=...`
 - Best practices May 2026: close 44×44px (WCAG 2.2 SC 2.5.8), mobile vertical stack, SKU как самый prominent элемент (research-based), microcopy «Get full catalog» / «See all filters», helper «No spam. Unsubscribe anytime.», без fake urgency (FTC enforcement)
+- **Mobile fit / readability (2026-05-18 polish, [ProductShowcase.tsx](surefilter-ui/src/components/banners/layouts/ProductShowcase.tsx) + [BannerModal.tsx](surefilter-ui/src/components/banners/BannerModal.tsx))**:
+  - Compact bottom strip — Cross References (left, `flex-1`) + MOQ/CONT + price (right, `shrink-0`) share one horizontal block instead of stacking → ~100px saved per popup on mobile when two cards stack.
+  - `<dialog>` is `w-[calc(100%-1.5rem)] sm:w-full` so the popup floats with ~12px of breathing space on the sides; container `max-h: calc(100dvh - 1.5rem) sm:max-h-[92dvh]` adds vertical breathing; mobile header aspect tightened to 16:7.
+  - Scrollable inner via `overflow-y-auto overscroll-contain` inside the popup container; close button stays anchored top-right because it sits **outside** the scroll area (Sumo / OptinMonster pattern).
+  - Font scale: title 24/36, subtitle 14/18, SKU 18/20, description 14/16, cross-refs label/items text-xs (12), MOQ/CONT text-xs, price 14/16 + per-case 12/14. Email input bumped to 16px to stop Safari focus-zoom.
 
 **Targeting (на каких страницах показывать)**:
 - `targetAllPages: true` — на всех + `excludeSlugs` (исключения)

@@ -200,9 +200,9 @@ export default function ResourcesPage() {
               key={resource.id}
               className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden"
             >
-              {/* Thumbnail — thumbnailImage is an S3 key, ManagedImage resolves it to CDN */}
+              {/* Thumbnail — A4 portrait (826/1168) matches PDF cover images used on the public /resources page */}
               {resource.thumbnailImage && (
-                <div className="relative aspect-video bg-gray-200">
+                <div className="relative aspect-[826/1168] bg-gray-100">
                   <ManagedImage
                     src={resource.thumbnailImage}
                     alt={resource.title}

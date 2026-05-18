@@ -15,7 +15,6 @@ import { sanitize } from '@/lib/sanitize';
 import { getAssetUrl } from '@/lib/assets';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ManagedImage } from '@/components/ui/ManagedImage';
 import RelatedNews from '@/components/sections/RelatedNews';
 
 interface NewsPageProps {
@@ -128,18 +127,16 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
 
           {/* Article Content */}
           <article className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            {/* Featured Image */}
+            {/* Featured Image — native <img> keeps the natural aspect; w-full h-auto fills width without cropping */}
             {article.featuredImage && (
-              <div className="relative w-full h-96">
-                <ManagedImage
-                  src={article.featuredImage}
-                  alt={article.featuredImageAlt || article.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 896px"
-                />
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={getAssetUrl(article.featuredImage)}
+                alt={article.featuredImageAlt || article.title}
+                className="w-full h-auto bg-gray-100"
+                loading="eager"
+                fetchPriority="high"
+              />
             )}
 
             {/* Header */}
@@ -223,8 +220,8 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
 
             {/* Content */}
             <div className="p-8">
-              <div 
-                className="text-gray-700 leading-relaxed"
+              <div
+                className="article-content text-gray-700 leading-relaxed text-base"
                 dangerouslySetInnerHTML={{ __html: sanitize(article.content) }}
               />
             </div>
