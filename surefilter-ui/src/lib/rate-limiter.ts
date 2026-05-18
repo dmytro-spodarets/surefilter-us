@@ -69,3 +69,27 @@ export const passwordLimiter = new RateLimiter(5, 15 * 60 * 1000);   // 5 per 15
 export const publicApiLimiter = new RateLimiter(100, 60 * 1000);      // 100 per minute
 export const bannerSubmitLimiter = new RateLimiter(5, 60 * 60 * 1000);    // 5 lead submissions per hour per IP
 export const bannerImpressionLimiter = new RateLimiter(200, 60 * 1000);   // 200 impressions per minute per IP
+
+// MCP server (mcp.surefilter.us). Anonymous (no-token) requests hit the public limiter;
+// authenticated requests rely on per-token daily quotas (enforced inside verifyToken).
+export const mcpPublicLimiter = new RateLimiter(60, 60 * 1000);            // 60 requests/min per IP
+
+// Phase 5: per-token burst limiter is now driven by mcpSettings.rateLimitPerMinute.
+// Limiter instances are cached by their per-minute cap so counter state survives
+// across requests for the same cap. Updating the setting in /admin/access/settings
+// surfaces immediately on the next request without a server restart.
+const dynamicLimiters = new Map<number, RateLimiter>();
+
+/**
+ * Return a RateLimiter configured with `maxPerMinute` requests in a 60s window.
+ * Reuses the cached instance for the same cap so counters accumulate correctly.
+ */
+export function getMcpAuthedLimiter(maxPerMinute: number): RateLimiter {
+  const cap = Math.max(1, Math.floor(maxPerMinute));
+  let limiter = dynamicLimiters.get(cap);
+  if (!limiter) {
+    limiter = new RateLimiter(cap, 60 * 1000);
+    dynamicLimiters.set(cap, limiter);
+  }
+  return limiter;
+}

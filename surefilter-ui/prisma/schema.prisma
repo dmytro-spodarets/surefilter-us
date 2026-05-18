@@ -29,9 +29,10 @@ model User {
   isActive     Boolean    @default(true)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  
+
   // Relations
   adminLogs    AdminLog[]
+  apiTokens    ApiToken[] @relation("ApiTokenOwner")
 }
 
 // CMS primitives
@@ -719,6 +720,9 @@ model SiteSettings {
   // Redirects (JSON array of redirect rules)
   redirects            Json?   // [{ id, source, destination, statusCode, isActive, comment }]
 
+  // MCP server global settings (Phase 0+; see src/lib/mcp-settings.ts)
+  mcp                  Json?   // { enabled, publicScopesEnabled, defaultTokenTtlDays, defaultDailyQuota, rateLimitPerMinute, maintenanceMode, maintenanceMessage }
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -730,6 +734,11 @@ enum AdminAction {
   DELETE
   LOGIN
   LOGOUT
+  TOKEN_CREATED
+  TOKEN_REVOKED
+  TOKEN_REGENERATED
+  MCP_TOOL_CALL
+  MCP_SETTINGS_UPDATED
 }
 
 model AdminLog {
@@ -744,10 +753,66 @@ model AdminLog {
   ipAddress   String?
   userAgent   String?
   createdAt   DateTime    @default(now())
-  
+
   @@index([userId])
   @@index([createdAt])
   @@index([entityType])
+}
+
+// Personal Access Token for MCP server (and future API integrations).
+// Plaintext is shown once at creation; only sha-256 hash is persisted.
+// Tokens survive user deletion (userId becomes null) — explicit revoke required.
+model ApiToken {
+  id                String    @id @default(cuid())
+
+  // Owner (nullable so tokens survive user deletion; revoke them manually)
+  userId            String?
+  user              User?     @relation("ApiTokenOwner", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Identification
+  name              String    // Human-readable name, e.g. "Claude Desktop — local dev"
+  tokenHash         String    @unique // sha-256 hex of plaintext (no per-token salt — hash already 256-bit)
+  tokenPrefix       String    // First 10 chars of plaintext (e.g. "sfpat_AbCd") shown in UI
+
+  // Permissions
+  scopes            String[]  // e.g. ["catalog:read", "content:*", "admin:*"]
+
+  // Lifecycle
+  expiresAt         DateTime?
+  lastUsedAt        DateTime?
+  lastUsedIp        String?
+  revokedAt         DateTime?
+  revokedById       String?   // User id who revoked (no Prisma relation; resolved manually in API)
+  revokedReason     String?
+
+  // Per-token daily quota (enforced in Phase 5)
+  requestCountToday Int       @default(0)
+  requestCountDate  DateTime? // Date the counter applies to (for daily reset)
+  dailyQuota        Int       @default(10000)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+/// Idempotency dedupe key store for mutating MCP tool calls.
+/// Phase 5 enforcement: when a tool sees a (tokenId, key) tuple it returned
+/// before within 24h, it short-circuits and returns the stored response instead
+/// of re-running the mutation. Rows older than 24h are purged by the cron in
+/// /api/cron/mcp-cleanup.
+model MCPIdempotency {
+  id        String   @id @default(cuid())
+  tokenId   String
+  key       String
+  tool      String   // tool name, used for usage analytics
+  response  Json     // serialized MCP result returned by the original call
+  createdAt DateTime @default(now())
+
+  @@unique([tokenId, key])
+  @@index([createdAt])
 }
 
 // ============================================

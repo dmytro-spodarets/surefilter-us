@@ -15,8 +15,9 @@ const PRIVATE_IP_RANGES = [
 
 /**
  * Validates webhook URL: must be https, not targeting private/internal IPs.
+ * Throws on invalid input. Exposed for reuse from MCP write tools (forms-writes).
  */
-function validateWebhookUrl(rawUrl: string): string {
+export function validateWebhookUrl(rawUrl: string): string {
   let parsed: URL;
   try {
     parsed = new URL(rawUrl);

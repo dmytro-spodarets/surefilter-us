@@ -168,6 +168,7 @@ surefilter-us/
 - `/admin/banner-campaigns` — кампании банеров (с aggregate stats)
 - `/admin/banner-submissions` — универсальный view всех лидов с CSV export
 - `/admin/files` — файл-менеджер (S3)
+- `/admin/access` — **API & Access** (MCP server): personal access tokens, scopes reference, usage dashboard, server settings + connection guide (см. раздел «MCP server» ниже)
 - `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages, Redirects)
 - `/admin/users` — пользователи (список, создание, редактирование)
 - `/admin/logs` — логи действий
@@ -201,6 +202,9 @@ surefilter-us/
 - `/api/admin/banners` (+`[id]`, `[id]/duplicate`, `[id]/stats`) — CRUD банеров. Мутации сбрасывают `clearBannersCache()`
 - `/api/admin/banner-campaigns` (+`[id]`, `[id]/stats`) — CRUD кампаний с aggregate stats (raw SQL DATE_TRUNC timeseries)
 - `/api/admin/banner-submissions` (+`[id]`, `export`, `[id]/retry-email`) — лиды банеров
+- `/api/admin/access/tokens` (+`[id]`, `[id]/regenerate`) — Personal Access Tokens (MCP). POST возвращает plaintext один раз; больше нигде не хранится.
+- `/api/admin/access/settings` — GET/PUT глобальных MCP-настроек (хранятся в `SiteSettings.mcp` Json)
+- `/api/admin/access/usage` — агрегаты AdminLog `action=MCP_TOOL_CALL` за 30 дней (totals + top tools + top tokens)
 
 ---
 
@@ -525,6 +529,140 @@ npm run seed:content:force  # С перезаписью
 **Cache invalidation на admin-CRUD**:
 - `clearBannersCache()` сбрасывает 1-min in-memory cache
 - `invalidatePages(['/'])` — ISR/CloudFront для сайта (на случай если будущая логика будет SSR-кешить banner data)
+
+---
+
+## MCP Server (Phase 0–5 готово — все фазы плана закрыты)
+
+MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 5 (готово, 2026-05-13) — hardening:**
+
+- **Idempotency** ([MCPIdempotency](surefilter-ui/prisma/schema.prisma) Prisma + миграция `20260518042450_mcp_idempotency`): unique `(tokenId, key)`, TTL 24h, cron purge. Helpers — [lib/idempotency.ts](surefilter-ui/src/lib/idempotency.ts) (`readIdempotency` / `writeIdempotency` / `purgeExpiredIdempotency`) + `withIdempotency(ctx, key, tool, fn)` в [_write-helpers.ts](surefilter-ui/src/mcp/tools/_write-helpers.ts). Reference integrations: `content-create-news-category`, `content-create-resource-category`. Остальные tools принимают `idempotencyKey` но пока no-op (Zod description честно об этом говорит) — opt-in расширяется по мере роста usage.
+- **Per-token rate-limit** ([lib/rate-limiter.ts](surefilter-ui/src/lib/rate-limiter.ts)): `getMcpAuthedLimiter(maxPerMinute)` factory — лимитер кэшируется по cap-значению; `verifyApiKey` читает `mcpSettings.rateLimitPerMinute` живьём, изменения в `/admin/access/settings` применяются на следующем запросе без рестарта.
+- **SES email alerts** ([lib/mcp-alerts.ts](surefilter-ui/src/lib/mcp-alerts.ts)) через AWS SES v2 + `getFormNotificationFromEmail()`:
+  - `alertAdminStarTokenCreated` — нотификация всем active ADMIN при выписке `admin:*` токена (hooks в `tokens/route.ts` и `tokens/[id]/regenerate/route.ts`).
+  - `alertTokenRevokedNotSelf` — owner получает email если кто-то другой revoke его токен (hooks в `tokens/[id]/route.ts` DELETE и regenerate route).
+- **Cron `/api/cron/mcp-cleanup`** ([route.ts](surefilter-ui/src/app/api/cron/mcp-cleanup/route.ts)) — GET/POST с auth по `CRON_SECRET` env или localhost-bypass. Делает: (a) soft-revoke ApiTokens с `expiresAt < now` и `revokedReason='EXPIRED'` + AdminLog audit, (b) флаг inactive tokens (>90d без `lastUsedAt`) в response для visibility, (c) `purgeExpiredIdempotency` для MCPIdempotency >24h. Возвращает JSON-summary.
+- **Real usage dashboard** ([page.tsx](surefilter-ui/src/app/admin/access/usage/page.tsx) + [route.ts](surefilter-ui/src/app/api/admin/access/usage/route.ts)): inline SVG sparkline для calls-per-day (30 дней, fill-zero для пустых), status breakdown chips (ok/error/forbidden), top-tokens resolved через JOIN с ApiToken+User (name/prefix/owner email вместо raw cuid). Timeseries — raw SQL `DATE_TRUNC('day', "createdAt")` с GROUP BY.
+- **Smoke 14/14**: idempotency replay (same response, no DB duplicate), cron auto-revoke + purge, usage timeseries SQL shape.
+
+---
+
+
+
+**Phase 4 (infra готова, 2026-05-13) — `mcp.surefilter.us` через CloudFront:**
+
+- **Topology**: `mcp.surefilter.us` → отдельная CloudFront distribution → тот же App Runner origin что и основной сайт (общий `X-Origin-Secret`). НЕ отдельный сервис — единый Next.js процесс обслуживает оба домена; path-rewrite на edge.
+- **CloudFront Function `surefilter-mcp-path-rewrite`** (viewer-request) — [cloudfront-mcp.tf](infra/envs/prod/cloudfront-mcp.tf): `/mcp[/*]` → `/api/mcp/mcp[/*]`, `/.well-known/oauth-protected-resource` passthrough; одновременно проставляет `x-forwarded-host` (origin шлёт App Runner host, нам нужен публичный для `withMcpAuth`'s WWW-Authenticate `resource_metadata`).
+- **Dedicated policies**:
+  - cache `mcp_no_cache` — TTL=0; cache-key включает Authorization + mcp-session-id + MCP-Protocol-Version + Accept (defense-in-depth, реально не кэшируется);
+  - cache `mcp_metadata_cache` — 1h для `/.well-known/oauth-protected-resource`;
+  - origin-request `mcp_origin` — whitelist MCP headers + cookies + query all.
+- **Origin timeouts**: `origin_read_timeout=60` и `origin_keepalive_timeout=60` — под SSE streaming.
+- **WAF (опционально)**: `var.enable_mcp_waf` (default `false`) — WAFv2 ACL с rate-based rule 2000 req/5min per IP. Toggle когда трафик появится.
+- **ACM + Route53**: [acm-mcp.tf](infra/envs/prod/acm-mcp.tf) — отдельный cert для `mcp.surefilter.us` в us-east-1 (для CloudFront), DNS validation через основную zone; [route53-mcp.tf](infra/envs/prod/route53-mcp.tf) — A + AAAA alias.
+- **Применение**: `tofu plan` показал 10 add / 0 change / 0 destroy — ничего существующего не трогает. `tofu apply` запускается вручную после ревью.
+- **Подключение клиентов после apply**: меняется с `http://localhost:3000/api/mcp/mcp` на `https://mcp.surefilter.us/mcp`. Connection Guide в `/admin/access/settings` уже использует prod URL.
+
+---
+
+
+
+**Phase 3b (готово, 2026-05-13) — banners + CMS + forms + media + users + settings writes:** +30 write-tools, всего **80 live**.
+
+- **Banners** ([banners-writes.ts](surefilter-ui/src/mcp/tools/banners-writes.ts)) — banners create/update/publish/delete/duplicate (5) + campaigns CRUD (3). Duplicate сбрасывает counters и status=DRAFT. После каждой мутации `clearBannersCache()` + `safeInvalidate(['/'])`.
+- **CMS** ([cms-writes.ts](surefilter-ui/src/mcp/tools/cms-writes.ts)) — pages CRUD + publish (5; `cms:publish` отдельно от `cms:write`), reorder-page-sections с проверкой полного id-set'а, shared-sections CRUD (3).
+- **Forms** ([forms-writes.ts](surefilter-ui/src/mcp/tools/forms-writes.ts)) — CRUD (3) с **SSRF-проверкой webhookUrl** через `validateWebhookUrl` из `lib/webhook.ts` (https only, нет private IP, нет localhost; функция экспортирована для переиспользования).
+- **Media** ([media-writes.ts](surefilter-ui/src/mcp/tools/media-writes.ts)) — двухшаговая загрузка `presign-upload` → клиент PUT в S3 → `attach-metadata` (upsert MediaAsset); `update-asset-metadata` без re-upload; `delete-file` (S3 + DB row); `create-folder`/`delete-folder` (с auto-prune MediaAsset под prefix)/`rename-folder` (move objects + update s3Path + cdnUrl). **Path-traversal protection** `safeKey()` — отвергает `..`, ведущий `/`, backslash, null-byte.
+- **Users** ([users-writes.ts](surefilter-ui/src/mcp/tools/users-writes.ts)) — CRUD (3). **Двойной gate**: users:write на токене **И** super-wildcard `admin:*` (одного users:write недостаточно). Last-active-ADMIN guard при demote/disable/delete. Пароли bcrypt-хэшируются перед записью; в audit писать в plaintext запрещено (`SECRET_KEYS` в `audit.ts`).
+- **Admin** ([admin-writes.ts](surefilter-ui/src/mcp/tools/admin-writes.ts)) — `settings-update` (SiteSettings + MCP global; settings:write + admin:* + confirm:true; полная инвалидация `/`). `submissions-export-csv` (form OR banner submissions; PII, date-range + limit ≤10k; возвращает текстовый CSV).
+- **Smoke 68/68** (3 токена: writer / usersOnly / admin:*) — SSRF rejection (http localhost / private IP / non-https), path-traversal (2 вариант), admin:* gate (settings + users), presign-URL flow, CSV header, dual audit подтверждён.
+
+---
+
+
+
+**Phase 3a (готово, 2026-05-13) — content + catalog writes + cache-purge:** +21 write-tools, всего **50 live**.
+
+- **Content writes** ([content-writes.ts](surefilter-ui/src/mcp/tools/content-writes.ts)) — news-category CRUD (3) + news CRUD (4 — отдельный `content-publish-news` с scope `content:publish`) + resource-category CRUD с валидацией иерархии (3) + resource CRUD (4 — отдельный publish).
+- **Catalog writes** ([catalog-writes.ts](surefilter-ui/src/mcp/tools/catalog-writes.ts)) — brand CRUD (3) + product CRUD (3). Update полностью заменяет коллекции (categoryAssignments / specValues / mediaItems / crossReferences) — mirror admin web UI семантики. Delete fail-on-FK.
+- **Ops** ([operations.ts](surefilter-ui/src/mcp/tools/operations.ts)) — `cache-purge` (ISR + CloudFront invalidation на произвольные paths).
+- **Common helpers** ([_write-helpers.ts](surefilter-ui/src/mcp/tools/_write-helpers.ts)):
+  - `mutationCommonFields` — каждый write tool принимает `confirm?: boolean` + `idempotencyKey?: string` (последний — no-op в Phase 3, enforce в Phase 5).
+  - `requireWriteScope` — writes никогда не имеют public-mode fallback; anon всегда `forbidden`.
+  - `requireConfirm` — destructive ops (delete / publish / settings / users) без `confirm:true` возвращают сообщение «re-invoke with confirm:true».
+  - `auditMutation` — пишет **dual entry**: CREATE/UPDATE/DELETE на entity (mirror /admin web flow → `/admin/logs` показывает MCP-операции единым feed'ом) + MCP_TOOL_CALL на токен (per-token attribution в `/admin/access/usage`).
+  - `safeInvalidate(paths)` — try/catch wrapper над `invalidatePages`.
+  - `resourcePublicPath` — строит `/resources/{parent?}/{cat}/{slug}` URL.
+  - `validateResourceCategoryParent` — depth=2 + no-self-parent + no-move-with-children.
+- **Cache invalidation per mutation**: news → `/newsroom` + slug; resource → `/resources` + parent/sub paths (через `resourcePublicPath`); product → `/` + `/products/{code}`. Delete и slug-change оба пути инвалидируют (старый + новый).
+- **Smoke 55/55** (3 токена: reader / writer / no-publish — для проверки scope-isolation, confirm-rejection, depth-violation, self-parent-rejection, dual-audit-entries).
+
+---
+
+
+
+**Phase 2 (готово, 2026-05-13) — admin read tools:** +18 read-tools поверх Phase 1, всего **29 live** ([src/mcp/tools/](surefilter-ui/src/mcp/tools/) + [tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)).
+
+- **CMS** ([cms.ts](surefilter-ui/src/mcp/tools/cms.ts)) — `cms-list-pages`, `cms-get-page` (mixed mode: public видит только `status=published`; cms:read видит drafts), `cms-list-shared-sections` (admin-only).
+- **Forms** ([forms.ts](surefilter-ui/src/mcp/tools/forms.ts)) — `forms-list/get` (webhookUrl/notifyEmail → `<redacted>` без `admin:*`), `form-submissions-list/get` (`submissions:read`).
+- **Banners** ([banners.ts](surefilter-ui/src/mcp/tools/banners.ts)) — `banners-list/get`, `banner-stats-get` (timeseries impressions/clicks/submissions через `DATE_TRUNC`), `banner-campaigns-list`, `banner-submissions-list`.
+- **Media** ([media.ts](surefilter-ui/src/mcp/tools/media.ts)) — `media-list-files` (зеркало `/api/admin/files/list` с merge S3-объектов + MediaAsset metadata), `media-get-asset`.
+- **Users** ([users.ts](surefilter-ui/src/mcp/tools/users.ts)) — `users-list/get` с маскировкой email (`j***e@example.com` без `admin:*`).
+- **Admin** ([admin.ts](surefilter-ui/src/mcp/tools/admin.ts)) — `settings-get` (SiteSettings + MCP global, `catalogPassword` редактирован без admin:*), `analytics-logs-list` (фильтры по userId/action/entityType/date — основной инструмент для аудита `MCP_TOOL_CALL`).
+- **Общие хелперы** ([_helpers.ts](surefilter-ui/src/mcp/tools/_helpers.ts)): `authContext` (читает scopes + extra из `extra.authInfo`, выставляет `elevated = admin:*`), `jsonResult/errorResult`, `requireScope(ctx, scope, tool, params)` — авто-пишет `forbidden` в AdminLog при отказе, `maskEmail`.
+- **Smoke**: 66/66 (anon, readers-token со всеми `*:read`, content-only-token для scope-isolation, admin:* для снятия редакций).
+
+---
+
+
+
+**Phase 1 (готово, 2026-05-13) — runtime + 11 public read tools:**
+
+- **JSON-RPC сервер**: `/api/mcp/[transport]` ([route.ts](surefilter-ui/src/app/api/mcp/[transport]/route.ts)) поверх `mcp-handler@1.1` + `@modelcontextprotocol/sdk@1.29`. Streamable HTTP transport (POST для JSON-RPC, GET для SSE). Endpoint: `POST host/api/mcp/mcp` с `Authorization: Bearer sfpat_…`. `basePath: '/api/mcp'`, `runtime: 'nodejs'`, `dynamic: 'force-dynamic'`.
+- **Auth-обёртка** ([src/mcp/server.ts](surefilter-ui/src/mcp/server.ts)) — `withMcpAuth(handler, verifyApiKey, { required: true })`. `verifyApiKey`:
+  - валидный bearer → `AuthInfo { token, clientId=tokenId, scopes, extra: { tokenId, userId, ip } }`
+  - нет bearer + `publicScopesEnabled` → анонимный AuthInfo с `['public:catalog', 'public:content', 'public:cms']`
+  - нет bearer + публичный режим выключен ИЛИ невалидный bearer → undefined → 401 + `WWW-Authenticate: Bearer error=..., resource_metadata=...`
+  - перед auth: `checkServerAvailability()` → 503 при `enabled=false` или `maintenanceMode=true` (+ `Retry-After: 60`)
+- **RFC 9728**: `/.well-known/oauth-protected-resource` ([route.ts](surefilter-ui/src/app/.well-known/oauth-protected-resource/route.ts)) — заглушка с пустым `authorization_servers: []` под Phase 6.
+- **Tools** ([src/mcp/tools/](surefilter-ui/src/mcp/tools/)) — 11 live (помечены `status: 'live'` в [tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)):
+  - `catalog-{list-products, get-product, list-brands, list-categories, list-filter-types, list-spec-parameters}` (6)
+  - `content-{list-news, get-news, list-resource-categories, list-resources, get-resource}` (5) — иерархия resources (parent/sub) поддерживается; `content-get-resource` возвращает `publicUrl` с корректным `/resources/{parent?}/{cat}/{slug}`.
+- **scope-guard pattern** ([scope-guard.ts](surefilter-ui/src/mcp/scope-guard.ts)): `effectiveMode(scopes, domain)` → `'admin' | 'public' | null`. Public mode фильтрует `status=PUBLISHED, publishedAt ≤ now`, скрывает чувствительные поля (description/status/tags); admin mode видит drafts полностью.
+- **MCP Resources** ([src/mcp/resources/index.ts](surefilter-ui/src/mcp/resources/index.ts)) — 4 readable URIs: `sf://catalog/index` (snapshot брендов/категорий/типов), `sf://content/news-feed` (последние 20), `sf://content/resources-tree` (иерархия + counts), `sf://docs/api-overview` (markdown гайд для агентов).
+- **Rate limits** ([lib/rate-limiter.ts](surefilter-ui/src/lib/rate-limiter.ts)): `mcpPublicLimiter` 60/min per IP (анонимы), `mcpAuthedLimiter` 600/min per token (burst); поверх per-token daily quota (Phase 0).
+- **Audit** ([src/mcp/audit.ts](surefilter-ui/src/mcp/audit.ts)): authed tool-call → `AdminLog action=MCP_TOOL_CALL`, `entityId=tokenId`, `entityName=toolName`, `details={tool, scopes, status, clientId, params (sanitized), resultSummary, errorMessage}`. Анонимные не пишутся (нет non-null userId; Phase 5 рассмотрит отдельную `McpCallLog` если понадобится). `SECRET_KEYS` (password/token/secret/apiKey/bearer/authorization) автоматически маскируются `<redacted>`.
+- **Подключение** — JSON-snippets в `/admin/access/settings → Connection Guide`. Phase 4 поднимет `mcp.surefilter.us`; пока endpoint — `host/api/mcp/mcp`.
+
+---
+
+**Phase 0 (готово, 2026-05-13) — фундамент авторизации:**
+
+**Phase 0 (готово, 2026-05-13) — фундамент авторизации:**
+
+- **Prisma модель `ApiToken`** (миграция `20260513175623_api_tokens_and_mcp_actions`): sha-256 hash, `scopes String[]`, expiresAt/lastUsedAt/lastUsedIp, soft revoke (`revokedAt`/`revokedById`/`revokedReason`), per-day quota (`requestCountToday`/`requestCountDate`/`dailyQuota`), `tokenPrefix` для UI. `User.onDelete: SetNull` — токен переживает удаление владельца (требует явный revoke).
+- **AdminAction enum** расширен: `TOKEN_CREATED/REVOKED/REGENERATED`, `MCP_TOOL_CALL`, `MCP_SETTINGS_UPDATED`.
+- **Глобальные настройки MCP** — в `SiteSettings.mcp` Json (`enabled`, `publicScopesEnabled`, `defaultTokenTtlDays`, `defaultDailyQuota`, `rateLimitPerMinute`, `maintenanceMode`, `maintenanceMessage`). Helpers: [src/lib/mcp-settings.ts](surefilter-ui/src/lib/mcp-settings.ts) — `getMcpSettings/updateMcpSettings` с Zod-валидацией.
+- **Token helpers** ([src/lib/api-token.ts](surefilter-ui/src/lib/api-token.ts)): `generateToken()` → `sfpat_<24chars-base64url>`, `verifyToken()` (hash lookup + revoke/expiry/quota check + lastUsed bookkeeping), `hasScope()` с поддержкой `<domain>:*` и `admin:*` wildcards.
+- **Scope vocabulary** ([src/mcp/scopes.ts](surefilter-ui/src/mcp/scopes.ts)): 14 scopes сгруппированы по domain × risk × public/admin; 5 presets для UI: `read-only-researcher`, `content-editor`, `catalog-admin`, `marketing`, `full-admin (admin:*)`.
+- **Tool registry** ([src/mcp/tools-registry.ts](surefilter-ui/src/mcp/tools-registry.ts)): полный каталог из 32 tools с `status: 'live' | 'planned'`. Используется Scopes Reference UI чтобы показать какие tools открывает каждый scope + индикатор «уже работает vs запланировано». Phase 1 = 11 live; Phase 2/3 поднимут оставшиеся 21.
+- **Admin UI — раздел "API & Access"** ([src/app/admin/access/](surefilter-ui/src/app/admin/access/)) с собственным `AccessShell` (sidebar tabs):
+  - `/admin/access/tokens` — list всех токенов всех админов с фильтрами active/expired/revoked + search; колонки: prefix, owner, scopes (compact chips), lastUsed+IP, expires, status.
+  - `/admin/access/tokens/new` — preset selector → custom checkboxes по domain с risk-цветами; на submit показывает plaintext в модалке **один раз** + copy-to-clipboard + готовый JSON-snippet для Claude Desktop.
+  - `/admin/access/tokens/[id]` — детали + edit name inline + revoke (с reason) + regenerate (revoke старый + new plaintext один раз) + last 50 tool calls из AdminLog.
+  - `/admin/access/scopes` — auto-generated reference: каждый scope → описание + риск + раскрывающийся список tools которые он откроет.
+  - `/admin/access/usage` — totals + top tools + top tokens + recent 25 calls (агрегаты из `AdminLog.action=MCP_TOOL_CALL`).
+  - `/admin/access/settings` — тумблеры + дефолты + полный Connection Guide (Claude Desktop JSON, Claude Code CLI, curl).
+- **API**: `/api/admin/access/tokens` (list/create), `[id]` (detail/PATCH/revoke), `[id]/regenerate`, `/api/admin/access/settings`, `/api/admin/access/usage`. Все используют `requireAdmin()` + Zod + `logAdminAction()`.
+- **Admin nav**: "Access" link добавлен между "Files" и "Settings" в [AdminClientLayout.tsx](surefilter-ui/src/app/admin/AdminClientLayout.tsx).
+
+**Plaintext-once UX**: при создании или regenerate токен возвращается в response один раз; в БД только `tokenHash` (sha-256). При потере — только regenerate. В UI везде маскируется до `tokenPrefix…` (первые 10 chars, например `sfpat_AbCd…`).
+
+**Local migration note**: при ручной правке исторических миграций (`20250821040036_init_cms`, `20250825224637_add_industry_meta`) `prisma migrate dev` отказывается работать локально из-за drift checksums. Фикс: обновить `_prisma_migrations.checksum` на текущий `shasum -a 256` файла. Production не затрагивается — `migrate deploy` хэши не сверяет, применяет новые миграции по имени.
+
+**Phase 2+ (TODO)**: см. [TODO.md](TODO.md). Следующее — admin read tools (CMS/forms/banners/media/users/analytics), потом writes с idempotency + Elicitation, потом subdomain `mcp.surefilter.us` + WAF.
 
 ---
 

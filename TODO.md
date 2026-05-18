@@ -3,11 +3,22 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 13 мая 2026 (Resources hierarchy полностью развёрнут на prod: 48 каталогов, 12 редиректов, listing chrome cleanup)
+**Последнее обновление:** 13 мая 2026 (MCP Phase 5: hardening — idempotency + rate-limit factory + SES alerts + cron cleanup + real usage charts. Все 6 фаз плана закрыты.)
 
 ---
 
 ## Активные задачи
+
+### MCP server — следующие фазы (план: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`)
+
+- [x] **Phase 0 — Foundation** (2026-05-13): ApiToken Prisma model + `/admin/access/*` UI (tokens/scopes/usage/settings) + helpers (`src/lib/api-token.ts`, `src/mcp/scopes.ts`, `src/mcp/tools-registry.ts`, `src/lib/mcp-settings.ts`) + API routes (`/api/admin/access/*`) + “Access” link в admin nav.
+- [x] **Phase 1 — MCP skeleton + public read tools** (2026-05-13): mcp-handler+SDK установлены, `src/mcp/server.ts` с `withMcpAuth(verifyApiKey)` + maintenance/disabled гейт, `src/app/api/mcp/[transport]/route.ts` (Streamable HTTP), `/.well-known/oauth-protected-resource` (RFC 9728 stub), 11 public read tools (6 catalog + 5 content) + 4 MCP-resources (`sf://catalog/index`, `sf://content/news-feed`, `sf://content/resources-tree`, `sf://docs/api-overview`), `mcpPublicLimiter`+`mcpAuthedLimiter`, AdminLog MCP_TOOL_CALL audit. Smoke 31/31.
+- [x] **Phase 2 — Admin read tools** (2026-05-13): +18 tools (CMS list/get/shared-sections, forms list/get + submissions list/get, banners list/get + stats + campaigns + submissions, media list/get-asset, users list/get + email masking, settings-get + analytics-logs-list). Общие helpers `src/mcp/tools/_helpers.ts` (authContext/jsonResult/errorResult/requireScope/maskEmail). admin:* снимает редакции (webhookUrl/email/catalogPassword). tools-registry.ts: 29 live + 4 planned (Phase 3 writes). Smoke 66/66 с 3 разными scope-наборами для проверки isolation.
+- [x] **Phase 3a — Content + catalog writes + cache-purge** (2026-05-13): 21 tools (news CRUD+publish, news-categories CRUD, resources CRUD+publish с depth=2 hierarchy, resource-categories CRUD, brands CRUD, products CRUD c полным replace коллекций, cache-purge). Dual audit (CREATE/UPDATE/DELETE + MCP_TOOL_CALL), confirm:true для destructive, cache invalidation на каждой mutation. Smoke 55/55.
+- [x] **Phase 3b — Banners + CMS + forms + media + users + settings writes** (2026-05-13): +30 tools — banners CRUD+publish+duplicate (5), banner-campaigns CRUD (3), cms pages CRUD+publish+reorder + shared-sections CRUD (8), forms CRUD с SSRF на webhookUrl (3), media presign+attach+update+delete + folder CRUD (6), users CRUD с admin:* gate + last-admin guard (3), settings-update + submissions-export-csv (2). Path-traversal protection в media, dual audit на каждой мутации. Smoke 68/68.
+- [x] **Phase 4 — Subdomain infra** (2026-05-13): `infra/envs/prod/{acm-mcp,cloudfront-mcp,route53-mcp}.tf` готовы. ACM cert + CloudFront dist (dedicated cache + origin policies, CF Function для path-rewrite `/mcp/* → /api/mcp/mcp/*` + x-forwarded-host) + Route53 A/AAAA alias. Опциональный WAF под `var.enable_mcp_waf` (default false). `tofu plan` чистый (10 add, 0 change, 0 destroy). **TODO:** запустить `tofu apply` вручную после ревью + проверить `curl https://mcp.surefilter.us/.well-known/oauth-protected-resource`.
+- [x] **Phase 5 — Hardening + telemetry** (2026-05-13): MCPIdempotency table + lib + `withIdempotency` wrapper (reference: content-create-news-category, content-create-resource-category — остальные tools принимают `idempotencyKey` но пока no-op; opt-in расширяется по мере роста MCP usage). Per-token rate-limit factory `getMcpAuthedLimiter(maxPerMinute)` driven by `mcpSettings.rateLimitPerMinute`. SES email alerts (`lib/mcp-alerts.ts`) — `admin:*` token creation → нотификация всем active ADMIN; revoke-not-self → owner. `/api/cron/mcp-cleanup` (auth via `CRON_SECRET` env или localhost) — auto-revoke expired tokens, флаг inactive >90d, purge old idempotency. `/admin/access/usage` — real sparkline + status breakdown + resolved token names. Smoke 14/14.
+- [ ] **Phase 6 — OAuth 2.1 миграция** (~5–8 дней, далеко): NextAuth/Clerk/WorkOS как Auth Server, RFC 8707 Resource Indicators, refresh token rotation, второй verifier параллельно с API keys.
 
 ### Resources hierarchy — follow-ups
 
