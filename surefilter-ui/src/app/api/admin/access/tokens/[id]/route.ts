@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { ALL_SCOPE_KEYS, validateScopes } from '@/mcp/scopes';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { alertTokenRevokedNotSelf } from '@/lib/mcp-alerts';
 
 const UpdateTokenSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -122,7 +123,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const body = await request.json().catch(() => ({}));
     const data = RevokeSchema.parse(body);
 
-    const existing = await prisma.apiToken.findUnique({ where: { id } });
+    const existing = await prisma.apiToken.findUnique({
+      where: { id },
+      include: { user: { select: { id: true, email: true } } },
+    });
     if (!existing) return NextResponse.json({ error: 'Token not found' }, { status: 404 });
     if (existing.revokedAt) {
       return NextResponse.json({ error: 'Token is already revoked' }, { status: 400 });
@@ -147,6 +151,18 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       details: { reason: data.reason ?? null, tokenPrefix: revoked.tokenPrefix },
       ...metadata,
     });
+
+    // Phase 5: notify token owner when someone else revokes it
+    if (existing.user && existing.user.id !== auth.user.id) {
+      alertTokenRevokedNotSelf({
+        tokenId: revoked.id,
+        tokenName: revoked.name,
+        tokenPrefix: revoked.tokenPrefix,
+        ownerEmail: existing.user.email,
+        revokedByEmail: auth.user.email,
+        reason: data.reason ?? null,
+      }).catch((e) => console.error('[mcp-alerts] revoke alert failed:', e));
+    }
 
     return NextResponse.json({ ok: true, revokedAt: revoked.revokedAt });
   } catch (error: any) {

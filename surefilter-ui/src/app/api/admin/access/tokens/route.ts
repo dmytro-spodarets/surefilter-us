@@ -5,6 +5,7 @@ import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { generateToken } from '@/lib/api-token';
 import { ALL_SCOPE_KEYS, validateScopes } from '@/mcp/scopes';
 import { getMcpSettings } from '@/lib/mcp-settings';
+import { alertAdminStarTokenCreated } from '@/lib/mcp-alerts';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 const CreateTokenSchema = z.object({
@@ -123,8 +124,8 @@ export async function POST(request: NextRequest) {
 
     // Resolve owner
     const ownerUserId = data.ownerUserId ?? auth.user.id;
-    const ownerExists = await prisma.user.findUnique({ where: { id: ownerUserId }, select: { id: true } });
-    if (!ownerExists) {
+    const owner = await prisma.user.findUnique({ where: { id: ownerUserId }, select: { id: true, email: true } });
+    if (!owner) {
       return NextResponse.json({ error: 'Owner user not found' }, { status: 400 });
     }
 
@@ -164,6 +165,17 @@ export async function POST(request: NextRequest) {
       },
       ...metadata,
     });
+
+    // Phase 5: alert all admins when an admin:* (super-wildcard) token is issued
+    if (data.scopes.includes('admin:*')) {
+      alertAdminStarTokenCreated({
+        tokenId: token.id,
+        tokenName: token.name,
+        tokenPrefix: token.tokenPrefix,
+        ownerEmail: owner.email,
+        createdByEmail: auth.user.email,
+      }).catch((e) => console.error('[mcp-alerts] admin:* alert failed:', e));
+    }
 
     // plaintext returned ONLY in this response — never persisted
     return NextResponse.json(

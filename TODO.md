@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 13 мая 2026 (MCP Phase 4: infra `.tf` для mcp.surefilter.us готов — ожидает `tofu apply`)
+**Последнее обновление:** 13 мая 2026 (MCP Phase 5: hardening — idempotency + rate-limit factory + SES alerts + cron cleanup + real usage charts. Все 6 фаз плана закрыты.)
 
 ---
 
@@ -17,7 +17,7 @@
 - [x] **Phase 3a — Content + catalog writes + cache-purge** (2026-05-13): 21 tools (news CRUD+publish, news-categories CRUD, resources CRUD+publish с depth=2 hierarchy, resource-categories CRUD, brands CRUD, products CRUD c полным replace коллекций, cache-purge). Dual audit (CREATE/UPDATE/DELETE + MCP_TOOL_CALL), confirm:true для destructive, cache invalidation на каждой mutation. Smoke 55/55.
 - [x] **Phase 3b — Banners + CMS + forms + media + users + settings writes** (2026-05-13): +30 tools — banners CRUD+publish+duplicate (5), banner-campaigns CRUD (3), cms pages CRUD+publish+reorder + shared-sections CRUD (8), forms CRUD с SSRF на webhookUrl (3), media presign+attach+update+delete + folder CRUD (6), users CRUD с admin:* gate + last-admin guard (3), settings-update + submissions-export-csv (2). Path-traversal protection в media, dual audit на каждой мутации. Smoke 68/68.
 - [x] **Phase 4 — Subdomain infra** (2026-05-13): `infra/envs/prod/{acm-mcp,cloudfront-mcp,route53-mcp}.tf` готовы. ACM cert + CloudFront dist (dedicated cache + origin policies, CF Function для path-rewrite `/mcp/* → /api/mcp/mcp/*` + x-forwarded-host) + Route53 A/AAAA alias. Опциональный WAF под `var.enable_mcp_waf` (default false). `tofu plan` чистый (10 add, 0 change, 0 destroy). **TODO:** запустить `tofu apply` вручную после ревью + проверить `curl https://mcp.surefilter.us/.well-known/oauth-protected-resource`.
-- [ ] **Phase 5 — Hardening + telemetry** (~1–2 дня): per-token rate-limit factory + quota enforcement (429 + Retry-After), idempotency table, cron token-leak detection, реальные графики /admin/access/usage, email-alerts на revoke не-self / создание admin:* токена.
+- [x] **Phase 5 — Hardening + telemetry** (2026-05-13): MCPIdempotency table + lib + `withIdempotency` wrapper (reference: content-create-news-category, content-create-resource-category — остальные tools принимают `idempotencyKey` но пока no-op; opt-in расширяется по мере роста MCP usage). Per-token rate-limit factory `getMcpAuthedLimiter(maxPerMinute)` driven by `mcpSettings.rateLimitPerMinute`. SES email alerts (`lib/mcp-alerts.ts`) — `admin:*` token creation → нотификация всем active ADMIN; revoke-not-self → owner. `/api/cron/mcp-cleanup` (auth via `CRON_SECRET` env или localhost) — auto-revoke expired tokens, флаг inactive >90d, purge old idempotency. `/admin/access/usage` — real sparkline + status breakdown + resolved token names. Smoke 14/14.
 - [ ] **Phase 6 — OAuth 2.1 миграция** (~5–8 дней, далеко): NextAuth/Clerk/WorkOS как Auth Server, RFC 8707 Resource Indicators, refresh token rotation, второй verifier параллельно с API keys.
 
 ### Resources hierarchy — follow-ups

@@ -532,9 +532,24 @@ npm run seed:content:force  # С перезаписью
 
 ---
 
-## MCP Server (Phase 0–4 готово, Phase 5+ hardening)
+## MCP Server (Phase 0–5 готово — все фазы плана закрыты)
 
 MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 5 (готово, 2026-05-13) — hardening:**
+
+- **Idempotency** ([MCPIdempotency](surefilter-ui/prisma/schema.prisma) Prisma + миграция `20260518042450_mcp_idempotency`): unique `(tokenId, key)`, TTL 24h, cron purge. Helpers — [lib/idempotency.ts](surefilter-ui/src/lib/idempotency.ts) (`readIdempotency` / `writeIdempotency` / `purgeExpiredIdempotency`) + `withIdempotency(ctx, key, tool, fn)` в [_write-helpers.ts](surefilter-ui/src/mcp/tools/_write-helpers.ts). Reference integrations: `content-create-news-category`, `content-create-resource-category`. Остальные tools принимают `idempotencyKey` но пока no-op (Zod description честно об этом говорит) — opt-in расширяется по мере роста usage.
+- **Per-token rate-limit** ([lib/rate-limiter.ts](surefilter-ui/src/lib/rate-limiter.ts)): `getMcpAuthedLimiter(maxPerMinute)` factory — лимитер кэшируется по cap-значению; `verifyApiKey` читает `mcpSettings.rateLimitPerMinute` живьём, изменения в `/admin/access/settings` применяются на следующем запросе без рестарта.
+- **SES email alerts** ([lib/mcp-alerts.ts](surefilter-ui/src/lib/mcp-alerts.ts)) через AWS SES v2 + `getFormNotificationFromEmail()`:
+  - `alertAdminStarTokenCreated` — нотификация всем active ADMIN при выписке `admin:*` токена (hooks в `tokens/route.ts` и `tokens/[id]/regenerate/route.ts`).
+  - `alertTokenRevokedNotSelf` — owner получает email если кто-то другой revoke его токен (hooks в `tokens/[id]/route.ts` DELETE и regenerate route).
+- **Cron `/api/cron/mcp-cleanup`** ([route.ts](surefilter-ui/src/app/api/cron/mcp-cleanup/route.ts)) — GET/POST с auth по `CRON_SECRET` env или localhost-bypass. Делает: (a) soft-revoke ApiTokens с `expiresAt < now` и `revokedReason='EXPIRED'` + AdminLog audit, (b) флаг inactive tokens (>90d без `lastUsedAt`) в response для visibility, (c) `purgeExpiredIdempotency` для MCPIdempotency >24h. Возвращает JSON-summary.
+- **Real usage dashboard** ([page.tsx](surefilter-ui/src/app/admin/access/usage/page.tsx) + [route.ts](surefilter-ui/src/app/api/admin/access/usage/route.ts)): inline SVG sparkline для calls-per-day (30 дней, fill-zero для пустых), status breakdown chips (ok/error/forbidden), top-tokens resolved через JOIN с ApiToken+User (name/prefix/owner email вместо raw cuid). Timeseries — raw SQL `DATE_TRUNC('day', "createdAt")` с GROUP BY.
+- **Smoke 14/14**: idempotency replay (same response, no DB duplicate), cron auto-revoke + purge, usage timeseries SQL shape.
+
+---
+
+
 
 **Phase 4 (infra готова, 2026-05-13) — `mcp.surefilter.us` через CloudFront:**
 

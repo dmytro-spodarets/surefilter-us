@@ -3,7 +3,7 @@ import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { verifyToken } from '@/lib/api-token';
 import { getMcpSettings } from '@/lib/mcp-settings';
-import { mcpPublicLimiter, mcpAuthedLimiter, getClientIp } from '@/lib/rate-limiter';
+import { mcpPublicLimiter, getMcpAuthedLimiter, getClientIp } from '@/lib/rate-limiter';
 import { registerCatalogTools } from '@/mcp/tools/catalog';
 import { registerContentTools } from '@/mcp/tools/content';
 import { registerCmsTools } from '@/mcp/tools/cms';
@@ -58,7 +58,10 @@ export async function verifyApiKey(req: Request, bearerToken?: string): Promise<
   const ip = getClientIp(req);
 
   if (bearerToken) {
-    const burst = mcpAuthedLimiter.check(`mcp:authed:${bearerToken.slice(0, 16)}`);
+    // Burst limiter driven by mcpSettings.rateLimitPerMinute — keyed on the
+    // first 16 chars of the bearer to avoid a DB hit before the rate-limit check.
+    const burstLimiter = getMcpAuthedLimiter(settings.rateLimitPerMinute);
+    const burst = burstLimiter.check(`mcp:authed:${bearerToken.slice(0, 16)}`);
     if (!burst.allowed) return undefined;
     const result = await verifyToken(bearerToken, { ip });
     if (!result.ok) return undefined;

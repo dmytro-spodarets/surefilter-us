@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { generateToken } from '@/lib/api-token';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
+import { alertTokenRevokedNotSelf, alertAdminStarTokenCreated } from '@/lib/mcp-alerts';
 
 // POST /api/admin/access/tokens/[id]/regenerate
 // Revokes the existing token (reason='REGENERATED') and issues a new token with
@@ -15,7 +16,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const metadata = getRequestMetadata(request);
 
   try {
-    const existing = await prisma.apiToken.findUnique({ where: { id } });
+    const existing = await prisma.apiToken.findUnique({
+      where: { id },
+      include: { user: { select: { id: true, email: true } } },
+    });
     if (!existing) return NextResponse.json({ error: 'Token not found' }, { status: 404 });
     if (existing.revokedAt) {
       return NextResponse.json({ error: 'Cannot regenerate a revoked token' }, { status: 400 });
@@ -58,6 +62,28 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
       ...metadata,
     });
+
+    // Phase 5: notify owner if someone else regenerated (effectively revoked) their token
+    if (existing.user && existing.user.id !== auth.user.id) {
+      alertTokenRevokedNotSelf({
+        tokenId: revoked.id,
+        tokenName: revoked.name,
+        tokenPrefix: revoked.tokenPrefix,
+        ownerEmail: existing.user.email,
+        revokedByEmail: auth.user.email,
+        reason: 'REGENERATED',
+      }).catch((e) => console.error('[mcp-alerts] regenerate→revoke alert failed:', e));
+    }
+    // Phase 5: re-alert if the new token still carries admin:*
+    if (fresh.scopes.includes('admin:*')) {
+      alertAdminStarTokenCreated({
+        tokenId: fresh.id,
+        tokenName: fresh.name,
+        tokenPrefix: fresh.tokenPrefix,
+        ownerEmail: existing.user?.email ?? null,
+        createdByEmail: auth.user.email,
+      }).catch((e) => console.error('[mcp-alerts] admin:* regenerate alert failed:', e));
+    }
 
     return NextResponse.json(
       {

@@ -5,15 +5,49 @@ import { invalidatePages } from '@/lib/revalidate';
 import { hasScope } from '@/lib/api-token';
 import { forbidden } from '@/mcp/scope-guard';
 import { logToolCall } from '@/mcp/audit';
+import { readIdempotency, writeIdempotency } from '@/lib/idempotency';
 import type { Prisma, AdminAction } from '@/generated/prisma';
 import type { AuthCtx } from '@/mcp/tools/_helpers';
 import { errorResult } from '@/mcp/tools/_helpers';
 
-/** Zod field every mutating tool MUST accept. Phase 5 will start enforcing the idempotency-key (see plan). */
+/** Zod field every mutating tool MUST accept. */
 export const mutationCommonFields = {
   confirm: z.boolean().optional().describe('Required `true` for destructive operations (delete, publish, settings/users writes).'),
-  idempotencyKey: z.string().optional().describe('Optional client-supplied dedupe key (no-op in Phase 3; Phase 5 will enforce 24h dedup).'),
+  idempotencyKey: z.string().min(1).max(200).optional().describe(
+    'Optional client-supplied dedupe key. Tools that wrap their body in `withIdempotency(...)` will, ' +
+    'when the same (token, key) tuple is replayed within 24h, return the original response without re-running ' +
+    'the mutation. Tools that have not opted in accept the field but ignore it; see scripts/lib/idempotency.ts.'
+  ),
 };
+
+/**
+ * Idempotency wrapper for mutating tools. Pattern:
+ *
+ *   return withIdempotency(ctx, args.idempotencyKey, 'my-tool', async () => {
+ *     // ...do the mutation, build the MCP result...
+ *     return jsonResult({ ... });
+ *   });
+ *
+ * If `idempotencyKey` is provided AND the (tokenId, key) tuple was seen
+ * within the last 24h, returns the stored result without invoking `fn`.
+ * Otherwise runs `fn`, stores the result, and returns it.
+ *
+ * Anonymous callers (no tokenId) skip the cache — idempotency requires a
+ * persistent identity to scope keys.
+ */
+export async function withIdempotency<T>(
+  ctx: AuthCtx,
+  key: string | undefined,
+  tool: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  if (!key || !ctx.tokenId) return fn();
+  const cached = await readIdempotency(ctx.tokenId, key);
+  if (cached !== null) return cached as T;
+  const result = await fn();
+  await writeIdempotency({ tokenId: ctx.tokenId, key, tool, response: result });
+  return result;
+}
 
 /**
  * Enforce write scope OR admin:*. Writes never have a public-mode fallback —

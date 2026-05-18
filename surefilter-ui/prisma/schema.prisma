@@ -798,6 +798,23 @@ model ApiToken {
   @@index([revokedAt])
 }
 
+/// Idempotency dedupe key store for mutating MCP tool calls.
+/// Phase 5 enforcement: when a tool sees a (tokenId, key) tuple it returned
+/// before within 24h, it short-circuits and returns the stored response instead
+/// of re-running the mutation. Rows older than 24h are purged by the cron in
+/// /api/cron/mcp-cleanup.
+model MCPIdempotency {
+  id        String   @id @default(cuid())
+  tokenId   String
+  key       String
+  tool      String   // tool name, used for usage analytics
+  response  Json     // serialized MCP result returned by the original call
+  createdAt DateTime @default(now())
+
+  @@unique([tokenId, key])
+  @@index([createdAt])
+}
+
 // ============================================
 // POPUP BANNER SYSTEM
 // ============================================

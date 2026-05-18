@@ -11,6 +11,7 @@ import {
   safeInvalidate,
   resourcePublicPath,
   validateResourceCategoryParent,
+  withIdempotency,
 } from '@/mcp/tools/_write-helpers';
 
 const ArticleStatus = z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']);
@@ -38,18 +39,20 @@ export function registerContentWriteTools(server: McpServer) {
       const ctx = authContext(extra as ExtraContext);
       const deny = await requireWriteScope(ctx, 'content:write', 'content-create-news-category', args);
       if (deny) return deny;
-      const conflict = await prisma.newsCategory.findFirst({ where: { OR: [{ slug: args.slug }, { name: args.name }] } });
-      if (conflict) return errorResult(`A news category with this ${conflict.slug === args.slug ? 'slug' : 'name'} already exists`);
-      const created = await prisma.newsCategory.create({
-        data: {
-          name: args.name, slug: args.slug, description: args.description,
-          color: args.color, icon: args.icon,
-          position: args.position ?? 0, isActive: args.isActive ?? true,
-        },
+      return withIdempotency(ctx, args.idempotencyKey, 'content-create-news-category', async () => {
+        const conflict = await prisma.newsCategory.findFirst({ where: { OR: [{ slug: args.slug }, { name: args.name }] } });
+        if (conflict) return errorResult(`A news category with this ${conflict.slug === args.slug ? 'slug' : 'name'} already exists`);
+        const created = await prisma.newsCategory.create({
+          data: {
+            name: args.name, slug: args.slug, description: args.description,
+            color: args.color, icon: args.icon,
+            position: args.position ?? 0, isActive: args.isActive ?? true,
+          },
+        });
+        await auditMutation({ ctx, tool: 'content-create-news-category', action: 'CREATE', entityType: 'NewsCategory', entityId: created.id, entityName: created.name, details: { slug: created.slug } });
+        await safeInvalidate(['/newsroom']);
+        return jsonResult({ category: created });
       });
-      await auditMutation({ ctx, tool: 'content-create-news-category', action: 'CREATE', entityType: 'NewsCategory', entityId: created.id, entityName: created.name, details: { slug: created.slug } });
-      await safeInvalidate(['/newsroom']);
-      return jsonResult({ category: created });
     }
   );
 
@@ -284,17 +287,19 @@ export function registerContentWriteTools(server: McpServer) {
       const ctx = authContext(extra as ExtraContext);
       const deny = await requireWriteScope(ctx, 'content:write', 'content-create-resource-category', args);
       if (deny) return deny;
-      const existing = await prisma.resourceCategory.findFirst({ where: { OR: [{ slug: args.slug }, { name: args.name }] } });
-      if (existing) return errorResult(`A category with this ${existing.slug === args.slug ? 'slug' : 'name'} already exists`);
-      const hierarchyErr = await validateResourceCategoryParent(args.parentId);
-      if (hierarchyErr) return errorResult(hierarchyErr);
-      const { confirm: _c, idempotencyKey: _i, ...data } = args;
-      const created = await prisma.resourceCategory.create({
-        data: { ...data, position: data.position ?? 0, isActive: data.isActive ?? true },
+      return withIdempotency(ctx, args.idempotencyKey, 'content-create-resource-category', async () => {
+        const existing = await prisma.resourceCategory.findFirst({ where: { OR: [{ slug: args.slug }, { name: args.name }] } });
+        if (existing) return errorResult(`A category with this ${existing.slug === args.slug ? 'slug' : 'name'} already exists`);
+        const hierarchyErr = await validateResourceCategoryParent(args.parentId);
+        if (hierarchyErr) return errorResult(hierarchyErr);
+        const { confirm: _c, idempotencyKey: _i, ...data } = args;
+        const created = await prisma.resourceCategory.create({
+          data: { ...data, position: data.position ?? 0, isActive: data.isActive ?? true },
+        });
+        await auditMutation({ ctx, tool: 'content-create-resource-category', action: 'CREATE', entityType: 'ResourceCategory', entityId: created.id, entityName: created.name, details: { slug: created.slug, parentId: created.parentId } });
+        await safeInvalidate(['/resources', '/resources/*']);
+        return jsonResult({ category: created });
       });
-      await auditMutation({ ctx, tool: 'content-create-resource-category', action: 'CREATE', entityType: 'ResourceCategory', entityId: created.id, entityName: created.name, details: { slug: created.slug, parentId: created.parentId } });
-      await safeInvalidate(['/resources', '/resources/*']);
-      return jsonResult({ category: created });
     }
   );
 
