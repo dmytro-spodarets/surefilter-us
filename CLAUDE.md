@@ -536,6 +536,21 @@ npm run seed:content:force  # С перезаписью
 
 MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
 
+**Security audit pack (2026-05-17, commit `1de974f`) — May 2026 best-practices pass:**
+
+- **PII redaction in submissions** ([_helpers.ts](surefilter-ui/src/mcp/tools/_helpers.ts)) — `form-submissions-list/get` + `banner-submissions-list` now mask email (`l**k@example.com` via `maskEmail`), IP (`192.x.x.x` via `maskIp`), userAgent (`<redacted>`), and walk the submission `data` JSON (`sanitizeSubmissionData`): keys matching password/token/secret/apiKey/ssn/tax_id → `<redacted>`, email-shaped string values → `maskEmail`, strings >200 chars → truncated. `admin:*` callers see everything unchanged.
+- **tools/list scope filter** ([server.ts → installToolsListFilter](surefilter-ui/src/mcp/server.ts)) — overrides `setRequestHandler(ListToolsRequestSchema)` after tools are registered. Anonymous callers see only the tools reachable via PUBLIC_SCOPE_ALIASES (`public:catalog` ↔ `catalog:read`, etc.) — that's 14 read tools instead of 80. Reader sees its scope subset; `admin:*` sees all 81. Reuses SDK-internal `normalizeObjectSchema` + `toJsonSchemaCompat` from `@modelcontextprotocol/sdk/server/zod-{compat,json-schema-compat}.js` so the emitted `inputSchema` matches the SDK's own output byte-for-byte (an earlier `zod-to-json-schema` 3.x attempt produced `$ref`-wrapped schemas that the client rejected with "Invalid input: expected object").
+- **Race-safe idempotency** ([lib/idempotency.ts](surefilter-ui/src/lib/idempotency.ts)) — `claimIdempotency()` issues `prisma.create({ response: PENDING_SENTINEL })`; on `P2002` (unique violation) it re-reads the existing row and returns `'cached' | 'in-progress' | 'claimed'` (a TTL-stale slot is reclaimed). `finalizeIdempotency()` replaces the placeholder with the real response; `releaseIdempotency()` drops the placeholder if the mutation threw. The `withIdempotency` wrapper in `_write-helpers.ts` now follows claim → run → finalize/release. Two concurrent same-key requests can no longer both execute the mutation.
+- **Legacy auth refactor** — 9 admin routes (users, users/[id], shared-sections, shared-sections/[id], media-assets, logs, files/{list,delete,presigned-url}) converted from ad-hoc `getServerSession + session.user.role === 'ADMIN'` to the canonical `requireAdmin() + isUnauthorized()` helper. **/api/admin/cache** had a hidden P0 — it only checked that a session existed, not the ADMIN role; that's now `requireAdmin()` too. users/[id] additionally fixes a broken self-check (`session.user.id` was an unauthenticated variable) by switching to `auth.user.id`.
+- **Folder ops audit** — `/api/admin/folders/{create,delete,rename}` now write AdminLog entries (entityType='S3Folder') so destructive S3 operations surface in `/admin/logs`.
+- **Audit secret-key sanitizer** ([audit.ts](surefilter-ui/src/mcp/audit.ts)) — substring match replaces the exact-list approach: it now catches `apiKey`, `webhook_password`, `accessToken`, `database_secret`, and similar.
+- **Smoke 27/27**: tools/list filter (anon vs reader vs admin:*), PII redaction (reader sees masks, admin:* sees raw values), idempotency lifecycle (cached / claimed / in-progress / reclaimable), cache route role enforcement.
+- **Follow-up**: wide `withIdempotency` rollout across the remaining 48 write tools (only 2 reference impls today) — to be done gradually as MCP usage grows. Tracked in TODO.md under "MCP follow-up".
+
+---
+
+
+
 **Phase 5 (готово, 2026-05-13) — hardening:**
 
 - **Idempotency** ([MCPIdempotency](surefilter-ui/prisma/schema.prisma) Prisma + миграция `20260518042450_mcp_idempotency`): unique `(tokenId, key)`, TTL 24h, cron purge. Helpers — [lib/idempotency.ts](surefilter-ui/src/lib/idempotency.ts) (`readIdempotency` / `writeIdempotency` / `purgeExpiredIdempotency`) + `withIdempotency(ctx, key, tool, fn)` в [_write-helpers.ts](surefilter-ui/src/mcp/tools/_write-helpers.ts). Reference integrations: `content-create-news-category`, `content-create-resource-category`. Остальные tools принимают `idempotencyKey` но пока no-op (Zod description честно об этом говорит) — opt-in расширяется по мере роста usage.
