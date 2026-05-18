@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Editor } from '@tinymce/tinymce-react';
 import MediaPickerModal from './MediaPickerModal';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface NewsCategory {
   id: string;
@@ -345,7 +346,9 @@ export default function NewsForm({ articleId, initialData }: NewsFormProps) {
             </div>
           </div>
           {formData.featuredImage && (
-            <img src={formData.featuredImage} alt="Preview" className="max-w-md rounded-lg" />
+            <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden bg-gray-100">
+              <ManagedImage src={formData.featuredImage} alt="Preview" fill className="object-cover" />
+            </div>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

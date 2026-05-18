@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ManagedImage } from '@/components/ui/ManagedImage';
 
 interface Resource {
   id: string;
@@ -199,13 +200,15 @@ export default function ResourcesPage() {
               key={resource.id}
               className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden"
             >
-              {/* Thumbnail */}
+              {/* Thumbnail — thumbnailImage is an S3 key, ManagedImage resolves it to CDN */}
               {resource.thumbnailImage && (
-                <div className="aspect-video bg-gray-200">
-                  <img
+                <div className="relative aspect-video bg-gray-200">
+                  <ManagedImage
                     src={resource.thumbnailImage}
                     alt={resource.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover"
                   />
                 </div>
               )}
