@@ -11,5 +11,5 @@
 variable "app_runner_image_version" {
   description = "ECR image tag deployed to App Runner (e.g. v1.2.0)"
   type        = string
-  default     = "v1.3.2"
+  default     = "v1.3.3"
 }
