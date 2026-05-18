@@ -45,32 +45,14 @@ resource "aws_cloudfront_function" "mcp_path_rewrite" {
 
 # ─────────── Cache policies ───────────
 
-# No-cache policy for MCP traffic. JSON-RPC requests are per-call (auth + body),
-# and SSE responses stream — neither benefits from edge caching. Authorization
-# header is included in the cache key only for defense-in-depth; cache TTL=0
-# means CloudFront never serves stale responses regardless.
-resource "aws_cloudfront_cache_policy" "mcp_no_cache" {
-  name        = "surefilter-mcp-no-cache"
-  default_ttl = 0
-  max_ttl     = 0
-  min_ttl     = 0
-  parameters_in_cache_key_and_forwarded_to_origin {
-    enable_accept_encoding_gzip   = true
-    enable_accept_encoding_brotli = true
-    headers_config {
-      header_behavior = "whitelist"
-      headers {
-        items = [
-          "Authorization",          # Bearer token differentiates clients
-          "mcp-session-id",         # MCP session per spec 2025-11-25
-          "MCP-Protocol-Version",   # client protocol announcement
-          "Accept",                 # text/event-stream vs application/json
-        ]
-      }
-    }
-    cookies_config { cookie_behavior = "none" }
-    query_strings_config { query_string_behavior = "all" }
-  }
+# No-cache for MCP traffic. JSON-RPC requests are per-call (auth + body),
+# and SSE responses stream — neither benefits from edge caching.
+# AWS rejects any parameters_in_cache_key_* config when all TTLs = 0
+# ("caching disabled" mode is parameter-free), so we use the AWS-managed
+# CachingDisabled policy instead of declaring our own.
+# Auth / session headers still reach the origin via mcp_origin (origin request policy).
+data "aws_cloudfront_cache_policy" "managed_caching_disabled" {
+  name = "Managed-CachingDisabled"
 }
 
 # Cache policy for /.well-known/oauth-protected-resource — tiny JSON, cache 1h.
@@ -194,7 +176,7 @@ resource "aws_cloudfront_distribution" "mcp" {
   default_cache_behavior {
     target_origin_id         = "apprunner-origin"
     viewer_protocol_policy   = "redirect-to-https"
-    cache_policy_id          = aws_cloudfront_cache_policy.mcp_no_cache.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.managed_caching_disabled.id
     origin_request_policy_id = aws_cloudfront_origin_request_policy.mcp_origin.id
     allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods           = ["GET", "HEAD"]
@@ -240,7 +222,7 @@ resource "aws_cloudfront_distribution" "mcp" {
 
   tags = {
     Name    = "surefilter-mcp"
-    Purpose = "MCP server (mcp.surefilter.us)"
+    Purpose = "mcp.surefilter.us"
   }
 }
 
