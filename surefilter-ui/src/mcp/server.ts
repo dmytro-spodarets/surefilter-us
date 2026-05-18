@@ -15,6 +15,12 @@ import { registerAdminTools } from '@/mcp/tools/admin';
 import { registerContentWriteTools } from '@/mcp/tools/content-writes';
 import { registerCatalogWriteTools } from '@/mcp/tools/catalog-writes';
 import { registerOperationsTools } from '@/mcp/tools/operations';
+import { registerBannersWriteTools } from '@/mcp/tools/banners-writes';
+import { registerCmsWriteTools } from '@/mcp/tools/cms-writes';
+import { registerFormsWriteTools } from '@/mcp/tools/forms-writes';
+import { registerMediaWriteTools } from '@/mcp/tools/media-writes';
+import { registerUsersWriteTools } from '@/mcp/tools/users-writes';
+import { registerAdminWriteTools } from '@/mcp/tools/admin-writes';
 import { registerMcpResources } from '@/mcp/resources';
 
 const PUBLIC_SCOPES = ['public:catalog', 'public:content', 'public:cms'];
@@ -98,10 +104,17 @@ export function initializeMcpServer(server: McpServer) {
   registerMediaTools(server);
   registerUsersTools(server);
   registerAdminTools(server);
-  // Phase 3 — admin writes (content + catalog + ops)
+  // Phase 3a — content + catalog writes + ops
   registerContentWriteTools(server);
   registerCatalogWriteTools(server);
   registerOperationsTools(server);
+  // Phase 3b — banners / cms / forms / media / users / settings writes + export
+  registerBannersWriteTools(server);
+  registerCmsWriteTools(server);
+  registerFormsWriteTools(server);
+  registerMediaWriteTools(server);
+  registerUsersWriteTools(server);
+  registerAdminWriteTools(server);
   // Resources (Phase 1)
   registerMcpResources(server);
 }

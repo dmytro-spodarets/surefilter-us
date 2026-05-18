@@ -3,7 +3,7 @@
 > **Единый документ** для задач, техдолга и планов развития.
 > Для быстрой ориентации см. [CLAUDE.md](./CLAUDE.md)
 
-**Последнее обновление:** 13 мая 2026 (MCP Phase 3a: +21 write tools, итого 50 live tools)
+**Последнее обновление:** 13 мая 2026 (MCP Phase 3b: +30 write tools, итого 80 live tools — все Phase 0–3 фазы из плана закрыты)
 
 ---
 
@@ -15,7 +15,7 @@
 - [x] **Phase 1 — MCP skeleton + public read tools** (2026-05-13): mcp-handler+SDK установлены, `src/mcp/server.ts` с `withMcpAuth(verifyApiKey)` + maintenance/disabled гейт, `src/app/api/mcp/[transport]/route.ts` (Streamable HTTP), `/.well-known/oauth-protected-resource` (RFC 9728 stub), 11 public read tools (6 catalog + 5 content) + 4 MCP-resources (`sf://catalog/index`, `sf://content/news-feed`, `sf://content/resources-tree`, `sf://docs/api-overview`), `mcpPublicLimiter`+`mcpAuthedLimiter`, AdminLog MCP_TOOL_CALL audit. Smoke 31/31.
 - [x] **Phase 2 — Admin read tools** (2026-05-13): +18 tools (CMS list/get/shared-sections, forms list/get + submissions list/get, banners list/get + stats + campaigns + submissions, media list/get-asset, users list/get + email masking, settings-get + analytics-logs-list). Общие helpers `src/mcp/tools/_helpers.ts` (authContext/jsonResult/errorResult/requireScope/maskEmail). admin:* снимает редакции (webhookUrl/email/catalogPassword). tools-registry.ts: 29 live + 4 planned (Phase 3 writes). Smoke 66/66 с 3 разными scope-наборами для проверки isolation.
 - [x] **Phase 3a — Content + catalog writes + cache-purge** (2026-05-13): 21 tools (news CRUD+publish, news-categories CRUD, resources CRUD+publish с depth=2 hierarchy, resource-categories CRUD, brands CRUD, products CRUD c полным replace коллекций, cache-purge). Dual audit (CREATE/UPDATE/DELETE + MCP_TOOL_CALL), confirm:true для destructive, cache invalidation на каждой mutation. Smoke 55/55.
-- [ ] **Phase 3b — Banners + CMS + forms + media + users + settings writes** (~3–5 дней): banners CRUD+publish+duplicate, banner-campaigns CRUD, cms-{create,update,delete,publish}-page + section reorder + shared-sections CRUD, forms CRUD с SSRF-валидацией webhookUrl, media-presign-upload + attach-metadata + delete-file (2-step flow), users-{create,update,delete} (только admin:*), settings-update (только admin:*), submissions-export-csv. Все destructive — confirm:true или Elicitation.
+- [x] **Phase 3b — Banners + CMS + forms + media + users + settings writes** (2026-05-13): +30 tools — banners CRUD+publish+duplicate (5), banner-campaigns CRUD (3), cms pages CRUD+publish+reorder + shared-sections CRUD (8), forms CRUD с SSRF на webhookUrl (3), media presign+attach+update+delete + folder CRUD (6), users CRUD с admin:* gate + last-admin guard (3), settings-update + submissions-export-csv (2). Path-traversal protection в media, dual audit на каждой мутации. Smoke 68/68.
 - [ ] **Phase 4 — Subdomain infra** (~1–2 дня): ACM cert + CloudFront dist + Route53 для `mcp.surefilter.us`, middleware rewrite host→/api/mcp, WAF rate-limit правило.
 - [ ] **Phase 5 — Hardening + telemetry** (~1–2 дня): per-token rate-limit factory + quota enforcement (429 + Retry-After), idempotency table, cron token-leak detection, реальные графики /admin/access/usage, email-alerts на revoke не-self / создание admin:* токена.
 - [ ] **Phase 6 — OAuth 2.1 миграция** (~5–8 дней, далеко): NextAuth/Clerk/WorkOS как Auth Server, RFC 8707 Resource Indicators, refresh token rotation, второй verifier параллельно с API keys.

@@ -532,9 +532,23 @@ npm run seed:content:force  # С перезаписью
 
 ---
 
-## MCP Server (Phase 0–3a готово, Phase 3b+ в работе)
+## MCP Server (Phase 0–3 готово, Phase 4+ infra)
 
 MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Phase 3b (готово, 2026-05-13) — banners + CMS + forms + media + users + settings writes:** +30 write-tools, всего **80 live**.
+
+- **Banners** ([banners-writes.ts](surefilter-ui/src/mcp/tools/banners-writes.ts)) — banners create/update/publish/delete/duplicate (5) + campaigns CRUD (3). Duplicate сбрасывает counters и status=DRAFT. После каждой мутации `clearBannersCache()` + `safeInvalidate(['/'])`.
+- **CMS** ([cms-writes.ts](surefilter-ui/src/mcp/tools/cms-writes.ts)) — pages CRUD + publish (5; `cms:publish` отдельно от `cms:write`), reorder-page-sections с проверкой полного id-set'а, shared-sections CRUD (3).
+- **Forms** ([forms-writes.ts](surefilter-ui/src/mcp/tools/forms-writes.ts)) — CRUD (3) с **SSRF-проверкой webhookUrl** через `validateWebhookUrl` из `lib/webhook.ts` (https only, нет private IP, нет localhost; функция экспортирована для переиспользования).
+- **Media** ([media-writes.ts](surefilter-ui/src/mcp/tools/media-writes.ts)) — двухшаговая загрузка `presign-upload` → клиент PUT в S3 → `attach-metadata` (upsert MediaAsset); `update-asset-metadata` без re-upload; `delete-file` (S3 + DB row); `create-folder`/`delete-folder` (с auto-prune MediaAsset под prefix)/`rename-folder` (move objects + update s3Path + cdnUrl). **Path-traversal protection** `safeKey()` — отвергает `..`, ведущий `/`, backslash, null-byte.
+- **Users** ([users-writes.ts](surefilter-ui/src/mcp/tools/users-writes.ts)) — CRUD (3). **Двойной gate**: users:write на токене **И** super-wildcard `admin:*` (одного users:write недостаточно). Last-active-ADMIN guard при demote/disable/delete. Пароли bcrypt-хэшируются перед записью; в audit писать в plaintext запрещено (`SECRET_KEYS` в `audit.ts`).
+- **Admin** ([admin-writes.ts](surefilter-ui/src/mcp/tools/admin-writes.ts)) — `settings-update` (SiteSettings + MCP global; settings:write + admin:* + confirm:true; полная инвалидация `/`). `submissions-export-csv` (form OR banner submissions; PII, date-range + limit ≤10k; возвращает текстовый CSV).
+- **Smoke 68/68** (3 токена: writer / usersOnly / admin:*) — SSRF rejection (http localhost / private IP / non-https), path-traversal (2 вариант), admin:* gate (settings + users), presign-URL flow, CSV header, dual audit подтверждён.
+
+---
+
+
 
 **Phase 3a (готово, 2026-05-13) — content + catalog writes + cache-purge:** +21 write-tools, всего **50 live**.
 
