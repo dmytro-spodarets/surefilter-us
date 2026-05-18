@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createS3Folder } from '@/lib/s3';
 import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 import path from 'path';
 
 function isSafePath(p: string): boolean {
@@ -37,6 +38,18 @@ export async function POST(request: NextRequest) {
 
     // Create folder in S3 (creates a placeholder object)
     await createS3Folder(folderPath);
+
+    // Audit
+    const metadata = getRequestMetadata(request);
+    await logAdminAction({
+      userId: auth.user.id,
+      action: 'CREATE',
+      entityType: 'S3Folder',
+      entityId: folderPath,
+      entityName: folderPath,
+      details: { parentPath },
+      ...metadata,
+    });
 
     return NextResponse.json({
       success: true,

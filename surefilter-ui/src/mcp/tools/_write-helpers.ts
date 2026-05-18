@@ -5,7 +5,7 @@ import { invalidatePages } from '@/lib/revalidate';
 import { hasScope } from '@/lib/api-token';
 import { forbidden } from '@/mcp/scope-guard';
 import { logToolCall } from '@/mcp/audit';
-import { readIdempotency, writeIdempotency } from '@/lib/idempotency';
+import { claimIdempotency, finalizeIdempotency, releaseIdempotency } from '@/lib/idempotency';
 import type { Prisma, AdminAction } from '@/generated/prisma';
 import type { AuthCtx } from '@/mcp/tools/_helpers';
 import { errorResult } from '@/mcp/tools/_helpers';
@@ -28,12 +28,16 @@ export const mutationCommonFields = {
  *     return jsonResult({ ... });
  *   });
  *
- * If `idempotencyKey` is provided AND the (tokenId, key) tuple was seen
- * within the last 24h, returns the stored result without invoking `fn`.
- * Otherwise runs `fn`, stores the result, and returns it.
- *
- * Anonymous callers (no tokenId) skip the cache — idempotency requires a
- * persistent identity to scope keys.
+ * Behaviour (`claimIdempotency` under the hood, atomic slot reservation):
+ *   - No `idempotencyKey` OR anonymous caller (no tokenId) → bypass dedup,
+ *     just run `fn`. Anonymous callers cannot scope keys to an identity.
+ *   - Cached hit (same key seen within 24h) → return stored response without
+ *     invoking `fn`. Sequential retry safety.
+ *   - Race against another in-flight call with the same key → return a 409-style
+ *     MCP error pointing the client at a backoff. Prevents double-execution.
+ *   - Otherwise → run `fn`, finalize the slot with the real response, return it.
+ *     If `fn` throws, the placeholder slot is released so a subsequent retry
+ *     can succeed instead of being permanently blocked.
  */
 export async function withIdempotency<T>(
   ctx: AuthCtx,
@@ -42,11 +46,27 @@ export async function withIdempotency<T>(
   fn: () => Promise<T>
 ): Promise<T> {
   if (!key || !ctx.tokenId) return fn();
-  const cached = await readIdempotency(ctx.tokenId, key);
-  if (cached !== null) return cached as T;
-  const result = await fn();
-  await writeIdempotency({ tokenId: ctx.tokenId, key, tool, response: result });
-  return result;
+
+  const claim = await claimIdempotency(ctx.tokenId, key, tool);
+
+  if (claim.kind === 'cached') return claim.response as T;
+  if (claim.kind === 'in-progress') {
+    return errorResult(
+      `Concurrent request with the same idempotencyKey is still being processed ` +
+      `(started ${Math.round(claim.sinceMs / 1000)}s ago). Retry shortly.`
+    ) as unknown as T;
+  }
+
+  // claim.kind === 'claimed' — we own the slot
+  try {
+    const result = await fn();
+    await finalizeIdempotency({ tokenId: ctx.tokenId, key, tool, response: result });
+    return result;
+  } catch (e) {
+    // Mutation failed — free the slot so retries aren't blocked.
+    await releaseIdempotency(ctx.tokenId, key);
+    throw e;
+  }
 }
 
 /**

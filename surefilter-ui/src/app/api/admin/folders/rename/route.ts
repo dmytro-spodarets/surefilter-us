@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { moveS3Objects } from '@/lib/s3';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 import path from 'path';
 
 export async function PUT(request: NextRequest) {
@@ -52,6 +53,18 @@ export async function PUT(request: NextRequest) {
         },
       });
     }
+
+    // Audit
+    const metadata = getRequestMetadata(request);
+    await logAdminAction({
+      userId: auth.user.id,
+      action: 'UPDATE',
+      entityType: 'S3Folder',
+      entityId: oldPath,
+      entityName: `${oldPath} → ${newPath}`,
+      details: { affectedAssets: affectedAssets.length },
+      ...metadata,
+    });
 
     return NextResponse.json({
       success: true,

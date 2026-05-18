@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { clearSiteSettingsCache } from '@/lib/site-settings';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 // POST /api/admin/cache — Clear all caches (ISR + CloudFront + in-memory)
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Phase 5 audit P0/P2-2 fix: was checking only `!session` without role-gate,
+  // allowing non-ADMIN authenticated users to purge production caches. Now uses
+  // requireAdmin() (canonical ADMIN role check) like the rest of /api/admin/*.
+  const auth = await requireAdmin();
+  if (isUnauthorized(auth)) return auth;
 
   const results: {
     inMemory: boolean;
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Log action
     const metadata = getRequestMetadata(request);
     await logAdminAction({
-      userId: (session as any).userId,
+      userId: auth.user.id,
       action: 'UPDATE',
       entityType: 'Cache',
       entityId: 'all',

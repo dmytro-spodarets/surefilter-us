@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 const CreateUserSchema = z.object({
@@ -17,11 +16,8 @@ const CreateUserSchema = z.object({
 // GET /api/admin/users - List all users
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
     const users = await prisma.user.findMany({
       select: {
@@ -49,11 +45,8 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/users - Create new user
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
     const body = await request.json();
     const data = CreateUserSchema.parse(body);
@@ -96,7 +89,7 @@ export async function POST(request: NextRequest) {
     // Log action
     const metadata = getRequestMetadata(request);
     await logAdminAction({
-      userId: session.user.id,
+      userId: auth.user.id,
       action: 'CREATE',
       entityType: 'User',
       entityId: user.id,

@@ -72,3 +72,53 @@ export function maskEmail(email: string | null | undefined): string {
   if (local.length <= 2) return `${local[0] ?? '*'}***@${domain}`;
   return `${local[0]}${'*'.repeat(Math.max(1, local.length - 2))}${local[local.length - 1]}@${domain}`;
 }
+
+/**
+ * Mask an IPv4/IPv6 address — keeps the first octet/segment only.
+ *   "192.168.1.42"     → "192.x.x.x"
+ *   "2001:db8::1"      → "2001:x:x:x"
+ *   "127.0.0.1"        → "127.x.x.x"
+ *   null / undefined   → ""
+ */
+export function maskIp(ip: string | null | undefined): string {
+  if (!ip) return '';
+  if (ip.includes(':')) {
+    const [head] = ip.split(':');
+    return `${head}:x:x:x`;
+  }
+  const [head] = ip.split('.');
+  return `${head}.x.x.x`;
+}
+
+/**
+ * Sanitize a free-form submission `data` JSON for non-elevated viewers.
+ * Walks one level deep and:
+ *   - masks email-shaped strings via maskEmail()
+ *   - redacts values whose key looks like a secret (password / token / secret / apiKey / ssn / phone)
+ *   - truncates strings longer than 200 chars
+ *
+ * This is conservative — we keep the structure so the caller can still
+ * tell what fields were submitted, but strip the values that look risky.
+ */
+const SUBMISSION_SECRET_KEY_RE = /^(password|token|secret|api[_-]?key|ssn|tax[_-]?id)$/i;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function sanitizeSubmissionData(data: unknown): unknown {
+  if (data === null || data === undefined) return data;
+  if (typeof data === 'string') {
+    if (EMAIL_RE.test(data)) return maskEmail(data);
+    if (data.length > 200) return `${data.slice(0, 200)}…(${data.length}ch)`;
+    return data;
+  }
+  if (typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(sanitizeSubmissionData);
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
+    if (SUBMISSION_SECRET_KEY_RE.test(k)) {
+      out[k] = '<redacted>';
+    } else {
+      out[k] = sanitizeSubmissionData(v);
+    }
+  }
+  return out;
+}

@@ -1,9 +1,17 @@
 import 'server-only';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { verifyToken } from '@/lib/api-token';
+import { ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+// Reuse the SDK's own schema-conversion helpers so our filtered tools/list
+// produces the exact same JSON Schema shape (e.g. `type: "object"`) the SDK
+// would emit from registerTool(). The package exposes these via its `./*`
+// wildcard subpath export.
+import { normalizeObjectSchema } from '@modelcontextprotocol/sdk/server/zod-compat.js';
+import { toJsonSchemaCompat } from '@modelcontextprotocol/sdk/server/zod-json-schema-compat.js';
+import { verifyToken, hasAllScopes } from '@/lib/api-token';
 import { getMcpSettings } from '@/lib/mcp-settings';
 import { mcpPublicLimiter, getMcpAuthedLimiter, getClientIp } from '@/lib/rate-limiter';
+import { MCP_TOOLS } from '@/mcp/tools-registry';
 import { registerCatalogTools } from '@/mcp/tools/catalog';
 import { registerContentTools } from '@/mcp/tools/content';
 import { registerCmsTools } from '@/mcp/tools/cms';
@@ -120,6 +128,96 @@ export function initializeMcpServer(server: McpServer) {
   registerAdminWriteTools(server);
   // Resources (Phase 1)
   registerMcpResources(server);
+
+  // ────── Scope-aware filter for tools/list ──────
+  // After every registerTool() call above, override the SDK's default tools/list
+  // handler so anonymous / scoped callers only see tools they could actually invoke.
+  // Without this filter every connecting client sees all 80 tool names (admin
+  // capability disclosure — P1-1 in the May 2026 security audit).
+  installToolsListFilter(server);
+}
+
+/** Build a Map of toolName → requiredScopes for fast lookup. */
+const TOOL_REQUIRED_SCOPES: Record<string, string[]> = (() => {
+  const out: Record<string, string[]> = {};
+  for (const t of MCP_TOOLS) out[t.name] = t.requiredScopes;
+  return out;
+})();
+
+/**
+ * Public scopes (default for anonymous) that should also see catalog/content/cms
+ * read tools, since those tools have a public-mode branch via effectiveMode().
+ * The registry only lists the admin-scope side; this map widens the visibility
+ * filter to include public-mode-friendly tools.
+ */
+const PUBLIC_SCOPE_ALIASES: Record<string, string[]> = {
+  'catalog:read': ['public:catalog'],
+  'content:read': ['public:content'],
+  'cms:read': ['public:cms'],
+};
+
+function toolVisible(toolName: string, grantedScopes: string[]): boolean {
+  const required = TOOL_REQUIRED_SCOPES[toolName];
+  if (!required || required.length === 0) return true; // tool not in registry — fail open
+  // Direct scope match (handles admin:* and domain:* wildcards via hasAllScopes)
+  if (hasAllScopes(grantedScopes, required)) return true;
+  // Public-mode aliases — let anonymous see read tools they can run in public mode
+  for (const req of required) {
+    const aliases = PUBLIC_SCOPE_ALIASES[req];
+    if (aliases && aliases.some((a) => grantedScopes.includes(a))) return true;
+  }
+  return false;
+}
+
+const EMPTY_OBJECT_JSON_SCHEMA = { type: 'object' as const, properties: {} };
+
+function installToolsListFilter(server: McpServer) {
+  // Access the McpServer's internal registry. This shape is not officially
+  // public on McpServer but stable in the SDK source — we cast through `any`
+  // and acknowledge the coupling. We mirror the SDK's own list handler in
+  // src/server/mcp.ts so the emitted inputSchema matches byte-for-byte.
+  const internalTools = (server as any)._registeredTools as Record<string, {
+    title?: string;
+    description?: string;
+    inputSchema?: unknown;
+    outputSchema?: unknown;
+    annotations?: unknown;
+    execution?: unknown;
+    _meta?: unknown;
+    enabled: boolean;
+  }>;
+
+  server.server.setRequestHandler(ListToolsRequestSchema, async (_request, extra) => {
+    const grantedScopes: string[] = (extra?.authInfo as AuthInfo | undefined)?.scopes ?? [];
+
+    const tools = Object.entries(internalTools)
+      .filter(([, t]) => t.enabled)
+      .filter(([name]) => toolVisible(name, grantedScopes))
+      .map(([name, tool]) => {
+        const obj = normalizeObjectSchema(tool.inputSchema as any);
+        const inputSchema = obj
+          ? toJsonSchemaCompat(obj, { strictUnions: true, pipeStrategy: 'input' })
+          : EMPTY_OBJECT_JSON_SCHEMA;
+        const def: Record<string, unknown> = {
+          name,
+          title: tool.title,
+          description: tool.description,
+          inputSchema,
+          annotations: tool.annotations,
+          execution: tool.execution,
+          _meta: tool._meta,
+        };
+        if (tool.outputSchema) {
+          const outObj = normalizeObjectSchema(tool.outputSchema as any);
+          if (outObj) {
+            def.outputSchema = toJsonSchemaCompat(outObj, { strictUnions: true, pipeStrategy: 'output' });
+          }
+        }
+        return def;
+      });
+
+    return { tools };
+  });
 }
 
 /**

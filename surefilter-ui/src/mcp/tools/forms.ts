@@ -3,7 +3,17 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { prisma } from '@/lib/prisma';
 import { logToolCall } from '@/mcp/audit';
-import { authContext, jsonResult, errorResult, requireScope, type ExtraContext } from '@/mcp/tools/_helpers';
+import { authContext, jsonResult, errorResult, requireScope, maskEmail, maskIp, sanitizeSubmissionData, type ExtraContext } from '@/mcp/tools/_helpers';
+
+function redactSubmission<T extends { data: unknown; ipAddress: string | null; userAgent: string | null }>(sub: T, elevated: boolean): T {
+  if (elevated) return sub;
+  return {
+    ...sub,
+    data: sanitizeSubmissionData(sub.data),
+    ipAddress: maskIp(sub.ipAddress),
+    userAgent: sub.userAgent ? '<redacted>' : null,
+  } as T;
+}
 
 /** Redact webhook URLs + notification emails for callers without admin:*. */
 function redactForm<T extends { webhookUrl?: string | null; webhookHeaders?: any; notifyEmail?: string | null }>(form: T, elevated: boolean): T {
@@ -151,8 +161,9 @@ export function registerFormsTools(server: McpServer) {
         prisma.formSubmission.count({ where }),
       ]);
 
+      const sanitized = items.map((s) => redactSubmission(s, ctx.elevated));
       await logToolCall({ tool: 'form-submissions-list', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: `${items.length}/${total}` });
-      return jsonResult({ pagination: { page: args.page, limit: args.limit, total, totalPages: Math.ceil(total / args.limit) }, submissions: items });
+      return jsonResult({ elevated: ctx.elevated, pagination: { page: args.page, limit: args.limit, total, totalPages: Math.ceil(total / args.limit) }, submissions: sanitized });
     }
   );
 
@@ -177,7 +188,7 @@ export function registerFormsTools(server: McpServer) {
         return errorResult('Submission not found');
       }
       await logToolCall({ tool: 'form-submissions-get', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: submission.id });
-      return jsonResult({ submission });
+      return jsonResult({ elevated: ctx.elevated, submission: redactSubmission(submission, ctx.elevated) });
     }
   );
 }

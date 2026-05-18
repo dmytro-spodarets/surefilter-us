@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { deleteS3Folder } from '@/lib/s3';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
+import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 import path from 'path';
 
 export async function DELETE(request: NextRequest) {
@@ -42,6 +43,18 @@ export async function DELETE(request: NextRequest) {
 
     // Delete folder from S3
     await deleteS3Folder(folderPath);
+
+    // Audit
+    const metadata = getRequestMetadata(request);
+    await logAdminAction({
+      userId: auth.user.id,
+      action: 'DELETE',
+      entityType: 'S3Folder',
+      entityId: folderPath,
+      entityName: folderPath,
+      details: { deletedAssets: filesInFolder.length },
+      ...metadata,
+    });
 
     return NextResponse.json({
       success: true,

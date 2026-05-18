@@ -3,7 +3,17 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { prisma } from '@/lib/prisma';
 import { logToolCall } from '@/mcp/audit';
-import { authContext, jsonResult, errorResult, requireScope, type ExtraContext } from '@/mcp/tools/_helpers';
+import { authContext, jsonResult, errorResult, requireScope, maskEmail, maskIp, type ExtraContext } from '@/mcp/tools/_helpers';
+
+function redactBannerSubmission<T extends { email: string; ipAddress: string | null; userAgent: string | null }>(sub: T, elevated: boolean): T {
+  if (elevated) return sub;
+  return {
+    ...sub,
+    email: maskEmail(sub.email),
+    ipAddress: maskIp(sub.ipAddress),
+    userAgent: sub.userAgent ? '<redacted>' : null,
+  } as T;
+}
 
 function redactBanner<T extends { notifyEmail?: string | null }>(b: T, elevated: boolean): T {
   if (elevated || !b.notifyEmail) return b;
@@ -228,8 +238,9 @@ export function registerBannersTools(server: McpServer) {
         prisma.bannerSubmission.count({ where }),
       ]);
 
+      const sanitized = items.map((s) => redactBannerSubmission(s, ctx.elevated));
       await logToolCall({ tool: 'banner-submissions-list', scopes: ctx.scopes, status: 'ok', clientId: ctx.clientId, tokenId: ctx.tokenId, userId: ctx.userId, ip: ctx.ip, params: args, resultSummary: `${items.length}/${total}` });
-      return jsonResult({ pagination: { page: args.page, limit: args.limit, total, totalPages: Math.ceil(total / args.limit) }, submissions: items });
+      return jsonResult({ elevated: ctx.elevated, pagination: { page: args.page, limit: args.limit, total, totalPages: Math.ceil(total / args.limit) }, submissions: sanitized });
     }
   );
 }

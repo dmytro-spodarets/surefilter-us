@@ -32,13 +32,25 @@ export type ToolCallRecord = {
   userAgent?: string;
 };
 
-const SECRET_KEYS = new Set(['password', 'token', 'secret', 'apiKey', 'bearer', 'authorization']);
+// Substring match (case-insensitive) for key sanitization. Catches `apiKey`,
+// `webhook_password`, `database_secret`, `accessToken`, `ssn`, etc.
+// Tested against the params keys an MCP tool can plausibly receive.
+const SECRET_KEY_PATTERNS = [
+  'password', 'passwd', 'token', 'secret', 'apikey', 'api_key',
+  'bearer', 'authorization', 'credential', 'private_key', 'privatekey',
+  'access_key', 'accesskey', 'ssn', 'tax_id', 'taxid',
+];
+
+function isSecretKey(k: string): boolean {
+  const lower = k.toLowerCase();
+  return SECRET_KEY_PATTERNS.some((pat) => lower.includes(pat));
+}
 
 function sanitizeParams(params: Record<string, unknown> | undefined): Record<string, unknown> | null {
   if (!params || typeof params !== 'object') return null;
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(params)) {
-    if (SECRET_KEYS.has(k.toLowerCase())) {
+    if (isSecretKey(k)) {
       out[k] = '<redacted>';
     } else if (typeof v === 'string' && v.length > 200) {
       out[k] = `${v.slice(0, 200)}…(${v.length}ch)`;

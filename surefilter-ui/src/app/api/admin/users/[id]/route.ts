@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin, isUnauthorized } from '@/lib/require-admin';
 import { logAdminAction, getRequestMetadata } from '@/lib/admin-logger';
 
 const UpdateUserSchema = z.object({
@@ -20,11 +19,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
     const { id } = await params;
 
@@ -61,11 +57,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
     const { id } = await params;
     const body = await request.json();
@@ -81,7 +74,7 @@ export async function PUT(
     }
 
     // Prevent admin from deactivating themselves
-    if (id === session.user.id && data.isActive === false) {
+    if (id === auth.user.id && data.isActive === false) {
       return NextResponse.json(
         { error: 'Cannot deactivate your own account' },
         { status: 400 }
@@ -132,7 +125,7 @@ export async function PUT(
     // Log action
     const metadata = getRequestMetadata(request);
     await logAdminAction({
-      userId: session.user.id,
+      userId: auth.user.id,
       action: 'UPDATE',
       entityType: 'User',
       entityId: user.id,
@@ -164,16 +157,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAdmin();
+    if (isUnauthorized(auth)) return auth;
 
     const { id } = await params;
 
     // Prevent admin from deleting themselves
-    if (id === session.user.id) {
+    if (id === auth.user.id) {
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -195,7 +185,7 @@ export async function DELETE(
     // Log action
     const metadata = getRequestMetadata(request);
     await logAdminAction({
-      userId: session.user.id,
+      userId: auth.user.id,
       action: 'DELETE',
       entityType: 'User',
       entityId: id,
