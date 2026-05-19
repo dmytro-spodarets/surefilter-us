@@ -76,7 +76,7 @@ export const mcpPublicLimiter = new RateLimiter(60, 60 * 1000);            // 60
 
 // Phase 5: per-token burst limiter is now driven by mcpSettings.rateLimitPerMinute.
 // Limiter instances are cached by their per-minute cap so counter state survives
-// across requests for the same cap. Updating the setting in /admin/access/settings
+// across requests for the same cap. Updating the setting in /admin/settings/api
 // surfaces immediately on the next request without a server restart.
 const dynamicLimiters = new Map<number, RateLimiter>();
 

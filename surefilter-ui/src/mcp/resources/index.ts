@@ -45,7 +45,7 @@ Anonymous calls are rate-limited (60/min per IP).
 
 ## Authenticated access (Bearer token)
 
-Tokens are issued in the admin at /admin/access/tokens with scopes such as
+Tokens are issued in the admin at /admin/settings/tokens with scopes such as
 catalog:read, content:write, banners:publish, admin:*. See the Scopes
 Reference page in the admin for the full vocabulary.
 

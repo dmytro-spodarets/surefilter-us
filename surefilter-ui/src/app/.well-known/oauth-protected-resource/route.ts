@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
  *
  * Phase 1 ships with an empty `authorization_servers` list because the MCP
  * server currently authenticates via Personal Access Tokens (PATs) issued in
- * /admin/access. The endpoint exists so MCP clients that hit a 401 + receive a
+ * /admin/settings (API & Access group). The endpoint exists so MCP clients that hit a 401 + receive a
  * WWW-Authenticate with `resource_metadata` URL can fetch this document and
  * report a clean "this server uses bearer tokens, no OAuth flow" state.
  *

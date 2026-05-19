@@ -131,7 +131,7 @@ export default function NewTokenPage() {
             {copied ? '✓ Copied' : 'Copy token'}
           </button>
           <Link
-            href="/admin/access/tokens"
+            href="/admin/settings/tokens"
             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm"
           >
             Done
@@ -305,7 +305,7 @@ export default function NewTokenPage() {
             {submitting ? 'Creating…' : 'Create token'}
           </button>
           <Link
-            href="/admin/access/tokens"
+            href="/admin/settings/tokens"
             className="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-sm"
           >
             Cancel

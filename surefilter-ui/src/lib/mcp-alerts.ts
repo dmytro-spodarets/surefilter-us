@@ -68,11 +68,11 @@ export async function alertTokenRevokedNotSelf(opts: {
 <h2 style="color:#dc2626;margin-top:0;">API token revoked</h2>
 <p>Your Sure Filter US API token <strong>${escapeHtml(opts.tokenName)}</strong> (<code>${escapeHtml(opts.tokenPrefix)}…</code>) was just revoked by <strong>${escapeHtml(opts.revokedByEmail)}</strong>.</p>
 ${opts.reason ? `<p><strong>Reason:</strong> ${escapeHtml(opts.reason)}</p>` : ''}
-<p>If this was unexpected, contact the admin who revoked it. If you need a new token, sign in and create one at <a href="${SITE_URL}/admin/access/tokens">${SITE_URL}/admin/access/tokens</a>.</p>
+<p>If this was unexpected, contact the admin who revoked it. If you need a new token, sign in and create one at <a href="${SITE_URL}/admin/settings/tokens">${SITE_URL}/admin/settings/tokens</a>.</p>
 <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/>
 <p style="font-size:12px;color:#6b7280;">This is an automated notification from the Sure Filter US admin. Do not reply.</p>
 </body></html>`;
-  const text = `Your API token "${opts.tokenName}" (${opts.tokenPrefix}...) was revoked by ${opts.revokedByEmail}.\n${opts.reason ? `Reason: ${opts.reason}\n` : ''}If this was unexpected, contact the admin who revoked it. Manage tokens at ${SITE_URL}/admin/access/tokens`;
+  const text = `Your API token "${opts.tokenName}" (${opts.tokenPrefix}...) was revoked by ${opts.revokedByEmail}.\n${opts.reason ? `Reason: ${opts.reason}\n` : ''}If this was unexpected, contact the admin who revoked it. Manage tokens at ${SITE_URL}/admin/settings/tokens`;
 
   await send({ to: [opts.ownerEmail], subject, html, text });
 }
@@ -98,11 +98,11 @@ export async function alertAdminStarTokenCreated(opts: {
   <li><strong>Owner:</strong> ${escapeHtml(opts.ownerEmail ?? 'unknown')}</li>
   <li><strong>Created by:</strong> ${escapeHtml(opts.createdByEmail)}</li>
 </ul>
-<p>This token can read and modify every part of the site. If you don't recognize this, revoke it now at <a href="${SITE_URL}/admin/access/tokens/${escapeHtml(opts.tokenId)}">${SITE_URL}/admin/access/tokens/${escapeHtml(opts.tokenId)}</a>.</p>
+<p>This token can read and modify every part of the site. If you don't recognize this, revoke it now at <a href="${SITE_URL}/admin/settings/tokens/${escapeHtml(opts.tokenId)}">${SITE_URL}/admin/settings/tokens/${escapeHtml(opts.tokenId)}</a>.</p>
 <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/>
 <p style="font-size:12px;color:#6b7280;">This is an automated notification from the Sure Filter US admin. Do not reply.</p>
 </body></html>`;
-  const text = `A new admin:* API token was issued.\nName: ${opts.tokenName}\nPrefix: ${opts.tokenPrefix}...\nOwner: ${opts.ownerEmail ?? 'unknown'}\nCreated by: ${opts.createdByEmail}\n\nManage at ${SITE_URL}/admin/access/tokens/${opts.tokenId}`;
+  const text = `A new admin:* API token was issued.\nName: ${opts.tokenName}\nPrefix: ${opts.tokenPrefix}...\nOwner: ${opts.ownerEmail ?? 'unknown'}\nCreated by: ${opts.createdByEmail}\n\nManage at ${SITE_URL}/admin/settings/tokens/${opts.tokenId}`;
 
   await send({ to: admins, subject, html, text });
 }

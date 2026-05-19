@@ -262,9 +262,6 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                 <Link href="/admin/files" className={linkClass('/admin/files')}>
                   Files
                 </Link>
-                <Link href="/admin/access" className={linkClass('/admin/access')}>
-                  Access
-                </Link>
                 <Link href="/admin/settings" className={linkClass('/admin/settings')}>
                   Settings
                 </Link>

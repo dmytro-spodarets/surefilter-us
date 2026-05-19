@@ -111,7 +111,7 @@ export default function TokensListPage() {
       <div className="flex items-center justify-between mb-4 gap-3">
         <h2 className="text-xl font-bold text-gray-900">Personal Access Tokens</h2>
         <Link
-          href="/admin/access/tokens/new"
+          href="/admin/settings/tokens/new"
           className="inline-flex items-center px-4 py-2 bg-sure-blue-600 text-white rounded-lg hover:bg-sure-blue-700 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
@@ -212,7 +212,7 @@ export default function TokensListPage() {
                   <StatusBadge status={t.status} />
                 </td>
                 <td className="px-4 py-3 text-right text-sm">
-                  <Link href={`/admin/access/tokens/${t.id}`} className="text-sure-blue-600 hover:text-sure-blue-800 mr-3">
+                  <Link href={`/admin/settings/tokens/${t.id}`} className="text-sure-blue-600 hover:text-sure-blue-800 mr-3">
                     View
                   </Link>
                   {t.status === 'active' && (

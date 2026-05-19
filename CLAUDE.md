@@ -168,8 +168,12 @@ surefilter-us/
 - `/admin/banner-campaigns` — кампании банеров (с aggregate stats)
 - `/admin/banner-submissions` — универсальный view всех лидов с CSV export
 - `/admin/files` — файл-менеджер (S3)
-- `/admin/access` — **API & Access** (MCP server): personal access tokens, scopes reference, usage dashboard, server settings + connection guide (см. раздел «MCP server» ниже)
 - `/admin/settings/site` — настройки сайта (Header, Footer, Special Pages, Redirects)
+- `/admin/settings/tokens` — Personal Access Tokens (MCP); `/admin/settings/tokens/new`, `/admin/settings/tokens/[id]`
+- `/admin/settings/scopes` — Scopes Reference (auto-generated из tool-registry)
+- `/admin/settings/usage` — MCP usage dashboard (sparkline + status breakdown + top tools/tokens)
+- `/admin/settings/api` — MCP API Server config + Connection Guide
+- (исторически жили под `/admin/access/*`, перенесены в Settings 2026-05-18 — top-nav теперь только Files + Settings)
 - `/admin/users` — пользователи (список, создание, редактирование)
 - `/admin/logs` — логи действий
 
@@ -541,6 +545,8 @@ npm run seed:content:force  # С перезаписью
 ## MCP Server (Phase 0–5 готово — все фазы плана закрыты)
 
 MCP-сервер (Model Context Protocol) даёт AI-агентам (Claude Desktop, Claude Code, внешние интеграции) доступ к админским операциям + публичный read-only для каталога/контента. План: `/Users/spodarets/.claude/plans/dazzling-whistling-walrus.md`.
+
+**Admin UI (2026-05-18):** управление токенами / scopes / usage / MCP server settings живёт в **Settings → API & Access** ([src/components/admin/SettingsShell.tsx](surefilter-ui/src/components/admin/SettingsShell.tsx)) — отдельного пункта в top-nav больше нет. Sidebar в Settings сгруппирован: **General** (Site Settings / Users / Activity Logs) и **API & Access** (Tokens / Scopes Reference / Usage / API Server). URL'ы: `/admin/settings/tokens`, `.../scopes`, `.../usage`, `.../api`. API endpoints остались на `/api/admin/access/*` (бекенд не переименовывали). Старые URL `/admin/access/*` больше не существуют — все внутренние ссылки + email-шаблоны в `lib/mcp-alerts.ts` + markdown в `mcp/resources/index.ts` обновлены.
 
 **Security audit pack (2026-05-17, commit `1de974f`) — May 2026 best-practices pass:**
 

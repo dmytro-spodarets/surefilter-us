@@ -102,7 +102,7 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
     }
     setRegenResult({ plaintext: json.plaintext, name: json.name });
     // Navigate to the new token detail after closing the modal
-    setTimeout(() => router.push(`/admin/access/tokens/${json.id}`), 0);
+    setTimeout(() => router.push(`/admin/settings/tokens/${json.id}`), 0);
   }
 
   if (regenResult) {
@@ -116,7 +116,7 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
           {regenResult.plaintext}
         </div>
         <Link
-          href="/admin/access/tokens"
+          href="/admin/settings/tokens"
           className="px-4 py-2 bg-sure-blue-600 text-white rounded hover:bg-sure-blue-700 text-sm"
         >
           Done
@@ -128,7 +128,7 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        {error} <Link href="/admin/access/tokens" className="underline ml-2">Back to list</Link>
+        {error} <Link href="/admin/settings/tokens" className="underline ml-2">Back to list</Link>
       </div>
     );
   }
@@ -142,7 +142,7 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/access/tokens" className="text-sm text-sure-blue-600 hover:underline">
+        <Link href="/admin/settings/tokens" className="text-sm text-sure-blue-600 hover:underline">
           ← All tokens
         </Link>
       </div>
