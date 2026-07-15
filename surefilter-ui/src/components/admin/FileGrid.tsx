@@ -6,6 +6,7 @@ import {
   PhotoIcon, 
   DocumentIcon, 
   VideoCameraIcon,
+  TableCellsIcon,
   EllipsisVerticalIcon,
   TrashIcon,
   ClipboardDocumentIcon,
@@ -68,6 +69,11 @@ export default function FileGrid({
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return PhotoIcon;
     if (mimeType.startsWith('video/')) return VideoCameraIcon;
+    if (
+      mimeType === 'application/vnd.ms-excel' ||
+      mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      mimeType === 'text/csv'
+    ) return TableCellsIcon;
     if (mimeType === 'application/pdf') return DocumentIcon;
     return DocumentIcon;
   };

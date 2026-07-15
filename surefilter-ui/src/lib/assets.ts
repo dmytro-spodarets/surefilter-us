@@ -121,6 +121,9 @@ export function getMimeType(s3Path: string): string {
     pdf: 'application/pdf',
     mp4: 'video/mp4',
     webm: 'video/webm',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    csv: 'text/csv',
   };
   return mimeMap[ext] || 'application/octet-stream';
 }

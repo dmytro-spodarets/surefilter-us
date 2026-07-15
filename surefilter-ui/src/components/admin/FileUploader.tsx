@@ -200,7 +200,7 @@ export default function FileUploader({
           type="file"
           multiple
           onChange={handleChange}
-          accept="image/*,video/*,.pdf"
+          accept="image/*,video/*,.pdf,.xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
         
@@ -211,7 +211,7 @@ export default function FileUploader({
               Drop files here or click to upload
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              Supports images, videos, and PDF files (max 50MB each)
+              Supports images, videos, PDF, and Excel/CSV files (max 50MB each)
             </p>
             <p className="text-xs text-green-600 mt-1">
               ✨ Images are automatically optimized before upload

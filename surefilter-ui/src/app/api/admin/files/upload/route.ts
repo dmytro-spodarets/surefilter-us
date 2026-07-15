@@ -9,7 +9,11 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ALLOWED_TYPES = [
   'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml',
   'video/mp4', 'video/webm',
-  'application/pdf'
+  'application/pdf',
+  // Spreadsheets (Excel + CSV)
+  'application/vnd.ms-excel', // .xls
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'text/csv', // .csv
 ];
 
 export async function POST(request: NextRequest) {
